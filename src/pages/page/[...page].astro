@@ -1,0 +1,168 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getCollection, render } from "astro:content";
+import FormattedDate from "@/components/FormattedDate.astro";
+import SectionBreak from "@/components/SectionBreak.astro";
+import SectionLabel from "@/components/SectionLabel.astro";
+import Header from "@/components/Header.astro";
+
+export const getStaticPaths = (async ({ paginate }) => {
+    const allLinks = await getCollection("links");
+    const allNotes = await getCollection("notes", ({ data }) => {
+        return import.meta.env.PROD ? data.draft !== true : true;
+    });
+    const allPosts = await getCollection("posts", ({ data }) => {
+        return import.meta.env.PROD ? data.draft !== true : true;
+    });
+    const allFeed = [...allLinks, ...allNotes, ...allPosts].sort((a, b) => {
+        const aDate = a.data.published;
+        const bDate = b.data.published;
+        return Date.parse(bDate.toString()) - Date.parse(aDate.toString());
+    });
+    return paginate(allFeed, { pageSize: 10 });
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+---
+
+<BaseLayout
+    title={`Blog - Page ${page.currentPage}`}
+    description="UI engineer who enjoys working at the intersection of design and engineering teams.">
+    <Header>
+        <SectionLabel as="p">Page {page.currentPage}</SectionLabel>
+        <h1 class="font-mono text-neutral-400 text-sm">Blog Feed</h1>
+        <p
+            class="mt-2 font-medium text-xl sm:text-2xl text-balance tracking-tight">
+            A collection of short notes, interesting links, and the occasional
+            long form post.
+        </p>
+    </Header>
+
+    <SectionBreak />
+
+    <section class="relative">
+        <SectionLabel as="h2">Items</SectionLabel>
+        <ul class="divide-y divide-dashed divide-neutral-700">
+            {
+                page.data.map((item) => {
+                    if (item.collection === "links") {
+                        return render(item).then(({ Content }) => (
+                            <li
+                                class="px-4 sm:px-8 py-8"
+                                id={`link-${item.id}`}>
+                                <h2 class="font-semibold">
+                                    <a
+                                        href={item.data.link}
+                                        class="group decoration-2 decoration-neutral-600 hover:decoration-white underline">
+                                        {item.data.title}
+                                        <span
+                                            class="absolute bg-neutral-800 mt-px ml-1 p-0.5 rounded-xs text-neutral-400 group-hover:text-current shrink-0"
+                                            aria-hidden="true">
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                class="size-2.5"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <line
+                                                    x1="7"
+                                                    y1="17"
+                                                    x2="17"
+                                                    y2="7"
+                                                />
+                                                <polyline points="7 7 17 7 17 17" />
+                                            </svg>
+                                        </span>
+                                    </a>
+                                </h2>
+                                <p class="font-mono text-neutral-400 text-sm">
+                                    {new URL(item.data.link).hostname}
+                                </p>
+                                {item.body && (
+                                    <div class="mt-4 prose">
+                                        <Content />
+                                    </div>
+                                )}
+                            </li>
+                        ));
+                    } else if (item.collection === "posts") {
+                        return (
+                            <li
+                                class="px-4 sm:px-8 py-8"
+                                id={`post-${item.id}`}>
+                                <dl class="flex items-center gap-4 mb-2">
+                                    <dt class="sr-only">Published</dt>
+                                    <dd class="font-mono text-neutral-400 text-sm">
+                                        <FormattedDate
+                                            date={item.data.published}
+                                        />
+                                    </dd>
+                                </dl>
+                                <h2 class="font-semibold text-xl tracking-tight">
+                                    <a
+                                        href={`/posts/${item.id}`}
+                                        class="group decoration-2 decoration-neutral-600 hover:decoration-white underline">
+                                        {item.data.title}
+                                    </a>
+                                </h2>
+                                <p class="mt-2">{item.data.description}</p>
+                            </li>
+                        );
+                    } else {
+                        return render(item).then(({ Content }) => (
+                            <li
+                                class="px-4 sm:px-8 py-8"
+                                id={`note-${item.id}`}>
+                                <dl class="flex items-center gap-4 mb-4">
+                                    <dt class="sr-only">Published</dt>
+                                    <dd class="font-mono text-neutral-400 text-sm">
+                                        <FormattedDate
+                                            date={item.data.published}
+                                            type="datetime"
+                                        />
+                                    </dd>
+                                </dl>
+                                {item.body && (
+                                    <div class="prose">
+                                        <Content />
+                                    </div>
+                                )}
+                            </li>
+                        ));
+                    }
+                })
+            }
+        </ul>
+        <nav class="px-4 sm:px-8 py-8 border-neutral-700 border-t">
+            <ul
+                class="grid grid-cols-3 font-mono font-medium text-neutral-400 text-xs uppercase">
+                <li class="text-left">
+                    {
+                        page.url.prev ? (
+                            <a href={page.url.prev}>Previous page</a>
+                        ) : (
+                            <a href="/">First page</a>
+                        )
+                    }
+                </li>
+                <li class="text-center">
+                    <span>Page {page.currentPage} of {page.lastPage}</span>
+                </li>
+                <li class="text-right">
+                    {
+                        page.url.next ? (
+                            <a href={page.url.next}>Next page</a>
+                        ) : (
+                            <span class="text-neutral-600">Next page</span>
+                        )
+                    }
+                </li>
+            </ul>
+        </nav>
+    </section>
+</BaseLayout>
+

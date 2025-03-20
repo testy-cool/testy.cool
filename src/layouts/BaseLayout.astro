@@ -1,0 +1,185 @@
+---
+import "../styles/global.css";
+import { NAVIGATION, SITE_VERSION, SOCIALS } from "@/consts";
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const { title, description } = Astro.props;
+const metaTitle = title ? `${title} // TestyCool` : "TestyCool";
+const metaDescription = description ? description : "TestyCool";
+import { Icon } from "astro-icon/components";
+// const commitSha = import.meta.env.PUBLIC_VERCEL_GIT_COMMIT_SHA || "dfa9be2";
+// const commitMsg =
+//   import.meta.env.PUBLIC_VERCEL_GIT_COMMIT_MESSAGE ||
+//   "checkpoint at 2024-08-26T12:16:53-0400";
+---
+
+<html lang="en">
+  <head>
+    <link
+      rel="preload"
+      href="/fonts/GeistVariableVF.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
+
+    <!-- Global Metadata -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+    <!-- Favicons -->
+    <link rel="icon" href="/favicons/favicon.ico" sizes="any" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/favicons/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/favicons/favicon-16x16.png"
+    />
+    <link rel="apple-touch-icon" href="/favicons/apple-touch-icon.png" />
+    <link rel="manifest" href="/favicons/site.webmanifest" />
+
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href={canonicalURL} />
+
+    <!-- Primary Meta Tags -->
+    <title>{metaTitle}</title>
+    <meta name="title" content={metaTitle} />
+    <meta name="description" content={metaDescription} />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={metaDescription} />
+    <!-- <meta property="og:image" content={new URL(image, Astro.url)} /> -->
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary" />
+    <meta property="twitter:url" content={Astro.url} />
+    <meta property="twitter:title" content={metaTitle} />
+    <meta property="twitter:description" content={metaDescription} />
+    <!-- <meta property="twitter:image" content={new URL(image, Astro.url)} /> -->
+
+    <!-- Sitemap -->
+    <link rel="sitemap" href={new URL("/sitemap-index.xml", Astro.site)} />
+
+    <!-- RSS -->
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Posts // TestyCool"
+      href={new URL("/posts/rss.xml", Astro.site)}
+    />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Notes // TestyCool"
+      href={new URL("/notes/rss.xml", Astro.site)}
+    />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Links // TestyCool"
+      href={new URL("/links/rss.xml", Astro.site)}
+    />
+  </head>
+
+  <body
+    class="flex flex-col bg-neutral-950 px-4 w-full min-h-dvh overflow-x-hidden text-neutral-100 antialiased">
+    <a
+      href="#main"
+      class="top-0 left-0 fixed p-2 border-neutral-800 border-r border-b border-dashed font-medium text-sm -translate-y-full focus:translate-y-0"
+      >Skip to content</a
+    >
+    <div
+      class="flex flex-col flex-1 mx-auto border-neutral-700 border-x w-full max-w-3xl">
+      <nav class="border-neutral-700 border-b">
+        <div
+          class="opacity-75 border-neutral-700 border-b w-full h-6 [background-image:linear-gradient(45deg,var(--color-neutral-700)_12.50%,transparent_12.50%,transparent_50%,var(--color-neutral-700)_50%,var(--color-neutral-700)_62.50%,transparent_62.50%,transparent_100%)] [background-size:4px_4px]"
+          aria-hidden="true">
+        </div>
+        <div class="flex justify-between items-center p-4 sm:px-8">
+          <ul class="flex gap-4">
+            {
+              NAVIGATION.map(({ slug, label, hotkey }) => {
+                const isCurrent =
+                  Astro.url.pathname === `${slug}/` ||
+                  Astro.url.pathname === `${slug}`;
+                return (
+                  <li>
+                    <a
+                      class="font-mono text-neutral-400 aria-[current]:text-white hover:text-white text-xs uppercase"
+                      href={slug}
+                      aria-current={isCurrent ? "page" : undefined}
+                      aria-keyshortcuts={hotkey}>
+                      {slug === "/" ? (
+                        <Fragment>
+                          <span aria-hidden="true">~/</span>&#8288;{label}
+                        </Fragment>
+                      ) : (
+                        label
+                      )}
+                      <kbd class="max-sm:hidden font-mono text-neutral-400 text-xs uppercase">
+                        [{hotkey}]
+                      </kbd>
+                    </a>
+                  </li>
+                );
+              })
+            }
+          </ul>
+
+          <a
+            class:list={[
+              "max-sm:hidden text-xxs rounded-full border border-green-300 bg-green-950 px-2 py-0.5 font-mono text-green-300",
+              "hover:bg-green-900",
+            ]}
+            href="https://github.com/testy-cool/testy.cool">
+            v{SITE_VERSION}
+          </a>
+        </div>
+      </nav>
+      <main class="flex flex-col flex-1" id="main">
+        <slot />
+      </main>
+      <footer class="bg-neutral-900 border-neutral-700 border-t">
+        <div class="p-4 sm:px-8 py-8">
+          <ul class="flex flex-wrap justify-center gap-x-8 gap-y-4">
+            {
+              SOCIALS.map(({ url, icon, label }) => (
+                <li>
+                  <a
+                    class="flex items-center gap-2 w-max text-neutral-400 hover:text-white"
+                    href={url}>
+                    <Icon name={icon} class="text-white" aria-hidden="true" />
+                    <span class="font-mono text-xs uppercase">{label}</span>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+          <p
+            class="flex justify-center items-center gap-2 mt-8 font-mono text-neutral-400 text-xs uppercase">
+            <span
+              aria-hidden="true"
+              class="before:absolute flex-none bg-green-500 before:bg-green-300 rounded-full before:rounded-full size-2 before:size-2 before:animate-ping"
+            ></span>
+            All systems operational
+          </p>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>
+
+<script>
+  import { hotkeyKeyUX, startKeyUX } from "keyux";
+  startKeyUX(window, [hotkeyKeyUX()]);
+</script>

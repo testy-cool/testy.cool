@@ -1,0 +1,173 @@
+@import "tailwindcss";
+
+@variant dark (@media (prefers-color-scheme: dark));
+
+@theme {
+  --font-*: initial;
+  --font-sans: Geist Sans, ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono: Geist Mono, ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
+
+  --breakpoint-md: 860px;
+
+  --text-xxs: 0.625rem;
+
+  --list-style-type-square: square;
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
+
+@utility prose {
+  & > :where(* + *) {
+    @apply mt-4;
+  }
+
+  :where(* + h2),
+  :where(* + h3) {
+    @apply mt-8;
+  }
+
+  :where(p:has(small) + *) {
+    @apply mt-0.5;
+  }
+
+  h2,
+  h3 {
+    @apply font-medium text-lg;
+  }
+
+  a {
+    @apply decoration-2 decoration-neutral-600 hover:decoration-white underline;
+  }
+
+  strong {
+    @apply font-medium;
+  }
+
+  small {
+    @apply block font-mono text-orange-300 text-xs uppercase;
+  }
+
+  ul {
+    @apply ml-2 pl-4 marker:text-neutral-700 list-square;
+  }
+
+  blockquote {
+    @apply space-y-4 ml-2 pl-4 border-neutral-700 border-l-4;
+
+    &:has(a[href*="https://bsky.app/profile/testycool.bsky.social"])
+    {
+      @apply border-sky-300;
+    }
+  }
+
+  pre {
+    @apply border border-neutral-800 rounded-md overflow-hidden;
+  }
+
+  pre code span.line:last-of-type:empty {
+    @apply hidden;
+  }
+
+  pre code .highlighted {
+    --pre-bg: var(--color-neutral-900);
+    @apply bg-(--pre-bg);
+  }
+
+  pre code .highlighted-word {
+    @apply px-0.5 py-0.25 border border-neutral-700 rounded-sm [box-decoration-break:clone];
+  }
+
+  :not(pre) > code,
+  kbd {
+    @apply inline bg-neutral-800 -mx-0.5 px-0.5 rounded-sm text-[0.9375rem] [box-decoration-break:clone];
+  }
+
+  table {
+    @apply border border-neutral-700 w-full text-sm;
+  }
+
+  th {
+    @apply bg-neutral-900 px-4 py-2 text-left;
+  }
+
+  td {
+    @apply px-4 py-2 border-neutral-700 border-t border-dashed;
+  }
+
+  hr {
+    @apply -mx-4 sm:-mx-8 my-8 border-neutral-700 border-t border-dashed;
+  }
+}
+
+@utility tag {
+  /* Magic: https://x.com/myfonj/status/1828436893756698830 */
+  @apply inline whitespace-nowrap;
+
+  &::after {
+    content: " ";
+    word-spacing: 1em;
+    background-image: linear-gradient(
+      -0.2turn,
+      transparent 0 calc(50% - 0.03em),
+      var(--color-neutral-700) 0 calc(50% + 0.03em),
+      transparent 0
+    );
+  }
+}
+
+@layer utilities {
+  @font-face {
+    font-family: "Geist Sans";
+    src: url("/fonts/GeistVariableVF.woff2") format("woff2");
+    font-display: swap;
+    font-weight: 400 600;
+  }
+
+  @font-face {
+    font-family: "Geist Mono";
+    src: url("/fonts/GeistMonoVariableVF.woff2") format("woff2");
+    font-display: swap;
+    font-weight: 400;
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  pre {
+    --pre-bg: var(--color-neutral-950);
+    @apply bg-(--pre-bg)! py-4 text-sm leading-6;
+  }
+
+  code {
+    @apply block *:before:inline-block *:after:inline-block *:inline-block *:after:right-0 *:before:left-0 *:before:z-20 *:after:z-10 isolate *:before:sticky *:after:sticky *:before:bg-linear-to-r *:after:bg-linear-to-l *:before:from-(--pre-bg) *:before:from-80% *:after:from-(--pre-bg) *:after:from-35% *:before:pr-4 w-fit *:before:w-11 *:after:w-6 *:w-full min-w-full *:before:text-neutral-400 *:before:text-right *:before:content-[counter(line)] *:after:content-['_'] *:before:pointer-events-none *:after:pointer-events-none *:before:select-none *:after:select-none [counter-reset:line] *:[counter-increment:line];
+  }
+
+  mark {
+    @apply -mx-0.5 inline rounded-sm bg-amber-500/20 [box-decoration-break:clone] px-0.5 text-amber-100;
+  }
+
+  ::-webkit-details-marker {
+    display: none;
+  }
+}

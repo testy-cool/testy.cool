@@ -19,3 +19,9 @@ pnpm-debug.log*
 
 # macOS-specific files
 .DS_Store
+
+# Obsidian
+.obsidian/
+.smtcmp_json_db
+.smtcmp_vector_db.tar.gz
+0. templates/

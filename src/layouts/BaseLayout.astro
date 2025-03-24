@@ -8,12 +8,24 @@ interface Props {
   title: string;
   description: string;
   image?: string;
-  type?: "website" | "article";
+  isArticle?: boolean;
+  publishedTime?: string;
+  modifiedTime?: string;
+  author?: string;
+  tags?: string[];
 }
 
-const { title, description, image, type = "website" } = Astro.props;
-const metaTitle = title ? `${title} // TestyCool` : "TestyCool";
-const metaDescription = description ? description : "TestyCool";
+const {
+  title,
+  description,
+  image,
+  isArticle = false,
+  publishedTime,
+  modifiedTime,
+  author = "TestyCool",
+  tags = [],
+} = Astro.props;
+
 import { Icon } from "astro-icon/components";
 // const commitSha = import.meta.env.PUBLIC_VERCEL_GIT_COMMIT_SHA || "dfa9be2";
 // const commitMsg =
@@ -58,22 +70,22 @@ import { Icon } from "astro-icon/components";
     <link rel="canonical" href={canonicalURL} />
 
     <!-- Primary Meta Tags -->
-    <title>{metaTitle}</title>
-    <meta name="title" content={metaTitle} />
-    <meta name="description" content={metaDescription} />
+    <title>{title}</title>
+    <meta name="title" content={title} />
+    <meta name="description" content={description} />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content={Astro.url} />
     <meta property="og:title" content={title} />
-    <meta property="og:description" content={metaDescription} />
+    <meta property="og:description" content={description} />
     <!-- <meta property="og:image" content={new URL(image, Astro.url)} /> -->
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary" />
     <meta property="twitter:url" content={Astro.url} />
-    <meta property="twitter:title" content={metaTitle} />
-    <meta property="twitter:description" content={metaDescription} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
     <!-- <meta property="twitter:image" content={new URL(image, Astro.url)} /> -->
 
     <!-- Sitemap -->
@@ -99,7 +111,17 @@ import { Icon } from "astro-icon/components";
       href={new URL("/links/rss.xml", Astro.site)}
     />
 
-    <SEO title={title} description={description} image={image} type={type} />
+    <SEO
+      title={title}
+      description={description}
+      image={image}
+      isArticle={isArticle}
+      publishedTime={publishedTime}
+      modifiedTime={modifiedTime}
+      author={author}
+      tags={tags}
+      canonicalURL={canonicalURL.toString()}
+    />
   </head>
 
   <body

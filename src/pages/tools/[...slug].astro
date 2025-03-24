@@ -19,7 +19,13 @@ const entry = Astro.props;
 const { Content } = await render(entry);
 ---
 
-<BaseLayout title={entry.data.title} description={entry.data.description}>
+<BaseLayout
+    title={entry.data.title}
+    description={entry.data.description}
+    isArticle={true}
+    publishedTime={entry.data.published.toISOString()}
+    author="TestyCool"
+    tags={["tool"]}>
     <Header>
         <h1 class="font-medium text-xl sm:text-2xl tracking-tight">
             {entry.data.title}
@@ -33,4 +39,3 @@ const { Content } = await render(entry);
         <Content />
     </div>
 </BaseLayout>
-

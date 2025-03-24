@@ -11,6 +11,7 @@ import { CATEGORIES } from "@/consts";
 import { Image } from "astro:assets";
 import { Icon } from "astro-icon/components";
 import avatar from "@/images/testycool_pp.png";
+import { extractFirstImage } from "@/utils/formatting";
 
 // Get all content collections
 const allLinks = await getCollection("links");
@@ -145,22 +146,6 @@ const nextPage =
                     href={item.data.link}
                     class="group decoration-2 decoration-neutral-600 hover:decoration-white underline">
                     {item.data.title}
-                    <span
-                      class="absolute bg-neutral-800 mt-px ml-1 p-0.5 rounded-xs text-neutral-400 group-hover:text-current shrink-0"
-                      aria-hidden="true">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="size-2.5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <line x1="7" y1="17" x2="17" y2="7" />
-                        <polyline points="7 7 17 7 17 17" />
-                      </svg>
-                    </span>
                   </a>
                 </h2>
                 <p class="font-mono text-neutral-400 text-sm">
@@ -194,7 +179,7 @@ const nextPage =
                     {item.data.title}
                   </a>
                 </h2>
-                <p class="mt-2">{item.data.description}</p>
+                <p class="mt-2 text-neutral-400">{item.data.description}</p>
               </li>
             );
           } else if (item.collection === "TIL") {
@@ -218,7 +203,7 @@ const nextPage =
                     {item.data.title}
                   </a>
                 </h2>
-                <p class="mt-2">{item.data.description}</p>
+                <p class="mt-2 text-neutral-400">{item.data.description}</p>
               </li>
             );
           } else if (item.collection === "tools") {
@@ -242,36 +227,54 @@ const nextPage =
                     {item.data.title}
                   </a>
                 </h2>
-                <p class="mt-2">{item.data.description}</p>
+                <p class="mt-2 text-neutral-400">{item.data.description}</p>
               </li>
             );
           } else {
-            return render(item).then(({ Content }) => (
-              <li class="px-4 sm:px-8 py-8" id={`note-${item.id}`}>
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="font-mono text-neutral-500 text-xs uppercase">
-                    Note
-                  </span>
-                  <dl class="flex items-center gap-4">
-                    <dt class="sr-only">Published</dt>
-                    <dd class="font-mono text-neutral-400 text-sm">
-                      <FormattedDate
-                        date={item.data.published}
-                        type="datetime"
-                      />
-                    </dd>
-                  </dl>
-                </div>
-                <h2 class="mb-4 font-semibold text-xl tracking-tight">
-                  {item.data.title}
-                </h2>
-                {item.body && (
-                  <div class="prose">
-                    <Content />
+            return render(item).then(({ Content }) => {
+              const firstImage = item.body
+                ? extractFirstImage(item.body)
+                : null;
+              return (
+                <li class="px-4 sm:px-8 py-8" id={`note-${item.id}`}>
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="font-mono text-neutral-500 text-xs uppercase">
+                      Note
+                    </span>
+                    <dl class="flex items-center gap-4">
+                      <dt class="sr-only">Published</dt>
+                      <dd class="font-mono text-neutral-400 text-sm">
+                        <FormattedDate
+                          date={item.data.published}
+                          type="datetime"
+                        />
+                      </dd>
+                    </dl>
                   </div>
-                )}
-              </li>
-            ));
+                  <h2 class="font-semibold text-xl tracking-tight">
+                    <a
+                      href={`/notes/${encodeURIComponent(item.id)}`}
+                      class="group decoration-2 decoration-neutral-600 hover:decoration-white underline">
+                      {item.data.title}
+                    </a>
+                  </h2>
+                  {item.data.description && (
+                    <p class="mt-1 mb-4 text-neutral-400">
+                      {item.data.description}
+                    </p>
+                  )}
+                  {firstImage && (
+                    <div class="w-full">
+                      <img
+                        src={firstImage}
+                        alt=""
+                        class="rounded-sm w-full object-cover aspect-[2/1]"
+                      />
+                    </div>
+                  )}
+                </li>
+              );
+            });
           }
         })
       }

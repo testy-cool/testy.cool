@@ -7,6 +7,7 @@ import SectionBreak from "@/components/SectionBreak.astro";
 import SectionLabel from "@/components/SectionLabel.astro";
 import Header from "@/components/Header.astro";
 import { CATEGORIES } from "@/consts";
+import { extractFirstImage } from "@/utils/formatting";
 
 // Get all notes
 const allNotes = await getCollection("notes", ({ data }) => {
@@ -61,12 +62,25 @@ const notes = allNotes.sort((a, b) => {
                                     />
                                 </dd>
                             </dl>
-                            <h2 class="mb-4 font-semibold text-xl tracking-tight">
-                                {note.data.title}
+                            <h2 class="font-semibold text-xl tracking-tight">
+                                <a
+                                    href={`/notes/${encodeURIComponent(note.id)}`}
+                                    class="group decoration-2 decoration-neutral-600 hover:decoration-white underline">
+                                    {note.data.title}
+                                </a>
                             </h2>
-                            {note.body && (
-                                <div class="prose">
-                                    <Content />
+                            {note.data.description && (
+                                <p class="mt-1 mb-4 text-neutral-400">
+                                    {note.data.description}
+                                </p>
+                            )}
+                            {note.body && extractFirstImage(note.body) && (
+                                <div class="w-full">
+                                    <img
+                                        src={extractFirstImage(note.body)}
+                                        alt=""
+                                        class="rounded-sm w-full object-cover aspect-[2/1]"
+                                    />
                                 </div>
                             )}
                         </li>

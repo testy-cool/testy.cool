@@ -8,9 +8,7 @@ published: "2025-01-01"
 
 I wanted to use a custom CSS theme for my Glance dashboard. The default font is JetBrains Mono, which is great for code, but not so great for reading. I wanted to use a custom CSS theme that is more readable.
 
-:::note
-Glance is a modern, self-hosted dashboard application that aggregates content from various sources like RSS feeds, Reddit, Hacker News, YouTube, and GitHub into a single customizable interface. It features a widget-based system that lets you monitor everything from weather and stocks to server metrics and site status, all through a clean and minimal UI.
-:::
+> Glance is a modern, self-hosted dashboard application that aggregates content from various sources like RSS feeds, Reddit, Hacker News, YouTube, and GitHub into a single customizable interface. It features a widget-based system that lets you monitor everything from weather and stocks to server metrics and site status, all through a clean and minimal UI.
 
 ## The Setup
 

@@ -1,0 +1,8 @@
+---
+title: Trying Image Upscalers & Enhancers
+published: 2024-03-24
+---
+
+Both 3.7 and 3.7-thinking, sometimes, even though I told them in the prompt, in a `rules.md` file (and added in to context), and added in the `Rules` settings, it still add too much code, cluttering my files.
+
+I've found that in such cases, instead of insisting, just restore the files to before Claude 3.7 to where Claude wrote the excessive code, and switch to Claude 3.5. It will likely make the minimal edits needed.

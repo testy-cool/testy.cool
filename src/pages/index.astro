@@ -228,6 +228,9 @@ const nextPage =
                     <FormattedDate date={item.data.published} type="datetime" />
                   </dd>
                 </dl>
+                <h2 class="mb-4 font-semibold text-xl tracking-tight">
+                  {item.data.title}
+                </h2>
                 {item.body && (
                   <div class="prose">
                     <Content />

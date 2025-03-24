@@ -129,6 +129,17 @@ const nextPage =
           if (item.collection === "links") {
             return render(item).then(({ Content }) => (
               <li class="px-4 sm:px-8 py-8" id={`link-${item.id}`}>
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="font-mono text-neutral-500 text-xs uppercase">
+                    Link
+                  </span>
+                  <dl class="flex items-center gap-4">
+                    <dt class="sr-only">Published</dt>
+                    <dd class="font-mono text-neutral-400 text-sm">
+                      <FormattedDate date={item.data.published} />
+                    </dd>
+                  </dl>
+                </div>
                 <h2 class="font-semibold">
                   <a
                     href={item.data.link}
@@ -165,12 +176,17 @@ const nextPage =
           } else if (item.collection === "posts") {
             return (
               <li class="px-4 sm:px-8 py-8" id={`post-${item.id}`}>
-                <dl class="flex items-center gap-4 mb-2">
-                  <dt class="sr-only">Published</dt>
-                  <dd class="font-mono text-neutral-400 text-sm">
-                    <FormattedDate date={item.data.published} />
-                  </dd>
-                </dl>
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="font-mono text-neutral-500 text-xs uppercase">
+                    Post
+                  </span>
+                  <dl class="flex items-center gap-4">
+                    <dt class="sr-only">Published</dt>
+                    <dd class="font-mono text-neutral-400 text-sm">
+                      <FormattedDate date={item.data.published} />
+                    </dd>
+                  </dl>
+                </div>
                 <h2 class="font-semibold text-xl tracking-tight">
                   <a
                     href={`/posts/${item.id}`}
@@ -184,12 +200,17 @@ const nextPage =
           } else if (item.collection === "TIL") {
             return (
               <li class="px-4 sm:px-8 py-8" id={`til-${item.id}`}>
-                <dl class="flex items-center gap-4 mb-2">
-                  <dt class="sr-only">Published</dt>
-                  <dd class="font-mono text-neutral-400 text-sm">
-                    <FormattedDate date={item.data.published} />
-                  </dd>
-                </dl>
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="font-mono text-neutral-500 text-xs uppercase">
+                    TIL
+                  </span>
+                  <dl class="flex items-center gap-4">
+                    <dt class="sr-only">Published</dt>
+                    <dd class="font-mono text-neutral-400 text-sm">
+                      <FormattedDate date={item.data.published} />
+                    </dd>
+                  </dl>
+                </div>
                 <h2 class="font-semibold text-xl tracking-tight">
                   <a
                     href={`/TIL/${item.id}`}
@@ -203,12 +224,17 @@ const nextPage =
           } else if (item.collection === "tools") {
             return (
               <li class="px-4 sm:px-8 py-8" id={`tool-${item.id}`}>
-                <dl class="flex items-center gap-4 mb-2">
-                  <dt class="sr-only">Published</dt>
-                  <dd class="font-mono text-neutral-400 text-sm">
-                    <FormattedDate date={item.data.published} />
-                  </dd>
-                </dl>
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="font-mono text-neutral-500 text-xs uppercase">
+                    Tool
+                  </span>
+                  <dl class="flex items-center gap-4">
+                    <dt class="sr-only">Published</dt>
+                    <dd class="font-mono text-neutral-400 text-sm">
+                      <FormattedDate date={item.data.published} />
+                    </dd>
+                  </dl>
+                </div>
                 <h2 class="font-semibold text-xl tracking-tight">
                   <a
                     href={`/tools/${item.id}`}
@@ -222,12 +248,20 @@ const nextPage =
           } else {
             return render(item).then(({ Content }) => (
               <li class="px-4 sm:px-8 py-8" id={`note-${item.id}`}>
-                <dl class="flex items-center gap-4 mb-4">
-                  <dt class="sr-only">Published</dt>
-                  <dd class="font-mono text-neutral-400 text-sm">
-                    <FormattedDate date={item.data.published} type="datetime" />
-                  </dd>
-                </dl>
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="font-mono text-neutral-500 text-xs uppercase">
+                    Note
+                  </span>
+                  <dl class="flex items-center gap-4">
+                    <dt class="sr-only">Published</dt>
+                    <dd class="font-mono text-neutral-400 text-sm">
+                      <FormattedDate
+                        date={item.data.published}
+                        type="datetime"
+                      />
+                    </dd>
+                  </dl>
+                </div>
                 <h2 class="mb-4 font-semibold text-xl tracking-tight">
                   {item.data.title}
                 </h2>

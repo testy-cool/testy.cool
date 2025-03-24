@@ -69,11 +69,19 @@ function remarkObsidianCustom() {
 }
 
 export default defineConfig({
-  site: "http://localhost:4322",
+  site: "https://testy.cool",
   vite: {
     plugins: [tailwindcss()],
   },
-  integrations: [sitemap(), icon()],
+  integrations: [
+    sitemap({
+      lastmod: new Date(),
+      changefreq: 'weekly',
+      priority: 0.7,
+      filter: (page) => !page.includes('draft'),
+    }),
+    icon()
+  ],
   markdown: {
     shikiConfig: {
       theme: "github-dark-default",

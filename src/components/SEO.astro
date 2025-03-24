@@ -1,0 +1,46 @@
+---
+interface Props {
+    title: string;
+    description: string;
+    image?: string;
+    canonicalURL?: URL | string;
+    type?: "website" | "article";
+}
+
+const {
+    title,
+    description,
+    image = "/og-image.png", // Default OG image
+    canonicalURL = new URL(Astro.url.pathname, Astro.site),
+    type = "website",
+} = Astro.props;
+
+const siteTitle = `${title} // TestyCool`;
+---
+
+<!-- SEO -->
+<link rel="canonical" href={canonicalURL} />
+
+<!-- Open Graph -->
+<meta property="og:site_name" content="TestyCool" />
+<meta property="og:title" content={siteTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:image" content={image} />
+<meta property="og:type" content={type} />
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={siteTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={image} />
+
+<!-- General -->
+<title>{siteTitle}</title>
+<meta name="description" content={description} />
+<meta name="author" content="TestyCool" />
+
+<!-- Robots -->
+<meta name="robots" content="index,follow" />
+<meta name="googlebot" content="index,follow" />
+

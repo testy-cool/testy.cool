@@ -49,3 +49,18 @@ export const CATEGORIES = [
     url: "/tools",
   },
 ] as const;
+
+export const RSS_FEEDS = [
+  {
+    label: "Posts",
+    url: "/posts/rss.xml",
+  },
+  {
+    label: "Notes",
+    url: "/notes/rss.xml",
+  },
+  {
+    label: "Links",
+    url: "/links/rss.xml",
+  },
+] as const;

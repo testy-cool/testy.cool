@@ -27,25 +27,39 @@ export const getStaticPaths: GetStaticPaths = async () => {
     }));
 };
 
-interface Props {
+type Props = {
     tag: string;
-}
+};
 
-const { tag } = Astro.props as Props;
+const props = Astro.props;
+const tag = (props as Props).tag;
+
+type ContentItem = {
+    data: {
+        tags?: string[];
+    };
+};
 
 // Get all items with this tag
-const links = await getCollection("links", ({ data }) =>
-    data.tags?.includes(tag),
+const links = await getCollection(
+    "links",
+    ({ data }: ContentItem) => data.tags?.includes(tag) ?? false,
 );
-const notes = await getCollection("notes", ({ data }) =>
-    data.tags?.includes(tag),
+const notes = await getCollection(
+    "notes",
+    ({ data }: ContentItem) => data.tags?.includes(tag) ?? false,
 );
-const posts = await getCollection("posts", ({ data }) =>
-    data.tags?.includes(tag),
+const posts = await getCollection(
+    "posts",
+    ({ data }: ContentItem) => data.tags?.includes(tag) ?? false,
 );
-const TIL = await getCollection("TIL", ({ data }) => data.tags?.includes(tag));
-const tools = await getCollection("tools", ({ data }) =>
-    data.tags?.includes(tag),
+const TIL = await getCollection(
+    "TIL",
+    ({ data }: ContentItem) => data.tags?.includes(tag) ?? false,
+);
+const tools = await getCollection(
+    "tools",
+    ({ data }: ContentItem) => data.tags?.includes(tag) ?? false,
 );
 
 // Sort all items by date

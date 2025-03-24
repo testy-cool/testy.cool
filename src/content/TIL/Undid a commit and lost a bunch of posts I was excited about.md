@@ -3,8 +3,7 @@ title: Undid a commit and lost a bunch of posts I was excited about
 description: Regrets.
 published: 2025-03-24T17:56:08+02:00
 draft: false
-tags:
-  - ramblings
+tags: ['ramblings']
 ---
 I'm just setting up my blog with Astro and I'm partly **vibe coding** it.
 

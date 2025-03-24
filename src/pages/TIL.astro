@@ -6,6 +6,7 @@ import FormattedDate from "@/components/FormattedDate.astro";
 import SectionBreak from "@/components/SectionBreak.astro";
 import SectionLabel from "@/components/SectionLabel.astro";
 import Header from "@/components/Header.astro";
+import TagComponent from "@/components/Tag.astro";
 import { CATEGORIES } from "@/consts";
 
 // Get all TIL entries
@@ -19,6 +20,11 @@ const tilEntries = allTIL.sort((a, b) => {
     const bDate = b.data.published;
     return Date.parse(bDate.toString()) - Date.parse(aDate.toString());
 });
+
+// Get all unique tags
+const allTags = [
+    ...new Set(tilEntries.flatMap((til) => til.data.tags || [])),
+].sort();
 ---
 
 <BaseLayout
@@ -41,20 +47,32 @@ const tilEntries = allTIL.sort((a, b) => {
                 }
             </ul>
         </div>
+        {
+            allTags.length > 0 && (
+                <div class="flex flex-wrap justify-center gap-2 mt-4">
+                    {allTags.map((tag) => (
+                        <TagComponent tag={tag} href={`/tags/${tag}`} />
+                    ))}
+                </div>
+            )
+        }
     </Header>
 
     <SectionBreak />
 
     <section class="relative">
-        <SectionLabel as="h2">Today I Learned</SectionLabel>
+        <SectionLabel as="h2">TIL</SectionLabel>
         <ul class="divide-y divide-dashed divide-neutral-700">
             {
                 tilEntries.map((til) => (
                     <li class="px-4 sm:px-8 py-8" id={`til-${til.id}`}>
-                        <dl class="flex items-center gap-4 mb-2">
+                        <dl class="flex items-center gap-4 mb-4">
                             <dt class="sr-only">Published</dt>
                             <dd class="font-mono text-neutral-400 text-sm">
-                                <FormattedDate date={til.data.published} />
+                                <FormattedDate
+                                    date={til.data.published}
+                                    type="datetime"
+                                />
                             </dd>
                         </dl>
                         <h2 class="font-semibold text-xl tracking-tight">
@@ -64,11 +82,29 @@ const tilEntries = allTIL.sort((a, b) => {
                                 {til.data.title}
                             </a>
                         </h2>
-                        <p class="mt-2">{til.data.description}</p>
+                        {til.data.description && (
+                            <p class="mt-1 mb-4 text-neutral-400">
+                                {til.data.description}
+                            </p>
+                        )}
+                        {til.data.tags && til.data.tags.length > 0 && (
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                {til.data.tags.map((tag) => (
+                                    <TagComponent
+                                        tag={tag}
+                                        href={`/tags/${tag}`}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                        {til.body && (
+                            <div class="prose">
+                                <Fragment set:html={til.body} />
+                            </div>
+                        )}
                     </li>
                 ))
             }
         </ul>
     </section>
 </BaseLayout>
-

@@ -1,0 +1,180 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getCollection, render } from "astro:content";
+import FormattedDate from "@/components/FormattedDate.astro";
+import SectionBreak from "@/components/SectionBreak.astro";
+import SectionLabel from "@/components/SectionLabel.astro";
+import Header from "@/components/Header.astro";
+import TagComponent from "@/components/Tag.astro";
+
+export const getStaticPaths: GetStaticPaths = async () => {
+    const links = await getCollection("links");
+    const notes = await getCollection("notes");
+    const posts = await getCollection("posts");
+    const TIL = await getCollection("TIL");
+    const tools = await getCollection("tools");
+
+    // Get all unique tags
+    const allTags = new Set<string>();
+    [...links, ...notes, ...posts, ...TIL, ...tools].forEach((item) => {
+        item.data.tags?.forEach((tag) => allTags.add(tag));
+    });
+
+    return Array.from(allTags).map((tag) => ({
+        params: { tag },
+        props: { tag },
+    }));
+};
+
+interface Props {
+    tag: string;
+}
+
+const { tag } = Astro.props as Props;
+
+// Get all items with this tag
+const links = await getCollection("links", ({ data }) =>
+    data.tags?.includes(tag),
+);
+const notes = await getCollection("notes", ({ data }) =>
+    data.tags?.includes(tag),
+);
+const posts = await getCollection("posts", ({ data }) =>
+    data.tags?.includes(tag),
+);
+const TIL = await getCollection("TIL", ({ data }) => data.tags?.includes(tag));
+const tools = await getCollection("tools", ({ data }) =>
+    data.tags?.includes(tag),
+);
+
+// Sort all items by date
+const allItems = [...links, ...notes, ...posts, ...TIL, ...tools].sort(
+    (a, b) => {
+        const aDate = a.data.published;
+        const bDate = b.data.published;
+        return Date.parse(bDate.toString()) - Date.parse(aDate.toString());
+    },
+);
+---
+
+<BaseLayout
+    title={`${tag} // TestyCool`}
+    description={`All items tagged with ${tag}`}>
+    <Header>
+        <SectionLabel as="p">Tag</SectionLabel>
+        <div class="flex justify-center mt-4">
+            <TagComponent tag={tag} />
+        </div>
+    </Header>
+
+    <SectionBreak />
+
+    <section class="relative">
+        <SectionLabel as="h2">Items</SectionLabel>
+        <ul class="divide-y divide-dashed divide-neutral-700">
+            {
+                allItems.map((item) => {
+                    if (item.collection === "links") {
+                        return render(item).then(({ Content }) => (
+                            <li
+                                class="px-4 sm:px-8 py-8"
+                                id={`link-${item.id}`}>
+                                <h2 class="font-semibold">
+                                    <a
+                                        href={item.data.link}
+                                        class="group decoration-2 decoration-neutral-600 hover:decoration-white underline">
+                                        {item.data.title}
+                                        <span
+                                            class="absolute bg-neutral-800 mt-px ml-1 p-0.5 rounded-xs text-neutral-400 group-hover:text-current shrink-0"
+                                            aria-hidden="true">
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                class="size-2.5"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <line
+                                                    x1="7"
+                                                    y1="17"
+                                                    x2="17"
+                                                    y2="7"
+                                                />
+                                                <polyline points="7 7 17 7 17 17" />
+                                            </svg>
+                                        </span>
+                                    </a>
+                                </h2>
+                                <p class="font-mono text-neutral-400 text-sm">
+                                    {new URL(item.data.link).hostname}
+                                </p>
+                                {item.body && (
+                                    <div class="mt-4 prose">
+                                        <Content />
+                                    </div>
+                                )}
+                            </li>
+                        ));
+                    } else if (item.collection === "posts") {
+                        return (
+                            <li
+                                class="px-4 sm:px-8 py-8"
+                                id={`post-${item.id}`}>
+                                <dl class="flex items-center gap-4 mb-2">
+                                    <dt class="sr-only">Published</dt>
+                                    <dd class="font-mono text-neutral-400 text-sm">
+                                        <FormattedDate
+                                            date={item.data.published}
+                                        />
+                                    </dd>
+                                </dl>
+                                <h2 class="font-semibold text-xl tracking-tight">
+                                    <a
+                                        href={`/posts/${item.id}`}
+                                        class="group decoration-2 decoration-neutral-600 hover:decoration-white underline">
+                                        {item.data.title}
+                                    </a>
+                                </h2>
+                                <p class="mt-2">{item.data.description}</p>
+                            </li>
+                        );
+                    } else {
+                        return render(item).then(({ Content }) => (
+                            <li
+                                class="px-4 sm:px-8 py-8"
+                                id={`${item.collection}-${item.id}`}>
+                                <dl class="flex items-center gap-4 mb-4">
+                                    <dt class="sr-only">Published</dt>
+                                    <dd class="font-mono text-neutral-400 text-sm">
+                                        <FormattedDate
+                                            date={item.data.published}
+                                            type="datetime"
+                                        />
+                                    </dd>
+                                </dl>
+                                <h2 class="font-semibold text-xl tracking-tight">
+                                    <a
+                                        href={`/${item.collection}/${item.id}`}
+                                        class="group decoration-2 decoration-neutral-600 hover:decoration-white underline">
+                                        {item.data.title}
+                                    </a>
+                                </h2>
+                                {item.data.description && (
+                                    <p class="mt-2">{item.data.description}</p>
+                                )}
+                                {item.body && (
+                                    <div class="mt-4 prose">
+                                        <Content />
+                                    </div>
+                                )}
+                            </li>
+                        ));
+                    }
+                })
+            }
+        </ul>
+    </section>
+</BaseLayout>

@@ -18,6 +18,7 @@ const notes = defineCollection({
     description: z.string().optional(),
     published: z.coerce.date(),
     draft: z.boolean().optional(),
+    tags: z.array(z.string()).optional(),
   }),
 });
 
@@ -30,6 +31,7 @@ const posts = defineCollection({
     updated: z.coerce.date().optional(),
     toc: z.boolean().optional(),
     draft: z.boolean().optional(),
+    tags: z.array(z.string()).optional(),
   }),
 });
 
@@ -40,6 +42,7 @@ const TIL = defineCollection({
     description: z.string().optional(),
     published: z.coerce.date(),
     draft: z.boolean().optional(),
+    tags: z.array(z.string()).optional(),
   }),
 });
 
@@ -50,6 +53,7 @@ const tools = defineCollection({
     description: z.string().optional(),
     published: z.coerce.date(),
     draft: z.boolean().optional(),
+    tags: z.array(z.string()).optional(),
   }),
 });
 

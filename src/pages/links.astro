@@ -6,6 +6,7 @@ import FormattedDate from "@/components/FormattedDate.astro";
 import SectionBreak from "@/components/SectionBreak.astro";
 import SectionLabel from "@/components/SectionLabel.astro";
 import Header from "@/components/Header.astro";
+import Tag from "@/components/Tag.astro";
 import { CATEGORIES } from "@/consts";
 
 // Get all links
@@ -17,6 +18,11 @@ const links = allLinks.sort((a, b) => {
     const bDate = b.data.published;
     return Date.parse(bDate.toString()) - Date.parse(aDate.toString());
 });
+
+// Get all unique tags
+const allTags = [
+    ...new Set(links.flatMap((link) => link.data.tags || [])),
+].sort();
 ---
 
 <BaseLayout
@@ -39,6 +45,15 @@ const links = allLinks.sort((a, b) => {
                 }
             </ul>
         </div>
+        {
+            allTags.length > 0 && (
+                <div class="flex flex-wrap justify-center gap-2 mt-4">
+                    {allTags.map((tag) => (
+                        <Tag tag={tag} href={`/tags/${tag}`} />
+                    ))}
+                </div>
+            )
+        }
     </Header>
 
     <SectionBreak />
@@ -81,6 +96,13 @@ const links = allLinks.sort((a, b) => {
                             <p class="font-mono text-neutral-400 text-sm">
                                 {new URL(link.data.link).hostname}
                             </p>
+                            {link.data.tags && link.data.tags.length > 0 && (
+                                <div class="flex flex-wrap gap-2 mt-4">
+                                    {link.data.tags.map((tag) => (
+                                        <Tag tag={tag} href={`/tags/${tag}`} />
+                                    ))}
+                                </div>
+                            )}
                             {link.body && (
                                 <div class="mt-4 prose">
                                     <Content />
@@ -93,4 +115,3 @@ const links = allLinks.sort((a, b) => {
         </ul>
     </section>
 </BaseLayout>
-

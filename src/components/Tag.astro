@@ -1,0 +1,22 @@
+---
+interface Props {
+    tag: string;
+    href?: string;
+}
+
+const { tag, href } = Astro.props;
+---
+
+{
+    href ? (
+        <a
+            href={href}
+            class="inline-flex items-center gap-1 bg-neutral-800 hover:bg-neutral-700 px-2 py-0.5 rounded-full font-medium text-neutral-400 hover:text-white text-xs">
+            {tag}
+        </a>
+    ) : (
+        <span class="inline-flex items-center gap-1 bg-neutral-800 px-2 py-0.5 rounded-full font-medium text-neutral-400 text-xs">
+            {tag}
+        </span>
+    )
+}

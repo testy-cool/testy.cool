@@ -6,6 +6,7 @@ import FormattedDate from "@/components/FormattedDate.astro";
 import SectionBreak from "@/components/SectionBreak.astro";
 import SectionLabel from "@/components/SectionLabel.astro";
 import Header from "@/components/Header.astro";
+import TagComponent from "@/components/Tag.astro";
 import { CATEGORIES } from "@/consts";
 import { extractFirstImage } from "@/utils/formatting";
 
@@ -20,6 +21,11 @@ const notes = allNotes.sort((a, b) => {
     const bDate = b.data.published;
     return Date.parse(bDate.toString()) - Date.parse(aDate.toString());
 });
+
+// Get all unique tags
+const allTags = [
+    ...new Set(notes.flatMap((note) => note.data.tags || [])),
+].sort();
 ---
 
 <BaseLayout
@@ -42,6 +48,15 @@ const notes = allNotes.sort((a, b) => {
                 }
             </ul>
         </div>
+        {
+            allTags.length > 0 && (
+                <div class="flex flex-wrap justify-center gap-2 mt-4">
+                    {allTags.map((tag) => (
+                        <TagComponent tag={tag} href={`/tags/${tag}`} />
+                    ))}
+                </div>
+            )
+        }
     </Header>
 
     <SectionBreak />
@@ -74,13 +89,19 @@ const notes = allNotes.sort((a, b) => {
                                     {note.data.description}
                                 </p>
                             )}
-                            {note.body && extractFirstImage(note.body) && (
-                                <div class="w-full">
-                                    <img
-                                        src={extractFirstImage(note.body)}
-                                        alt=""
-                                        class="rounded-sm w-full object-cover aspect-[2/1]"
-                                    />
+                            {note.data.tags && note.data.tags.length > 0 && (
+                                <div class="flex flex-wrap gap-2 mb-4">
+                                    {note.data.tags.map((tag) => (
+                                        <TagComponent
+                                            tag={tag}
+                                            href={`/tags/${tag}`}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                            {note.body && (
+                                <div class="prose">
+                                    <Content />
                                 </div>
                             )}
                         </li>

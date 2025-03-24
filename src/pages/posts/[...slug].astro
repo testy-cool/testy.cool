@@ -3,6 +3,7 @@ import { type CollectionEntry, getCollection, render } from "astro:content";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Header from "@/components/Header.astro";
 import SectionBreak from "@/components/SectionBreak.astro";
+import TagComponent from "@/components/Tag.astro";
 // import FormattedDate from "@/components/FormattedDate.astro";
 export async function getStaticPaths() {
   const posts = await getCollection("posts", ({ data }) => {
@@ -21,18 +22,27 @@ const { Content } = await render(post);
 
 <BaseLayout title={post.data.title} description={post.data.description}>
   <Header>
-    <h1 class="text-xl font-medium tracking-tight sm:text-2xl">
+    <h1 class="font-medium text-xl sm:text-2xl tracking-tight">
       {post.data.title}
     </h1>
-    <p class="mx-auto mt-2 max-w-md text-balance text-neutral-400">
+    <p class="mx-auto mt-2 max-w-md text-neutral-400 text-balance">
       {post.data.description}
     </p>
-    <!-- <p class="mt-6 font-mono text-sm text-neutral-400">
+    {
+      post.data.tags && post.data.tags.length > 0 && (
+        <div class="flex flex-wrap justify-center gap-2 mt-4">
+          {post.data.tags.map((tag) => (
+            <TagComponent tag={tag} href={`/tags/${tag}`} />
+          ))}
+        </div>
+      )
+    }
+    <!-- <p class="mt-6 font-mono text-neutral-400 text-sm">
       Last modified <FormattedDate date={date} />
     </p> -->
   </Header>
   <SectionBreak />
-  <div class="prose px-4 py-8 sm:px-8">
+  <div class="px-4 sm:px-8 py-8 prose">
     <Content />
   </div>
 </BaseLayout>

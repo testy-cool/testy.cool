@@ -1,6 +1,8 @@
 ---
-title: Trying Image Upscalers & Enhancers
+title: Cursor + Claude 3.7 Is Too Eager. For Some Edits Use Claude 3.5.
+description: "It won't stfu."
 published: 2024-03-24
+tags: ["Ramblings"]
 ---
 
 Both 3.7 and 3.7-thinking, sometimes, even though I told them in the prompt, in a `rules.md` file (and added in to context), and added in the `Rules` settings, it still add too much code, cluttering my files.

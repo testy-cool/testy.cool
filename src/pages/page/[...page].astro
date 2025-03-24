@@ -16,7 +16,19 @@ export const getStaticPaths = (async ({ paginate }) => {
     const allPosts = await getCollection("posts", ({ data }) => {
         return import.meta.env.PROD ? data.draft !== true : true;
     });
-    const allFeed = [...allLinks, ...allNotes, ...allPosts].sort((a, b) => {
+    const allTIL = await getCollection("TIL", ({ data }) => {
+        return import.meta.env.PROD ? data.draft !== true : true;
+    });
+    const allTools = await getCollection("tools", ({ data }) => {
+        return import.meta.env.PROD ? data.draft !== true : true;
+    });
+    const allFeed = [
+        ...allLinks,
+        ...allNotes,
+        ...allPosts,
+        ...allTIL,
+        ...allTools,
+    ].sort((a, b) => {
         const aDate = a.data.published;
         const bDate = b.data.published;
         return Date.parse(bDate.toString()) - Date.parse(aDate.toString());
@@ -120,6 +132,61 @@ const { page } = Astro.props;
                                             ))}
                                         </div>
                                     )}
+                            </li>
+                        );
+                    } else if (item.collection === "TIL") {
+                        return (
+                            <li class="px-4 sm:px-8 py-8" id={`til-${item.id}`}>
+                                <dl class="flex items-center gap-4 mb-2">
+                                    <dt class="sr-only">Published</dt>
+                                    <dd class="font-mono text-neutral-400 text-sm">
+                                        <FormattedDate
+                                            date={item.data.published}
+                                        />
+                                    </dd>
+                                </dl>
+                                <h2 class="font-semibold text-xl tracking-tight">
+                                    <a
+                                        href={`/TIL/${item.id}`}
+                                        class="group decoration-2 decoration-neutral-600 hover:decoration-white underline">
+                                        {item.data.title}
+                                    </a>
+                                </h2>
+                                <p class="mt-2">{item.data.description}</p>
+                                {item.data.tags &&
+                                    item.data.tags.length > 0 && (
+                                        <div class="flex flex-wrap gap-2 mt-4">
+                                            {item.data.tags.map((tag) => (
+                                                <TagComponent
+                                                    tag={tag}
+                                                    href={`/tags/${tag}`}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                            </li>
+                        );
+                    } else if (item.collection === "tools") {
+                        return (
+                            <li
+                                class="px-4 sm:px-8 py-8"
+                                id={`tool-${item.id}`}>
+                                <dl class="flex items-center gap-4 mb-2">
+                                    <dt class="sr-only">Published</dt>
+                                    <dd class="font-mono text-neutral-400 text-sm">
+                                        <FormattedDate
+                                            date={item.data.published}
+                                        />
+                                    </dd>
+                                </dl>
+                                <h2 class="font-semibold text-xl tracking-tight">
+                                    <a
+                                        href={`/tools/${item.id}`}
+                                        class="group decoration-2 decoration-neutral-600 hover:decoration-white underline">
+                                        {item.data.title}
+                                    </a>
+                                </h2>
+                                <p class="mt-2">{item.data.description}</p>
                             </li>
                         );
                     } else {

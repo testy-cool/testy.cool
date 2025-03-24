@@ -1,0 +1,96 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getCollection, render } from "astro:content";
+import FormattedDate from "@/components/FormattedDate.astro";
+import SectionBreak from "@/components/SectionBreak.astro";
+import SectionLabel from "@/components/SectionLabel.astro";
+import Header from "@/components/Header.astro";
+import { CATEGORIES } from "@/consts";
+
+// Get all links
+const allLinks = await getCollection("links");
+
+// Sort links by date
+const links = allLinks.sort((a, b) => {
+    const aDate = a.data.published;
+    const bDate = b.data.published;
+    return Date.parse(bDate.toString()) - Date.parse(aDate.toString());
+});
+---
+
+<BaseLayout
+    title="Links"
+    description="Collection of interesting links and resources.">
+    <Header>
+        <SectionLabel as="p">Links</SectionLabel>
+        <div
+            class="flex justify-center gap-x-2 mt-4 font-mono text-neutral-400 text-xs uppercase">
+            <p>Categories:</p>
+            <ul class="flex gap-x-[inherit]">
+                {
+                    CATEGORIES.map(({ url, label }) => (
+                        <li>
+                            <a class="hover:text-white underline" href={url}>
+                                {label}
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </Header>
+
+    <SectionBreak />
+
+    <section class="relative">
+        <SectionLabel as="h2">Links</SectionLabel>
+        <ul class="divide-y divide-dashed divide-neutral-700">
+            {
+                links.map((link) => {
+                    return render(link).then(({ Content }) => (
+                        <li class="px-4 sm:px-8 py-8" id={`link-${link.id}`}>
+                            <h2 class="font-semibold">
+                                <a
+                                    href={link.data.link}
+                                    class="group decoration-2 decoration-neutral-600 hover:decoration-white underline">
+                                    {link.data.title}
+                                    <span
+                                        class="absolute bg-neutral-800 mt-px ml-1 p-0.5 rounded-xs text-neutral-400 group-hover:text-current shrink-0"
+                                        aria-hidden="true">
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            class="size-2.5"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <line
+                                                x1="7"
+                                                y1="17"
+                                                x2="17"
+                                                y2="7"
+                                            />
+                                            <polyline points="7 7 17 7 17 17" />
+                                        </svg>
+                                    </span>
+                                </a>
+                            </h2>
+                            <p class="font-mono text-neutral-400 text-sm">
+                                {new URL(link.data.link).hostname}
+                            </p>
+                            {link.body && (
+                                <div class="mt-4 prose">
+                                    <Content />
+                                </div>
+                            )}
+                        </li>
+                    ));
+                })
+            }
+        </ul>
+    </section>
+</BaseLayout>
+

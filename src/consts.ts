@@ -27,17 +27,25 @@ export const SOCIALS = [
   },
 ] as const;
 
-export const RSS_FEEDS = [
+export const CATEGORIES = [
   {
     label: "Notes",
-    url: "/notes/rss.xml",
+    url: "/notes",
   },
   {
     label: "Links",
-    url: "/links/rss.xml",
+    url: "/links",
   },
   {
     label: "Posts",
-    url: "/posts/rss.xml",
+    url: "/posts",
+  },
+  {
+    label: "TIL",
+    url: "/TIL",
+  },
+  {
+    label: "Tools",
+    url: "/tools",
   },
 ] as const;

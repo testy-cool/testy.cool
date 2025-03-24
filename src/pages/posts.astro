@@ -1,0 +1,72 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+import FormattedDate from "@/components/FormattedDate.astro";
+import SectionBreak from "@/components/SectionBreak.astro";
+import SectionLabel from "@/components/SectionLabel.astro";
+import Header from "@/components/Header.astro";
+import { CATEGORIES } from "@/consts";
+
+// Get all posts
+const allPosts = await getCollection("posts", ({ data }) => {
+    return import.meta.env.PROD ? data.draft !== true : true;
+});
+
+// Sort posts by date
+const posts = allPosts.sort((a, b) => {
+    const aDate = a.data.published;
+    const bDate = b.data.published;
+    return Date.parse(bDate.toString()) - Date.parse(aDate.toString());
+});
+---
+
+<BaseLayout title="Posts" description="Collection of blog posts and articles.">
+    <Header>
+        <SectionLabel as="p">Posts</SectionLabel>
+        <div
+            class="flex justify-center gap-x-2 mt-4 font-mono text-neutral-400 text-xs uppercase">
+            <p>Categories:</p>
+            <ul class="flex gap-x-[inherit]">
+                {
+                    CATEGORIES.map(({ url, label }) => (
+                        <li>
+                            <a class="hover:text-white underline" href={url}>
+                                {label}
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </Header>
+
+    <SectionBreak />
+
+    <section class="relative">
+        <SectionLabel as="h2">Posts</SectionLabel>
+        <ul class="divide-y divide-dashed divide-neutral-700">
+            {
+                posts.map((post) => (
+                    <li class="px-4 sm:px-8 py-8" id={`post-${post.id}`}>
+                        <dl class="flex items-center gap-4 mb-2">
+                            <dt class="sr-only">Published</dt>
+                            <dd class="font-mono text-neutral-400 text-sm">
+                                <FormattedDate date={post.data.published} />
+                            </dd>
+                        </dl>
+                        <h2 class="font-semibold text-xl tracking-tight">
+                            <a
+                                href={`/posts/${post.id}`}
+                                class="group decoration-2 decoration-neutral-600 hover:decoration-white underline">
+                                {post.data.title}
+                            </a>
+                        </h2>
+                        <p class="mt-2">{post.data.description}</p>
+                    </li>
+                ))
+            }
+        </ul>
+    </section>
+</BaseLayout>
+

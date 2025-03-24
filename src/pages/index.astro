@@ -7,7 +7,7 @@ import Button from "@/components/Button.astro";
 import SectionBreak from "@/components/SectionBreak.astro";
 import SectionLabel from "@/components/SectionLabel.astro";
 import Header from "@/components/Header.astro";
-import { RSS_FEEDS } from "@/consts";
+import { CATEGORIES } from "@/consts";
 import { Image } from "astro:assets";
 import { Icon } from "astro-icon/components";
 import avatar from "@/images/testycool_pp.png";
@@ -104,10 +104,10 @@ const nextPage =
     </p>
     <div
       class="flex justify-center gap-x-2 mt-4 font-mono text-neutral-400 text-xs uppercase">
-      <p>RSS feeds:</p>
+      <p>Categories:</p>
       <ul class="flex gap-x-[inherit]">
         {
-          RSS_FEEDS.map(({ url, label }) => (
+          CATEGORIES.map(({ url, label }) => (
             <li>
               <a class="hover:text-white underline" href={url}>
                 {label}

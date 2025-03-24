@@ -1,0 +1,76 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getCollection, render } from "astro:content";
+import FormattedDate from "@/components/FormattedDate.astro";
+import SectionBreak from "@/components/SectionBreak.astro";
+import SectionLabel from "@/components/SectionLabel.astro";
+import Header from "@/components/Header.astro";
+import { CATEGORIES } from "@/consts";
+
+// Get all notes
+const allNotes = await getCollection("notes", ({ data }) => {
+    return import.meta.env.PROD ? data.draft !== true : true;
+});
+
+// Sort notes by date
+const notes = allNotes.sort((a, b) => {
+    const aDate = a.data.published;
+    const bDate = b.data.published;
+    return Date.parse(bDate.toString()) - Date.parse(aDate.toString());
+});
+---
+
+<BaseLayout
+    title="Notes"
+    description="Collection of notes and thoughts about development and technology.">
+    <Header>
+        <SectionLabel as="p">Notes</SectionLabel>
+        <div
+            class="flex justify-center gap-x-2 mt-4 font-mono text-neutral-400 text-xs uppercase">
+            <p>Categories:</p>
+            <ul class="flex gap-x-[inherit]">
+                {
+                    CATEGORIES.map(({ url, label }) => (
+                        <li>
+                            <a class="hover:text-white underline" href={url}>
+                                {label}
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </Header>
+
+    <SectionBreak />
+
+    <section class="relative">
+        <SectionLabel as="h2">Notes</SectionLabel>
+        <ul class="divide-y divide-dashed divide-neutral-700">
+            {
+                notes.map((note) => {
+                    return render(note).then(({ Content }) => (
+                        <li class="px-4 sm:px-8 py-8" id={`note-${note.id}`}>
+                            <dl class="flex items-center gap-4 mb-4">
+                                <dt class="sr-only">Published</dt>
+                                <dd class="font-mono text-neutral-400 text-sm">
+                                    <FormattedDate
+                                        date={note.data.published}
+                                        type="datetime"
+                                    />
+                                </dd>
+                            </dl>
+                            {note.body && (
+                                <div class="prose">
+                                    <Content />
+                                </div>
+                            )}
+                        </li>
+                    ));
+                })
+            }
+        </ul>
+    </section>
+</BaseLayout>
+

@@ -1,0 +1,74 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+import FormattedDate from "@/components/FormattedDate.astro";
+import SectionBreak from "@/components/SectionBreak.astro";
+import SectionLabel from "@/components/SectionLabel.astro";
+import Header from "@/components/Header.astro";
+import { CATEGORIES } from "@/consts";
+
+// Get all tools
+const allTools = await getCollection("tools", ({ data }) => {
+    return import.meta.env.PROD ? data.draft !== true : true;
+});
+
+// Sort tools by date
+const tools = allTools.sort((a, b) => {
+    const aDate = a.data.published;
+    const bDate = b.data.published;
+    return Date.parse(bDate.toString()) - Date.parse(aDate.toString());
+});
+---
+
+<BaseLayout
+    title="Tools"
+    description="Collection of useful development tools and resources.">
+    <Header>
+        <SectionLabel as="p">Tools</SectionLabel>
+        <div
+            class="flex justify-center gap-x-2 mt-4 font-mono text-neutral-400 text-xs uppercase">
+            <p>Categories:</p>
+            <ul class="flex gap-x-[inherit]">
+                {
+                    CATEGORIES.map(({ url, label }) => (
+                        <li>
+                            <a class="hover:text-white underline" href={url}>
+                                {label}
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </Header>
+
+    <SectionBreak />
+
+    <section class="relative">
+        <SectionLabel as="h2">Tools</SectionLabel>
+        <ul class="divide-y divide-dashed divide-neutral-700">
+            {
+                tools.map((tool) => (
+                    <li class="px-4 sm:px-8 py-8" id={`tool-${tool.id}`}>
+                        <dl class="flex items-center gap-4 mb-2">
+                            <dt class="sr-only">Published</dt>
+                            <dd class="font-mono text-neutral-400 text-sm">
+                                <FormattedDate date={tool.data.published} />
+                            </dd>
+                        </dl>
+                        <h2 class="font-semibold text-xl tracking-tight">
+                            <a
+                                href={`/tools/${tool.id}`}
+                                class="group decoration-2 decoration-neutral-600 hover:decoration-white underline">
+                                {tool.data.title}
+                            </a>
+                        </h2>
+                        <p class="mt-2">{tool.data.description}</p>
+                    </li>
+                ))
+            }
+        </ul>
+    </section>
+</BaseLayout>
+

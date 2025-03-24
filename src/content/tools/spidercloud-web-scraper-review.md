@@ -1,10 +1,7 @@
 ---
 title: "Spider.Cloud Web Scraper Review"
 description: "Tried Spider.Cloud. Had really high hopes. Am disappointed."
-pubDate: "2024-12-13"
-author: "testycool"
-image: "/images/spidercloud-web-scraper-review/Spider.Cloud Homepage Screenshot.png"
-tags: ["web-scraping", "product-review", "development-tools"]
+published: 2024-12-13
 ---
 
 ![Spider.Cloud Homepage Screenshot](/images/spidercloud-web-scraper-review/Spider.Cloud Homepage Screenshot.png)

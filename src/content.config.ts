@@ -11,19 +11,11 @@ const links = defineCollection({
   }),
 });
 
-const items = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/items" }),
-  schema: z.object({
-    eyebrow: z.string(),
-    title: z.string(),
-    description: z.string().optional(),
-    link: z.string().optional(),
-  }),
-});
-
 const notes = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/content/notes" }),
   schema: z.object({
+    title: z.string(),
+    description: z.string().optional(),
     published: z.coerce.date(),
     draft: z.boolean().optional(),
   }),
@@ -41,9 +33,31 @@ const posts = defineCollection({
   }),
 });
 
+const TIL = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/content/TIL" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    published: z.coerce.date(),
+    draft: z.boolean().optional(),
+  }),
+});
+
+const tools = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/content/tools" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    published: z.coerce.date(),
+    draft: z.boolean().optional(),
+  }),
+});
+
+
 export const collections = {
   links,
-  items,
   notes,
   posts,
+  TIL,
+  tools
 };

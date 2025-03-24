@@ -1,10 +1,7 @@
 ---
-title: "Using Custom MDI Icons in Astro Starlight Card Components"
+title: Using Custom MDI Icons in Astro Starlight Card Components
 description: "How to extend the Astro Starlight Card component to accept custom icons"
-pubDate: "2024-12-14"
-author: "testycool"
-image: "/images/custom-mdi-icons-astro-starlight/demo-custom-icon-cards.png"
-tags: ["astro", "starlight", "icons", "components", "development"]
+published: 2024-12-14
 ---
 
 ![Result, with custom icons](/images/custom-mdi-icons-astro-starlight/demo-custom-icon-cards.png)

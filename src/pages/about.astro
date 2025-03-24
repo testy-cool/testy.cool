@@ -1,0 +1,82 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import SectionLabel from "@/components/SectionLabel.astro";
+import Button from "@/components/Button.astro";
+import { Icon } from "astro-icon/components";
+import SectionBreak from "@/components/SectionBreak.astro";
+import Header from "@/components/Header.astro";
+---
+
+<BaseLayout
+    title="About"
+    description="AI solutions developer and entrepreneur with expertise in web development, SEO, and automation.">
+    <Header>
+        <SectionLabel as="p">Intro</SectionLabel>
+        <h1 class="font-mono text-neutral-400 text-sm">About</h1>
+        <p
+            class="mt-2 font-medium text-xl sm:text-2xl text-balance tracking-tight">
+            LLMs, Automation, Web Dev & SEO
+        </p>
+    </Header>
+
+    <SectionBreak />
+
+    <section id="services" class="relative">
+        <SectionLabel as="h2">What I Do</SectionLabel>
+        <div class="space-y-4 px-4 sm:px-8 py-8">
+            <div class="font-mono text-neutral-400">
+                <p>Develop LLM solutions that reduce costs and save time</p>
+                <p>Create websites that rank well and generate revenue</p>
+                <p>Automate repetitive tasks with AI</p>
+                <p>Research and implement cost-effective solutions</p>
+                <p>Fine-tune LLMs for specific business needs</p>
+                <p>Build scalable e-commerce and SaaS platforms</p>
+            </div>
+        </div>
+    </section>
+
+    <SectionBreak />
+
+    <section id="experience" class="relative">
+        <SectionLabel as="h2">Experience</SectionLabel>
+        <div class="space-y-4 px-4 sm:px-8 py-8">
+            <div class="font-mono text-neutral-400">
+                <p>Developing AI pipelines for bulk text generation</p>
+                <p>Built and sold a hosting company</p>
+                <p>Built profitable affiliate websites</p>
+            </div>
+        </div>
+    </section>
+
+    <SectionBreak />
+
+    <section id="tech-stack" class="relative">
+        <SectionLabel as="h2">Tech Stack</SectionLabel>
+        <div class="space-y-4 px-4 sm:px-8 py-8">
+            <div class="font-mono text-neutral-400">
+                <p>Python (data processing, web scraping, automation)</p>
+                <p>Large Language Models (GPT-4, Claude, Gemini)</p>
+                <p>
+                    WordPress (business-focused development with a dash of
+                    aesthetics ✨)
+                </p>
+                <p>Modern Web (Next.js, React, Tailwind)</p>
+                <p>Infrastructure (Linux, cloud platforms)</p>
+                <p>Databases (SQL, NoSQL)</p>
+                <p>AI/ML tools and frameworks</p>
+            </div>
+        </div>
+    </section>
+
+    <SectionBreak />
+
+    <section id="contact" class="relative">
+        <SectionLabel as="h2">Contact</SectionLabel>
+        <div class="space-y-4 px-4 sm:px-8 py-8">
+            <div class="font-mono text-neutral-400">
+                <p>Always open to meeting new people</p>
+                <p>Hit me up if you want to chat</p>
+            </div>
+        </div>
+    </section>
+</BaseLayout>

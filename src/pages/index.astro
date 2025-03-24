@@ -141,6 +141,13 @@ const nextPage =
                       <FormattedDate date={item.data.published} />
                     </dd>
                   </dl>
+                  {item.data.tags && item.data.tags.length > 0 && (
+                    <div class="flex flex-wrap gap-2">
+                      {item.data.tags.map((tag) => (
+                        <TagComponent tag={tag} href={`/tags/${tag}`} />
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <h2 class="font-semibold">
                   <a
@@ -152,13 +159,6 @@ const nextPage =
                 <p class="font-mono text-neutral-400 text-sm">
                   {new URL(item.data.link).hostname}
                 </p>
-                {item.data.tags && item.data.tags.length > 0 && (
-                  <div class="flex flex-wrap gap-2 mt-4">
-                    {item.data.tags.map((tag) => (
-                      <TagComponent tag={tag} href={`/tags/${tag}`} />
-                    ))}
-                  </div>
-                )}
                 {item.body && (
                   <div class="mt-4 prose">
                     <Content />
@@ -179,6 +179,13 @@ const nextPage =
                       <FormattedDate date={item.data.published} />
                     </dd>
                   </dl>
+                  {item.data.tags && item.data.tags.length > 0 && (
+                    <div class="flex flex-wrap gap-2">
+                      {item.data.tags.map((tag) => (
+                        <TagComponent tag={tag} href={`/tags/${tag}`} />
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <h2 class="font-semibold text-xl tracking-tight">
                   <a
@@ -188,13 +195,6 @@ const nextPage =
                   </a>
                 </h2>
                 <p class="mt-2 text-neutral-400">{item.data.description}</p>
-                {item.data.tags && item.data.tags.length > 0 && (
-                  <div class="flex flex-wrap gap-2 mt-4">
-                    {item.data.tags.map((tag) => (
-                      <TagComponent tag={tag} href={`/tags/${tag}`} />
-                    ))}
-                  </div>
-                )}
               </li>
             );
           } else if (item.collection === "TIL") {
@@ -210,6 +210,13 @@ const nextPage =
                       <FormattedDate date={item.data.published} />
                     </dd>
                   </dl>
+                  {item.data.tags && item.data.tags.length > 0 && (
+                    <div class="flex flex-wrap gap-2">
+                      {item.data.tags.map((tag) => (
+                        <TagComponent tag={tag} href={`/tags/${tag}`} />
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <h2 class="font-semibold text-xl tracking-tight">
                   <a
@@ -219,13 +226,6 @@ const nextPage =
                   </a>
                 </h2>
                 <p class="mt-2 text-neutral-400">{item.data.description}</p>
-                {item.data.tags && item.data.tags.length > 0 && (
-                  <div class="flex flex-wrap gap-2 mt-4">
-                    {item.data.tags.map((tag) => (
-                      <TagComponent tag={tag} href={`/tags/${tag}`} />
-                    ))}
-                  </div>
-                )}
               </li>
             );
           } else if (item.collection === "tools") {
@@ -241,6 +241,13 @@ const nextPage =
                       <FormattedDate date={item.data.published} />
                     </dd>
                   </dl>
+                  {item.data.tags && item.data.tags.length > 0 && (
+                    <div class="flex flex-wrap gap-2">
+                      {item.data.tags.map((tag) => (
+                        <TagComponent tag={tag} href={`/tags/${tag}`} />
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <h2 class="font-semibold text-xl tracking-tight">
                   <a
@@ -250,13 +257,6 @@ const nextPage =
                   </a>
                 </h2>
                 <p class="mt-2 text-neutral-400">{item.data.description}</p>
-                {item.data.tags && item.data.tags.length > 0 && (
-                  <div class="flex flex-wrap gap-2 mt-4">
-                    {item.data.tags.map((tag) => (
-                      <TagComponent tag={tag} href={`/tags/${tag}`} />
-                    ))}
-                  </div>
-                )}
               </li>
             );
           } else {
@@ -279,6 +279,13 @@ const nextPage =
                         />
                       </dd>
                     </dl>
+                    {item.data.tags && item.data.tags.length > 0 && (
+                      <div class="flex flex-wrap gap-2">
+                        {item.data.tags.map((tag) => (
+                          <TagComponent tag={tag} href={`/tags/${tag}`} />
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <h2 class="font-semibold text-xl tracking-tight">
                     <a
@@ -291,13 +298,6 @@ const nextPage =
                     <p class="mt-1 mb-4 text-neutral-400">
                       {item.data.description}
                     </p>
-                  )}
-                  {item.data.tags && item.data.tags.length > 0 && (
-                    <div class="flex flex-wrap gap-2 mb-4">
-                      {item.data.tags.map((tag) => (
-                        <TagComponent tag={tag} href={`/tags/${tag}`} />
-                      ))}
-                    </div>
                   )}
                   {firstImage && (
                     <div class="w-full">

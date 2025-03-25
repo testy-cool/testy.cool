@@ -1,7 +1,7 @@
 ---
 title: "Quarto Icons & Extension Path Resolution"
 description: "Using Font Awesome 6.5.2+ instead of iconify"
-published: 2024-01-01
+published: 2025-01-01
 ---
 
 ## Context

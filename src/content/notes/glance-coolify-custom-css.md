@@ -1,7 +1,7 @@
 ---
 title: "Failed: Custom CSS in Glance Dashboard on Coolify"
 description: "Documenting a failed attempt to implement custom CSS in Glance dashboard when deployed through Coolify. I'm probably just stupid."
-published: "2025-01-01"
+published: 2025-01-01
 tags: ["fail"]
 ---
 

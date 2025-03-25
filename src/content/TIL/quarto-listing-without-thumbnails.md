@@ -1,7 +1,7 @@
 ---
 title: "How to Remove Empty Image Placeholders from Quarto Listings"
 description: "Using image-placeholder: \"\" and fields configuration in _quarto.yml"
-published: 2024-01-01
+published: 2025-01-01
 ---
 
 ## The Problem

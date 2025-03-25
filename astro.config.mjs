@@ -7,6 +7,8 @@ import tailwindcss from "@tailwindcss/vite";
 import icon from "astro-icon";
 import { defineConfig } from "astro/config";
 
+import cloudflare from '@astrojs/cloudflare';
+
 // Custom plugin to handle Obsidian-style links and images
 function remarkObsidianCustom() {
   return (tree) => {
@@ -70,9 +72,11 @@ function remarkObsidianCustom() {
 
 export default defineConfig({
   site: "https://testy.cool",
+
   vite: {
     plugins: [tailwindcss()],
   },
+
   integrations: [
     sitemap({
       lastmod: new Date(),
@@ -82,6 +86,7 @@ export default defineConfig({
     }),
     icon()
   ],
+
   markdown: {
     shikiConfig: {
       theme: "github-dark-default",
@@ -93,4 +98,6 @@ export default defineConfig({
     },
     remarkPlugins: [remarkObsidianCustom],
   },
+  output: 'server',
+  adapter: cloudflare(),
 });

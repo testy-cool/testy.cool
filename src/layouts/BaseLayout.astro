@@ -14,6 +14,7 @@ interface Props {
   author?: string;
   tags?: string[];
   noindex?: boolean;
+  contentType?: "post" | "tool" | "til" | "note" | "link";
 }
 
 const {
@@ -26,6 +27,7 @@ const {
   author = "TestyCool",
   tags = [],
   noindex = false,
+  contentType = "post",
 } = Astro.props;
 
 import { Icon } from "astro-icon/components";

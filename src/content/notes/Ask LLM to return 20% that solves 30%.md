@@ -1,7 +1,7 @@
 ---
 title: Ask LLM to return 20% solves 80%, when it gives too many options
 description: "When it gives too many options that feel low effort, ask it for the high impact options."
-published: 2025-03-25
+published: 2024-03-25
 tags: ["LLM"]
 ---
 

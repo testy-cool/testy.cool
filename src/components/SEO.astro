@@ -12,6 +12,8 @@ interface Props {
     tags?: string[];
     canonicalURL?: string;
     noindex?: boolean;
+    contentType?: "post" | "tool" | "til" | "note" | "link";
+    url?: string;
 }
 
 const {
@@ -25,9 +27,83 @@ const {
     tags = [],
     canonicalURL = Astro.url.href,
     noindex = false,
+    contentType = "post",
+    url,
 } = Astro.props;
 
 const siteTitle = `${title} | TestyCool`;
+
+// Generate schema markup based on content type
+const getSchemaMarkup = () => {
+    const baseSchema = {
+        "@context": "https://schema.org",
+        author: {
+            "@type": "Person",
+            name: author,
+            url: "https://testy.cool",
+        },
+        publisher: {
+            "@type": "Organization",
+            name: "TestyCool",
+            logo: {
+                "@type": "ImageObject",
+                url: "https://testy.cool/images/testycool_pp.png",
+            },
+        },
+        headline: title,
+        description: description,
+        image: image,
+        url: canonicalURL,
+        datePublished: publishedTime,
+        dateModified: modifiedTime || publishedTime,
+        keywords: tags.join(", "),
+    };
+
+    switch (contentType) {
+        case "post":
+            return {
+                ...baseSchema,
+                "@type": "BlogPosting",
+                articleSection: "Blog",
+            };
+        case "tool":
+            return {
+                ...baseSchema,
+                "@type": "TechArticle",
+                proficiencyLevel: "Advanced",
+                articleSection: "Tools",
+            };
+        case "til":
+            return {
+                ...baseSchema,
+                "@type": "Article",
+                articleSection: "Learning",
+            };
+        case "note":
+            return {
+                ...baseSchema,
+                "@type": "Article",
+                articleSection: "Notes",
+            };
+        case "link":
+            return {
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                headline: title,
+                url: url || canonicalURL,
+                datePublished: publishedTime,
+                keywords: tags.join(", "),
+                description: description,
+            };
+        default:
+            return {
+                ...baseSchema,
+                "@type": "Article",
+            };
+    }
+};
+
+const schemaMarkup = getSchemaMarkup();
 ---
 
 <!-- Primary Meta Tags -->
@@ -37,6 +113,9 @@ const siteTitle = `${title} | TestyCool`;
 <meta name="title" content={siteTitle} />
 <meta name="description" content={description} />
 <meta name="author" content={author} />
+
+<!-- Schema.org markup -->
+<script type="application/ld+json" set:html={JSON.stringify(schemaMarkup)} />
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content={isArticle ? "article" : "website"} />

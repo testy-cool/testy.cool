@@ -27,7 +27,12 @@ const allTags = [
 ].sort();
 ---
 
-<BaseLayout title="Posts" description="Collection of blog posts and articles.">
+<BaseLayout
+    title="Posts"
+    description="Collection of blog posts and articles."
+    isArticle={false}
+    contentType="post"
+    tags={allTags}>
     <Header>
         <SectionLabel as="p">Posts</SectionLabel>
         <div

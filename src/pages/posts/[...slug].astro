@@ -27,6 +27,7 @@ const { Content } = await render(post);
   title={post.data.title}
   description={post.data.description}
   isArticle={true}
+  contentType="post"
   publishedTime={post.data.published.toISOString()}
   modifiedTime={post.data.updated?.toISOString()}
   author="TestyCool"

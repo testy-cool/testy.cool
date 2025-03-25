@@ -1,6 +1,6 @@
 ---
 title: Trying Image Upscalers & Enhancers
-published: 2025-03-24
+published: 2024-03-25
 ---
 Most image upscalers/enhancers I've found aren't great for with fine details.
 **Image upscalers/enhancers won't do all the work if you don't know what you're doing.**

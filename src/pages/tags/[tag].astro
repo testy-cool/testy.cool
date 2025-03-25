@@ -27,6 +27,8 @@ export const getStaticPaths: GetStaticPaths = async () => {
     }));
 };
 
+export const prerender = true;
+
 type Props = {
     tag: string;
 };

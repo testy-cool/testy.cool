@@ -2,7 +2,7 @@
 title: LLM CLI Utility Cheatsheet
 description: Personal cheatsheet for Simon Willison's LLM CLI utility, covering common commands and configurations.
 published: 2025-03-21T02:58:09+02:00
-draft: false
+draft: true
 ---
 
 This is a personal cheatsheet for the [LLM CLI utility](https://llm.datasette.io/en/stable/index.html) by Simon Willison.

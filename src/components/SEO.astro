@@ -11,6 +11,7 @@ interface Props {
     author?: string;
     tags?: string[];
     canonicalURL?: string;
+    noindex?: boolean;
 }
 
 const {
@@ -23,6 +24,7 @@ const {
     author = "TestyCool",
     tags = [],
     canonicalURL = Astro.url.href,
+    noindex = false,
 } = Astro.props;
 
 const siteTitle = `${title} | TestyCool`;
@@ -74,6 +76,9 @@ const siteTitle = `${title} | TestyCool`;
 <link rel="canonical" href={canonicalURL} />
 
 <!-- Robots -->
-<meta name="robots" content="index, follow" />
-<meta name="googlebot" content="index, follow" />
+<meta name="robots" content={noindex ? "noindex, follow" : "index, follow"} />
+<meta
+    name="googlebot"
+    content={noindex ? "noindex, follow" : "index, follow"}
+/>
 <meta name="google" content="notranslate" />

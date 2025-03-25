@@ -42,7 +42,8 @@ const { page } = Astro.props;
 
 <BaseLayout
     title={`Blog - Page ${page.currentPage}`}
-    description="UI engineer who enjoys working at the intersection of design and engineering teams.">
+    description="UI engineer who enjoys working at the intersection of design and engineering teams."
+    noindex={page.currentPage > 1}>
     <Header>
         <SectionLabel as="p">Page {page.currentPage}</SectionLabel>
         <h1 class="font-mono text-neutral-400 text-sm">Blog Feed</h1>

@@ -13,6 +13,7 @@ interface Props {
   modifiedTime?: string;
   author?: string;
   tags?: string[];
+  noindex?: boolean;
 }
 
 const {
@@ -24,6 +25,7 @@ const {
   modifiedTime,
   author = "TestyCool",
   tags = [],
+  noindex = false,
 } = Astro.props;
 
 import { Icon } from "astro-icon/components";
@@ -121,6 +123,7 @@ import { Icon } from "astro-icon/components";
       author={author}
       tags={tags}
       canonicalURL={canonicalURL.toString()}
+      noindex={noindex}
     />
   </head>
 

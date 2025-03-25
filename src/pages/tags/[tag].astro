@@ -76,7 +76,8 @@ const allItems = [...links, ...notes, ...posts, ...TIL, ...tools].sort(
 
 <BaseLayout
     title={`${tag} // TestyCool`}
-    description={`All items tagged with ${tag}`}>
+    description={`All items tagged with ${tag}`}
+    noindex={true}>
     <Header>
         <SectionLabel as="p">Tag</SectionLabel>
         <div class="flex justify-center mt-4">

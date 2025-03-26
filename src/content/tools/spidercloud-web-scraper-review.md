@@ -4,7 +4,7 @@ description: "Tried Spider.Cloud. Had really high hopes. Am disappointed."
 published: 2024-12-13
 ---
 
-![Spider.Cloud Homepage Screenshot](/images/spidercloud-web-scraper-review/Spider.Cloud Homepage Screenshot.png)
+![Spider.Cloud Homepage Screenshot](/images/spidercloud-web-scraper-review/spider-cloud-homepage-screenshot.png)
 
 Spider.Cloud is a web scraping tool that allows you to scrape websites and extract data. 
 

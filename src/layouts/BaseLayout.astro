@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import { NAVIGATION, SITE_VERSION, SOCIALS } from "@/consts";
 import SEO from "@/components/SEO.astro";
+import { getCollection } from "astro:content";
 
 // Ensure canonical URL ends with a trailing slash
 const pathname = Astro.url.pathname;
@@ -9,6 +10,33 @@ const canonicalURL = new URL(
   pathname.endsWith("/") ? pathname : `${pathname}/`,
   Astro.site,
 );
+
+// Get all content from the last 24 hours
+const now = new Date();
+const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+const recentLinks = await getCollection("links", ({ data }) => {
+  return data.published >= yesterday;
+});
+const recentNotes = await getCollection("notes", ({ data }) => {
+  return !data.draft && data.published >= yesterday;
+});
+const recentPosts = await getCollection("posts", ({ data }) => {
+  return !data.draft && data.published >= yesterday;
+});
+const recentTIL = await getCollection("TIL", ({ data }) => {
+  return !data.draft && data.published >= yesterday;
+});
+const recentTools = await getCollection("tools", ({ data }) => {
+  return !data.draft && data.published >= yesterday;
+});
+
+const newPostCount =
+  recentLinks.length +
+  recentNotes.length +
+  recentPosts.length +
+  recentTIL.length +
+  recentTools.length;
 
 interface Props {
   title: string;
@@ -215,7 +243,7 @@ import { Icon } from "astro-icon/components";
               aria-hidden="true"
               class="before:absolute flex-none bg-green-500 before:bg-green-300 rounded-full before:rounded-full size-2 before:size-2 before:animate-ping"
             ></span>
-            All systems operational
+            {newPostCount} new post{newPostCount !== 1 ? "s" : ""} in the last 24h
           </p>
         </div>
       </footer>

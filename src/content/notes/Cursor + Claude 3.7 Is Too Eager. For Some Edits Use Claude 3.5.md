@@ -1,7 +1,7 @@
 ---
 title: Cursor + Claude 3.7 Is Too Eager. For Some Edits Use Claude 3.5.
 description: "It won't stfu."
-published: 2024-03-25
+published: 2025-03-25
 tags: ["ramblings"]
 ---
 

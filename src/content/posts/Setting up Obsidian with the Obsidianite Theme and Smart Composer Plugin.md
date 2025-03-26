@@ -1,7 +1,7 @@
 ---
 title: "Setting up Obsidian with the Obsidianite Theme and Smart Composer Plugin"
 description: "I love the theme's pretty gradient bold font, and Smart Composer is like the Cursor.com sidebar AI assistant."
-published: 2024-03-26
+published: 2025-03-26
 ---
 
 I recently recorded a quick walkthrough of how I set up a fresh Obsidian vault. My goal isn't complexity; I prefer a setup that looks good with minimal effort and provides powerful features out-of-the-box. 

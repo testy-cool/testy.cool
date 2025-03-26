@@ -29,7 +29,7 @@ function remarkObsidianCustom() {
             if (matches) {
               for (const match of matches) {
                 const path = match.slice(3, -2); // Remove ![[]]
-                const finalPath = path.startsWith('/') ? path : `/public/images/${path}`;
+                const finalPath = path.startsWith('/') ? path : `/images/${path}`;
                 
                 if (finalPath.toLowerCase().endsWith('.mp4')) {
                   // Create a raw HTML node for videos using our Video component

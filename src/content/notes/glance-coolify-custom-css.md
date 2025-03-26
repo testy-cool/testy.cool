@@ -5,7 +5,7 @@ published: 2024-03-25
 tags: ["fail"]
 ---
 
-![First View of Glance](/public/images/glance-coolify-custom-css/glanceapp.png)
+![First View of Glance](/images/glance-coolify-custom-css/glanceapp.png)
 
 I wanted to use a custom CSS theme for my Glance dashboard. The default font is JetBrains Mono, which is great for code, but not so great for reading. I wanted to use a custom CSS theme that is more readable.
 

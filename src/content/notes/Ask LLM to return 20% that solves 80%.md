@@ -7,6 +7,6 @@ tags: ["LLM"]
 
 Sometimes I ask LLMs what to do in some situation, and it may suggest a ton of options.
 
-This feel low effort on its' part.
+This feels low effort on its' part.
 
 A solution that seems to work well for me, especially since in that moment I'm annoyed and in no mood to read, is to tell it to focus on the 20% that solves the 80%.

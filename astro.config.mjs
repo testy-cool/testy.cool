@@ -70,7 +70,7 @@ function remarkObsidianCustom() {
 
 export default defineConfig({
   site: "https://testy.cool",
-  trailingSlash: "always",
+  trailingSlash: "ignore",
   output: "static",
 
   vite: {

@@ -233,36 +233,50 @@ const nextPage =
               </li>
             );
           } else if (item.collection === "tools") {
-            return (
-              <li class="px-4 sm:px-8 py-8" id={`tool-${item.id}`}>
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="font-mono text-neutral-500 text-xs uppercase">
-                    Tool
-                  </span>
-                  <dl class="flex items-center gap-4">
-                    <dt class="sr-only">Published</dt>
-                    <dd class="font-mono text-neutral-400 text-sm">
-                      <FormattedDate date={item.data.published} />
-                    </dd>
-                  </dl>
-                  {item.data.tags && item.data.tags.length > 0 && (
-                    <div class="flex flex-wrap gap-2">
-                      {item.data.tags.map((tag) => (
-                        <TagComponent tag={tag} href={`/tags/${tag}`} />
-                      ))}
+            return render(item).then(({ Content }) => {
+              const firstImage = item.body
+                ? extractFirstImage(item.body)
+                : null;
+              return (
+                <li class="px-4 sm:px-8 py-8" id={`tool-${item.id}`}>
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="font-mono text-neutral-500 text-xs uppercase">
+                      Tool
+                    </span>
+                    <dl class="flex items-center gap-4">
+                      <dt class="sr-only">Published</dt>
+                      <dd class="font-mono text-neutral-400 text-sm">
+                        <FormattedDate date={item.data.published} />
+                      </dd>
+                    </dl>
+                    {item.data.tags && item.data.tags.length > 0 && (
+                      <div class="flex flex-wrap gap-2">
+                        {item.data.tags.map((tag) => (
+                          <TagComponent tag={tag} href={`/tags/${tag}`} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <h2 class="font-semibold text-xl tracking-tight">
+                    <a
+                      href={`/tools/${item.id}`}
+                      class="group decoration-2 decoration-neutral-600 hover:decoration-white underline">
+                      {item.data.title}
+                    </a>
+                  </h2>
+                  <p class="mt-2 text-neutral-400">{item.data.description}</p>
+                  {firstImage && (
+                    <div class="w-full">
+                      <img
+                        src={firstImage}
+                        alt=""
+                        class="rounded-sm w-full object-cover aspect-[2/1]"
+                      />
                     </div>
                   )}
-                </div>
-                <h2 class="font-semibold text-xl tracking-tight">
-                  <a
-                    href={`/tools/${item.id}`}
-                    class="group decoration-2 decoration-neutral-600 hover:decoration-white underline">
-                    {item.data.title}
-                  </a>
-                </h2>
-                <p class="mt-2 text-neutral-400">{item.data.description}</p>
-              </li>
-            );
+                </li>
+              );
+            });
           } else {
             return render(item).then(({ Content }) => {
               const firstImage = item.body

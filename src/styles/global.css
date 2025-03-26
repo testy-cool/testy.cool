@@ -69,6 +69,15 @@
     @apply ml-2 pl-4 marker:text-neutral-700 list-square;
   }
 
+  ol {
+    @apply ml-2 pl-8 marker:text-neutral-400 list-decimal;
+  }
+
+
+  ol > li::marker {
+    @apply font-mono text-sm;
+  }
+
   blockquote {
     @apply space-y-4 ml-2 pl-4 border-neutral-700 border-l-4;
 

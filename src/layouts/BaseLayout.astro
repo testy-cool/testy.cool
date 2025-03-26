@@ -2,7 +2,13 @@
 import "../styles/global.css";
 import { NAVIGATION, SITE_VERSION, SOCIALS } from "@/consts";
 import SEO from "@/components/SEO.astro";
-const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+
+// Ensure canonical URL ends with a trailing slash
+const pathname = Astro.url.pathname;
+const canonicalURL = new URL(
+  pathname.endsWith("/") ? pathname : `${pathname}/`,
+  Astro.site,
+);
 
 interface Props {
   title: string;

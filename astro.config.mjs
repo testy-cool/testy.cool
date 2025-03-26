@@ -31,7 +31,7 @@ function remarkObsidianCustom() {
             if (matches) {
               for (const match of matches) {
                 const path = match.slice(3, -2); // Remove ![[]]
-                const finalPath = path.startsWith('/') ? path : `/src/images/${path}`;
+                const finalPath = path.startsWith('/') ? path : `/public/images/${path}`;
                 
                 if (finalPath.toLowerCase().endsWith('.mp4')) {
                   // Create a raw HTML node for videos using our Video component
@@ -72,6 +72,8 @@ function remarkObsidianCustom() {
 
 export default defineConfig({
   site: "https://testy.cool",
+  trailingSlash: "always",
+  output: "static",
 
   vite: {
     plugins: [tailwindcss()],
@@ -88,6 +90,11 @@ export default defineConfig({
       changefreq: 'weekly',
       priority: 0.7,
       filter: (page) => !page.includes('draft'),
+      serialize: (item) => ({
+        ...item,
+        // Ensure canonical URLs end with trailing slash
+        url: item.url.endsWith('/') ? item.url : `${item.url}/`,
+      })
     }),
     icon()
   ],
@@ -103,6 +110,5 @@ export default defineConfig({
     },
     remarkPlugins: [remarkObsidianCustom],
   },
-  output: 'server',
   adapter: cloudflare(),
 });

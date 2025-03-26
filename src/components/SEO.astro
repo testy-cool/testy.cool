@@ -31,6 +31,11 @@ const {
     url,
 } = Astro.props;
 
+// Ensure canonical URL ends with a trailing slash
+const normalizedCanonicalURL = canonicalURL.endsWith("/")
+    ? canonicalURL
+    : `${canonicalURL}/`;
+
 const siteTitle = `${title} | TestyCool`;
 
 // Generate schema markup based on content type
@@ -53,7 +58,7 @@ const getSchemaMarkup = () => {
         headline: title,
         description: description,
         image: image,
-        url: canonicalURL,
+        url: normalizedCanonicalURL,
         datePublished: publishedTime,
         dateModified: modifiedTime || publishedTime,
         keywords: tags.join(", "),
@@ -90,7 +95,7 @@ const getSchemaMarkup = () => {
                 "@context": "https://schema.org",
                 "@type": "WebPage",
                 headline: title,
-                url: url || canonicalURL,
+                url: url || normalizedCanonicalURL,
                 datePublished: publishedTime,
                 keywords: tags.join(", "),
                 description: description,
@@ -119,7 +124,7 @@ const schemaMarkup = getSchemaMarkup();
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content={isArticle ? "article" : "website"} />
-<meta property="og:url" content={canonicalURL} />
+<meta property="og:url" content={normalizedCanonicalURL} />
 <meta property="og:title" content={siteTitle} />
 <meta property="og:description" content={description} />
 <meta property="og:image" content={image} />
@@ -128,7 +133,7 @@ const schemaMarkup = getSchemaMarkup();
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary" />
-<meta property="twitter:url" content={canonicalURL} />
+<meta property="twitter:url" content={normalizedCanonicalURL} />
 <meta property="twitter:title" content={siteTitle} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={image} />
@@ -152,7 +157,7 @@ const schemaMarkup = getSchemaMarkup();
 }
 
 <!-- Canonical URL -->
-<link rel="canonical" href={canonicalURL} />
+<link rel="canonical" href={normalizedCanonicalURL} />
 
 <!-- Robots -->
 <meta name="robots" content={noindex ? "noindex, follow" : "index, follow"} />

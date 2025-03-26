@@ -13,22 +13,22 @@ const canonicalURL = new URL(
 
 // Get all content from the last 24 hours
 const now = new Date();
-const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
 const recentLinks = await getCollection("links", ({ data }) => {
-  return data.published >= yesterday;
+  return data.published >= lastWeek;
 });
 const recentNotes = await getCollection("notes", ({ data }) => {
-  return !data.draft && data.published >= yesterday;
+  return !data.draft && data.published >= lastWeek;
 });
 const recentPosts = await getCollection("posts", ({ data }) => {
-  return !data.draft && data.published >= yesterday;
+  return !data.draft && data.published >= lastWeek;
 });
 const recentTIL = await getCollection("TIL", ({ data }) => {
-  return !data.draft && data.published >= yesterday;
+  return !data.draft && data.published >= lastWeek;
 });
 const recentTools = await getCollection("tools", ({ data }) => {
-  return !data.draft && data.published >= yesterday;
+  return !data.draft && data.published >= lastWeek;
 });
 
 const newPostCount =
@@ -243,7 +243,7 @@ import { Icon } from "astro-icon/components";
               aria-hidden="true"
               class="before:absolute flex-none bg-green-500 before:bg-green-300 rounded-full before:rounded-full size-2 before:size-2 before:animate-ping"
             ></span>
-            {newPostCount} new post{newPostCount !== 1 ? "s" : ""} in the last 24h
+            {newPostCount} this week
           </p>
         </div>
       </footer>

@@ -238,12 +238,20 @@ import { Icon } from "astro-icon/components";
             }
           </ul>
           <p
-            class="flex justify-center items-center gap-2 mt-8 font-mono text-neutral-400 text-xs uppercase">
-            <span
-              aria-hidden="true"
-              class="before:absolute flex-none bg-green-500 before:bg-green-300 rounded-full before:rounded-full size-2 before:size-2 before:animate-ping"
-            ></span>
-            {newPostCount} this week
+            class="flex flex-col items-center gap-2 mt-8 font-mono text-neutral-400 text-xs uppercase">
+            <span class="text-center">
+              Built with <a
+                href="https://github.com/alexcarpenter/alexcarpenter.me"
+                class="hover:text-white">Alex Carpenter's template</a
+              >
+            </span>
+            <span class="flex items-center gap-2">
+              <span
+                aria-hidden="true"
+                class="before:absolute flex-none bg-green-500 before:bg-green-300 rounded-full before:rounded-full size-2 before:size-2 before:animate-ping"
+              ></span>
+              {newPostCount} this week
+            </span>
           </p>
         </div>
       </footer>

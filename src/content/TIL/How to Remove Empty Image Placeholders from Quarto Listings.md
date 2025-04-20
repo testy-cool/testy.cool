@@ -20,6 +20,7 @@ listing:
 ```
 
 This:
+
 * Uses `default` layout instead of table/grid
 * Only shows the fields you want
 * Sets empty image placeholder to remove the space
@@ -28,4 +29,4 @@ This:
 
 The key is `image-placeholder: ""`. Without this, Quarto reserves space for thumbnails even when posts don't have images. Setting it to an empty string removes this space entirely.
 
-The `fields` list explicitly states what you want to show, giving you clean, text-only listings. 
+The `fields` list explicitly states what you want to show, giving you clean, text-only listings.

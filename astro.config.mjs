@@ -7,6 +7,8 @@ import tailwindcss from "@tailwindcss/vite";
 import icon from "astro-icon";
 import { defineConfig } from "astro/config";
 
+import cloudflare from '@astrojs/cloudflare';
+
 // Custom plugin to handle Obsidian-style links and images
 function remarkObsidianCustom() {
   return (tree) => {
@@ -106,5 +108,5 @@ export default defineConfig({
       ],
     },
     remarkPlugins: [remarkObsidianCustom],
-  }
+  },
 });

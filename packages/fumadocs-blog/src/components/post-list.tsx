@@ -19,7 +19,7 @@ export function PostList({
   currentPage,
   totalPages,
   heading = "Blog Posts",
-  description = "Discover the latest insights and tutorials about modern web development, UI design, and component-driven architecture.",
+  description = "Notes and ramblings, typically about LLMs.",
   basePath = "/blog",
   disablePagination = false,
   configuration,

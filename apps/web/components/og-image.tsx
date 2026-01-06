@@ -5,35 +5,35 @@ export const contentType = "image/png";
 export const dynamic = "force-static";
 export const revalidate = false;
 
-// Fetch fonts
+// Fetch fonts from Google Fonts
 async function loadFonts() {
-  const [geistSans, geistMono] = await Promise.all([
-    fetch("https://cdn.jsdelivr.net/npm/geist@1.2.0/dist/fonts/geist-sans/Geist-Bold.ttf").then(
+  const [inter, jetbrainsMono] = await Promise.all([
+    fetch("https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYAZ9hjp-Ek-_EeA.woff").then(
       (res) => res.arrayBuffer()
     ),
-    fetch("https://cdn.jsdelivr.net/npm/geist@1.2.0/dist/fonts/geist-mono/GeistMono-Medium.ttf").then(
+    fetch("https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjOVGa.woff").then(
       (res) => res.arrayBuffer()
     ),
   ]);
-  return { geistSans, geistMono };
+  return { inter, jetbrainsMono };
 }
 
 export async function generateOGImage(title: string) {
-  const { geistSans, geistMono } = await loadFonts();
+  const { inter, jetbrainsMono } = await loadFonts();
 
   const imageOptions: ImageResponseOptions = {
     width: 1200,
     height: 630,
     fonts: [
       {
-        name: "Geist",
-        data: geistSans,
+        name: "Inter",
+        data: inter,
         weight: 700,
         style: "normal",
       },
       {
-        name: "GeistMono",
-        data: geistMono,
+        name: "JetBrainsMono",
+        data: jetbrainsMono,
         weight: 500,
         style: "normal",
       },
@@ -73,7 +73,7 @@ export async function generateOGImage(title: string) {
           <div
             tw="text-white text-center"
             style={{
-              fontFamily: "Geist",
+              fontFamily: "Inter",
               fontSize: "64px",
               fontWeight: 700,
               lineHeight: 1.15,
@@ -88,12 +88,12 @@ export async function generateOGImage(title: string) {
         <div
           tw="absolute flex"
           style={{
-            fontFamily: "GeistMono",
+            fontFamily: "JetBrainsMono",
             bottom: "40px",
             fontSize: "14px",
             color: "#666",
             fontWeight: 500,
-            letterSpacing: "0.05em",
+            letterSpacing: "0.02em",
           }}
         >
           testy.cool

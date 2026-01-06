@@ -25,8 +25,6 @@ export async function generateAllParams(
     allParams.push(...blogPostsParams);
   }
 
-  // console.log("generateStaticParams", allParams);
-
   return allParams;
 }
 
@@ -121,7 +119,7 @@ export function generateSeriesPathParams(posts: BlogPost[]) {
 
 /**
  * Generates static parameters for OG image routes
- * Creates image routes by adding image.png to each existing slug array
+ * Creates image routes with and without image.png suffix
  */
 export async function generateOgImageStaticParams(
   blogSource: any,
@@ -130,13 +128,18 @@ export async function generateOgImageStaticParams(
   // Get all the regular params first
   const params = await generateAllParams(blogSource, posts, true);
 
-  // Create image routes by adding image.png to each existing slug array
-  const imageRoutes = params.map((param) => {
+  // Create both variants: with and without image.png suffix
+  const imageRoutes: Array<{ slug: string[] }> = [];
+
+  for (const param of params) {
     if (param.slug && param.slug.length > 0) {
-      return { slug: [...param.slug, "image.png"] };
+      imageRoutes.push({ slug: param.slug }); // without image.png
+      imageRoutes.push({ slug: [...param.slug, "image.png"] }); // with image.png
+    } else {
+      imageRoutes.push({ slug: [] }); // root without image.png
+      imageRoutes.push({ slug: ["image.png"] }); // root with image.png
     }
-    return { slug: ["image.png"] };
-  });
+  }
 
   return imageRoutes;
 }

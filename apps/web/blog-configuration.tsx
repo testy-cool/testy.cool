@@ -33,10 +33,10 @@ import { SocialIcons } from "@repo/ui/components/social-icons";
 export const blogConstants: BlogConstants = {
   // General
   blogTitle: "Blog",
-  blogDescription: "Articles and thoughts",
-  siteName: "yourdomain.com",
-  defaultAuthorName: "Your Name",
-  xUsername: "@yourusername",
+  blogDescription: "Notes and ramblings about LLMs, automation and dev.",
+  siteName: "testy.cool",
+  defaultAuthorName: "testy.cool",
+  xUsername: "@testy_cool",
   // Pagination
   paginationTitle: (page: number) => `Blog - Page ${page}`,
   paginationDescription: (page: number) =>

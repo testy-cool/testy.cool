@@ -2,10 +2,10 @@ import { Icons } from "@/components/icons";
 import type { BaseLayoutProps, LinkItemType } from "fumadocs-ui/layouts/shared";
 import Image from "next/image";
 
-export const title = "yourdomain.com";
+export const title = "testy.cool";
 export const description =
-  "Your blog description goes here. Customize this to describe your content.";
-export const owner = "yourdomain.com";
+  "Notes and ramblings about LLMs, automation and dev.";
+export const owner = "testy.cool";
 /**
  * Shared layout configurations
  *
@@ -18,12 +18,13 @@ export const baseOptions: BaseLayoutProps = {
     title: (
       <>
         <img
-          src="/assets/logo.svg"
+          src="/avatar.png"
           width={28}
           height={28}
-          alt="yourdomain.com logo"
+          alt="testy.cool logo"
+          className="rounded-full"
         />{" "}
-        yourdomain.com
+        testy.cool
       </>
     ),
   },

@@ -49,13 +49,18 @@ export default function Layout({ children }: { children: ReactNode }) {
   const footerNavigation = [
     {
       name: "X",
-      href: "https://x.com/yourusername",
+      href: "https://x.com/testy_cool",
       icon: SocialIcons.x,
     },
     {
       name: "GitHub",
-      href: "https://github.com/yourusername",
+      href: "https://github.com/testy-cool",
       icon: SocialIcons.github,
+    },
+    {
+      name: "Bluesky",
+      href: "https://bsky.app/profile/testycool.bsky.social",
+      icon: SocialIcons.linkedIn,
     },
   ];
 

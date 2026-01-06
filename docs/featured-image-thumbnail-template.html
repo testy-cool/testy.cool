@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Featured Image Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:tight,wght@600;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            /* Center the canvas in the browser window */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #222;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* The main canvas to screenshot */
+        .featured-image {
+            width: 1200px;
+            height: 630px;
+            background-color: #050505;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 80px;
+        }
+
+        /* The Grid Background Effect */
+        .grid-bg {
+            position: absolute;
+            inset: 0;
+            opacity: 0.15;
+            background-image: 
+                linear-gradient(to right, #888 1px, transparent 1px),
+                linear-gradient(to bottom, #888 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            z-index: 1;
+        }
+
+        /* The large ambient background glow */
+        .glow-spot {
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            /* A very diffuse purple/pink glow for the whole card */
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.25) 0%, rgba(124, 58, 237, 0) 60%);
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Content Container */
+        .content {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px; /* Space between logo area and text */
+            max-width: 950px;
+        }
+
+        /* Wrapper to stack logo on top of halo */
+        .logo-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* The artificial halo circle behind the logo */
+        .logo-halo {
+            position: absolute;
+            width: 160px; /* Slightly larger than the logo wrapper */
+            height: 160px;
+            background: radial-gradient(closest-side, rgba(167, 139, 250, 0.6) 0%, rgba(124, 58, 237, 0) 100%);
+            border-radius: 50%;
+            filter: blur(30px); /* Soft blur to blend it */
+            z-index: 1;
+        }
+
+        /* The Logo itself */
+        .logo-img {
+            width: 96px;
+            height: 96px;
+            z-index: 2; /* Sits on top of the halo */
+            position: relative;
+            /* No shadow or border here, just the raw image */
+        }
+
+        /* The Title */
+        h1 {
+            color: white;
+            font-size: 72px;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            text-wrap: balance;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.5); /* Helps text pop off the glow */
+            outline: none;
+            cursor: text;
+        }
+
+        /* Footer Branding */
+        .footer {
+            position: absolute;
+            bottom: 40px;
+            font-size: 18px;
+            color: #888;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            z-index: 10;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="featured-image">
+        <!-- Visual Effects -->
+        <div class="glow-spot"></div>
+        <div class="grid-bg"></div>
+
+        <!-- Main Content -->
+        <div class="content">
+            
+            <div class="logo-wrapper">
+                <!-- The blurred circle behind the logo -->
+                <div class="logo-halo"></div>
+                <!-- The logo -->
+                <img src="https://testy.cool/favicon-96x96.png" alt="Logo" class="logo-img">
+            </div>
+            
+            <!-- Click text below to edit -->
+            <h1 contenteditable="true">How to Remove Windows NUL File</h1>
+        </div>
+
+        <div class="footer">Testy.Cool</div>
+    </div>
+
+</body>
+</html>

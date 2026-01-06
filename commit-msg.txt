@@ -1,0 +1,16 @@
+feat: Combine CSS clamp calculator with tutorial in blog post
+
+- Move clamp calculator from standalone /tools/clamp-calculator to embedded in blog post
+- Add interactive mini-tools: VwCalculator, ScalingPreview, BreakpointComparison, TwoPointCalculator
+- Rewrite tutorial with progressive disclosure: builds from zero, explains WHY the math works
+- Update /tools index to support blogPath for tutorial-embedded tools
+- Update CLAUDE.md with tools page structure and tutorial writing guidelines
+
+The tools index now links to /blog/tutorial/css-clamp-fluid-responsive-design
+instead of a standalone tool page, following the pattern:
+- Tool is the point -> /tools/[slug]
+- Learning is the point, tool helps -> /blog/[slug]
+
+Generated with Claude Code (https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>

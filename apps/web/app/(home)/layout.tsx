@@ -60,7 +60,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     {
       name: "Bluesky",
       href: "https://bsky.app/profile/testycool.bsky.social",
-      icon: SocialIcons.linkedIn,
+      icon: SocialIcons.bluesky,
     },
   ];
 

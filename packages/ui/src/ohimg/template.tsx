@@ -8,9 +8,9 @@ import { cn } from "@repo/shadverse/lib/utils";
 
 export const ohimgConfig: OhImgBaseTemplateProps = {
   content: {
-    title: "testy.cool",
+    title: "Mostly LLMs, mostly.",
     description:
-      "Posts, notes, and tutorials. Mostly related to LLMs.",
+      "Notes on LLMs, agents, and automation. Sometimes it works.",
     website: "testy.cool",
     // tags: ["personal", "website"],
     // logoSrc: "/avatar.png",

@@ -18,7 +18,7 @@ const geistMono = localFont({
 export const metadata = createMetadata({
   title: {
     template: "%s | testy.cool",
-    default: "testy.cool",
+    default: "testy.cool — Mostly LLMs, mostly.",
   },
   description: description,
   metadataBase: baseUrl,

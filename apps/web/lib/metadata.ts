@@ -3,6 +3,17 @@ import type { Metadata } from "next/types";
 export function createMetadata(override: Metadata): Metadata {
   return {
     ...override,
+    keywords: [
+      "LLM",
+      "large language models",
+      "AI agents",
+      "automation",
+      "GPT",
+      "Claude",
+      "AI development",
+      "web agents",
+      "research agents",
+    ],
     authors: [
       {
         name: "testy.cool",
@@ -11,10 +22,12 @@ export function createMetadata(override: Metadata): Metadata {
     ],
     creator: "testy.cool",
     openGraph: {
-      title: override.title ?? undefined,
-      description: override.description ?? undefined,
+      title: override.title ?? "testy.cool — Mostly LLMs, mostly.",
+      description: override.description ?? "Notes on LLMs, agents, and automation. Sometimes it works.",
       url: "https://testy.cool",
       siteName: "testy.cool",
+      type: "website",
+      locale: "en_US",
       ...override.openGraph,
     },
     twitter: {

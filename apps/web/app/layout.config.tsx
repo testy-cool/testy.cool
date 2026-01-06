@@ -2,9 +2,9 @@ import { Icons } from "@/components/icons";
 import type { BaseLayoutProps, LinkItemType } from "fumadocs-ui/layouts/shared";
 import Image from "next/image";
 
-export const title = "testy.cool";
+export const title = "testy.cool — Mostly LLMs, mostly.";
 export const description =
-  "Posts, notes, and tutorials. Mostly related to LLMs.";
+  "Notes on LLMs, agents, and automation. Sometimes it works. Written while building things that talk to APIs and occasionally do what you want.";
 export const owner = "testy.cool";
 /**
  * Shared layout configurations

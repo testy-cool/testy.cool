@@ -1,4 +1,4 @@
-import { generateOGImage } from "fumadocs-ui/og";
+import { generateOGImage } from "@/components/og-image";
 import {
   generateOgImageStaticParams,
   generateOGImageMetadata,
@@ -19,8 +19,6 @@ export async function GET(
 ) {
   const resolvedParams = await params;
 
-  console.log("resolvedParams", resolvedParams);
-
   const metadata = generateOGImageMetadata(resolvedParams, {
     blogConstants,
     getCategoryBySlug,
@@ -28,19 +26,11 @@ export async function GET(
     blogSource,
   });
 
-  return generateOGImage({
-    title: metadata.title,
-    // description: metadata.description,
-    site: "testy.cool",
-  });
+  return generateOGImage(metadata.title);
 }
 
 export async function generateStaticParams() {
   const posts = getBlogPosts();
-
   const imageRoutes = await generateOgImageStaticParams(blogSource, posts);
-
-  console.log("imageRoutes", imageRoutes);
-
   return imageRoutes;
 }

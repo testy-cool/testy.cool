@@ -1,0 +1,82 @@
+---
+title: Setup a Blog with testy-blog Template
+description: How to create your own MDX blog using the testy-blog template
+date: 2026-01-06
+author: testy.cool
+tags: [blog, tutorial, nextjs, fumadocs]
+---
+
+Here's how to set up your own blog using the [testy-blog](https://github.com/testy-cool/testy-blog) template.
+
+## Prerequisites
+
+- Node.js 20+
+- pnpm
+
+## Quick Start
+
+```bash
+# Clone the template
+git clone https://github.com/testy-cool/testy-blog.git my-blog
+cd my-blog
+
+# Remove git history and start fresh
+rm -rf .git
+git init
+
+# Install dependencies
+pnpm install
+
+# Run dev server
+pnpm dev
+```
+
+## Customize Your Blog
+
+### 1. Update Site Config
+
+Edit `apps/web/app/layout.config.tsx`:
+
+```tsx
+export const title = "Your Site Name";
+export const description = "Your site description";
+export const owner = "Your Name";
+```
+
+### 2. Update Blog Constants
+
+Edit `apps/web/blog-configuration.tsx` with your social links and site info.
+
+### 3. Update Hero Section
+
+Edit `apps/web/components/hero.tsx` with your tagline.
+
+### 4. Add Your Posts
+
+Create MDX files in `apps/web/content/blog/[category]/your-post.mdx`:
+
+```mdx
+---
+title: My First Post
+description: A short description
+date: 2026-01-06
+author: Your Name
+tags: [tag1, tag2]
+---
+
+Your content here.
+```
+
+## Deploy to Cloudflare Pages
+
+1. Push to GitHub
+2. Connect repo in Cloudflare Pages dashboard
+3. Set build command: `pnpm build`
+4. Set output directory: `apps/web/out`
+5. Add `.nvmrc` file with `20` for Node version
+
+That's it. Your blog is live.
+
+## Credits
+
+testy-blog is based on [rjv.im's fumadocs blog setup](https://rjv.im/blog/solution/setup-blog-with-fuma-docs).

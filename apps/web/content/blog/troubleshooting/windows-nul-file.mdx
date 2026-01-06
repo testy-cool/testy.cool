@@ -1,0 +1,32 @@
+---
+title: How to Remove Windows NUL File
+description: Understanding and removing reserved device name files on Windows
+date: 2026-01-06
+author: testy.cool
+tags: [windows, troubleshooting, filesystem]
+---
+
+`NUL` is a reserved device name in Windows (like `CON`, `PRN`, `AUX`). These files typically get created when:
+- Cross-platform tools (Git, WSL, Linux apps) create files without Windows name validation
+- File redirections or scripts accidentally use reserved names
+- Extracting archives from Unix/Linux systems
+
+## When NUL Occurs
+
+- Working with Git repositories from Linux/Mac
+- Running cross-platform build tools
+- File operations that don't respect Windows reserved names
+
+## How to Remove on Windows
+
+**PowerShell:**
+```powershell
+Remove-Item -Path "\\?\F:\full\path\to\nul" -Force
+```
+
+**Command Prompt:**
+```cmd
+del "\\?\F:\full\path\to\nul"
+```
+
+The `\\?\` prefix bypasses Windows name parsing, allowing you to access files with reserved names. Always use the full absolute path.

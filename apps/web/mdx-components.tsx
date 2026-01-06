@@ -8,6 +8,13 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 import { Step, Steps } from "fumadocs-ui/components/steps";
 
 import CodeDisplay from "./components/code-display";
+import {
+  ClampCalculator,
+  VwCalculator,
+  ScalingPreview,
+  BreakpointComparison,
+  TwoPointCalculator,
+} from "./components/tools/ClampCalculator";
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
@@ -25,6 +32,11 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     XEmbed: XEmbedClient,
     GithubCodeBlock: GithubCodeBlock,
     CodeDisplay,
+    ClampCalculator,
+    VwCalculator,
+    ScalingPreview,
+    BreakpointComparison,
+    TwoPointCalculator,
     ...components,
   };
 }

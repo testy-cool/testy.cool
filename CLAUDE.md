@@ -70,16 +70,33 @@ Cloudflare Pages with static export:
 
 ## Tools
 
-Interactive dev tools live at `/tools`. Structure:
+The `/tools` page is a curated directory that lists both standalone tools and tutorial-embedded tools.
+
+### Two types of tools, one index
+
+```
+/tools                           <- Index listing ALL tools
+/tools/[slug]                    <- Complex standalone tools (dedicated pages)
+/blog/[category]/[slug]          <- Simple tools embedded in tutorials
+```
+
+**Rule of thumb:**
+- **Tool is the point** -> `/tools/[slug]` (standalone page)
+- **Learning is the point, tool helps** -> blog post with `tool` tag
+
+Users browse `/tools`, click what they need. They don't care where it lives.
+
+### File structure
 
 ```
 apps/web/app/(home)/tools/
-├── page.tsx                    # Index page listing all tools
-└── [tool-name]/
-    └── page.tsx                # Individual tool page
+├── page.tsx                     # Index page listing all tools
+├── layout.tsx                   # Shared tools layout
+└── [tool-name]/                 # Only for standalone tools
+    └── page.tsx
 ```
 
-### Adding a new tool
+### Adding a standalone tool
 
 1. Create `apps/web/app/(home)/tools/[tool-name]/page.tsx`
 2. Add entry to the `tools` array in `apps/web/app/(home)/tools/page.tsx`:
@@ -89,22 +106,100 @@ apps/web/app/(home)/tools/
      title: "Tool Name",
      description: "Short description of what it does.",
      screenshot: "/images/tools/tool-name.png",
+     tags: ["CSS", "Responsive"],
    }
    ```
-3. Add screenshot to `apps/web/public/images/tools/tool-name.png` (aspect ratio 2:1)
-4. **Important**: Include an explanation section below the tool UI to help users understand what it does and how to use it
+3. Add screenshot to `apps/web/public/images/tools/tool-name.png` (aspect ratio 16:9)
 
-### Tool page structure
+### Adding a tutorial-embedded tool
 
-Each tool page should have:
-- Breadcrumb navigation back to /tools
-- Clear title and description
-- The interactive tool itself
-- **Explanation section** with:
-  - How it works
-  - When to use it
-  - Tips and examples
-  - Code snippets if relevant
+1. Create blog post in `apps/web/content/blog/[category]/tool-name.mdx`
+2. Add `tool` to the tags array in frontmatter
+3. Create interactive components in `apps/web/components/tools/`
+4. Register components in `apps/web/mdx-components.tsx`
+5. Add entry to the `tools` array with `blogPath`:
+   ```tsx
+   {
+     slug: "tool-name",
+     title: "Tool Name",
+     description: "Short description.",
+     screenshot: "/images/tools/tool-name.png",
+     tags: ["CSS", "Tutorial"],
+     blogPath: "/blog/category/tool-name",
+   }
+   ```
+
+## Tutorial Writing Guidelines
+
+When creating tutorial content (especially for tools):
+
+### Build from zero
+- Don't assume prior knowledge
+- Explain WHY things work, not just HOW
+- Start with the simplest concept and layer complexity
+
+### Use progressive disclosure
+1. Show the tool first (immediate value)
+2. Brief explanation of what it does
+3. Deep dive into the mechanics
+4. Edge cases and advanced usage
+
+### Include interactive elements
+- Mini-calculators throughout to reinforce concepts
+- Live previews showing cause and effect
+- Comparison widgets (e.g., breakpoints vs fluid)
+
+### Personal, conversational tone
+- First person: "I used to do X until I learned Y"
+- Casual but grammatically correct
+- Address the reader directly
+- Acknowledge pain points ("ever notice how...")
+
+### Example structure for a tool tutorial
+
+```mdx
+---
+title: Tool Name and Tutorial
+description: One-line hook about the problem it solves.
+tags: [category, topic, tool]
+---
+
+Brief intro (2-3 sentences on why this matters).
+
+## The Tool
+
+<ToolComponent />
+
+---
+
+## Why This Matters
+
+Personal anecdote or common pain point.
+
+<ComparisonWidget />
+
+## Building Up From Zero
+
+### Step 1: Foundation concept
+
+Explanation with interactive mini-tool.
+
+<MiniTool1 />
+
+### Step 2: Next concept
+
+Build on step 1...
+
+<MiniTool2 />
+
+## Common Pitfalls
+
+Real problems people encounter.
+
+## Quick Reference
+
+Cheat sheet for practical use.
+```
 
 ## Branding
 

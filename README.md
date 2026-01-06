@@ -238,7 +238,9 @@ pnpm check-types
 
 ## Credits
 
-This template is built on top of:
+Based on [Setup a Blog with NextJS & Fuma Docs](https://rjv.im/blog/solution/setup-blog-with-fuma-docs) by [@rjv_im](https://x.com/rjv_im).
+
+Built with:
 - [Fumadocs](https://fumadocs.vercel.app/) - Documentation framework
 - [Turborepo](https://turbo.build/) - Monorepo starter
 

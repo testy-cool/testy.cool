@@ -68,6 +68,44 @@ Cloudflare Pages with static export:
 - Node version: 20 (via `.nvmrc`)
 - Config: `wrangler.toml`
 
+## Tools
+
+Interactive dev tools live at `/tools`. Structure:
+
+```
+apps/web/app/(home)/tools/
+├── page.tsx                    # Index page listing all tools
+└── [tool-name]/
+    └── page.tsx                # Individual tool page
+```
+
+### Adding a new tool
+
+1. Create `apps/web/app/(home)/tools/[tool-name]/page.tsx`
+2. Add entry to the `tools` array in `apps/web/app/(home)/tools/page.tsx`:
+   ```tsx
+   {
+     slug: "tool-name",
+     title: "Tool Name",
+     description: "Short description of what it does.",
+     screenshot: "/images/tools/tool-name.png",
+   }
+   ```
+3. Add screenshot to `apps/web/public/images/tools/tool-name.png` (aspect ratio 2:1)
+4. **Important**: Include an explanation section below the tool UI to help users understand what it does and how to use it
+
+### Tool page structure
+
+Each tool page should have:
+- Breadcrumb navigation back to /tools
+- Clear title and description
+- The interactive tool itself
+- **Explanation section** with:
+  - How it works
+  - When to use it
+  - Tips and examples
+  - Code snippets if relevant
+
 ## Branding
 
 - Site: testy.cool

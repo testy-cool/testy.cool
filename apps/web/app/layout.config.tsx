@@ -45,6 +45,12 @@ export const linkItems: LinkItemType[] = [
   },
   {
     icon: <Icons.info />,
+    text: "Tools",
+    url: "/tools",
+    active: "nested-url",
+  },
+  {
+    icon: <Icons.info />,
     text: "About",
     url: "/about",
     active: "url",

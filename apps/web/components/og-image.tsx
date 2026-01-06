@@ -5,21 +5,21 @@ export const contentType = "image/png";
 export const dynamic = "force-static";
 export const revalidate = false;
 
-// Fetch fonts from Google Fonts
+// Fetch fonts
 async function loadFonts() {
-  const [inter, jetbrainsMono] = await Promise.all([
-    fetch("https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYAZ9hjp-Ek-_EeA.woff").then(
+  const [interBold, firaCode] = await Promise.all([
+    fetch("https://github.com/rsms/inter/raw/master/docs/font-files/Inter-Bold.otf").then(
       (res) => res.arrayBuffer()
     ),
-    fetch("https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjOVGa.woff").then(
+    fetch("https://github.com/tonsky/FiraCode/raw/master/distr/otf/FiraCode-Medium.otf").then(
       (res) => res.arrayBuffer()
     ),
   ]);
-  return { inter, jetbrainsMono };
+  return { interBold, firaCode };
 }
 
 export async function generateOGImage(title: string) {
-  const { inter, jetbrainsMono } = await loadFonts();
+  const { interBold, firaCode } = await loadFonts();
 
   const imageOptions: ImageResponseOptions = {
     width: 1200,
@@ -27,13 +27,13 @@ export async function generateOGImage(title: string) {
     fonts: [
       {
         name: "Inter",
-        data: inter,
+        data: interBold,
         weight: 700,
         style: "normal",
       },
       {
-        name: "JetBrainsMono",
-        data: jetbrainsMono,
+        name: "FiraCode",
+        data: firaCode,
         weight: 500,
         style: "normal",
       },
@@ -88,7 +88,7 @@ export async function generateOGImage(title: string) {
         <div
           tw="absolute flex"
           style={{
-            fontFamily: "JetBrainsMono",
+            fontFamily: "FiraCode",
             bottom: "40px",
             fontSize: "14px",
             color: "#666",

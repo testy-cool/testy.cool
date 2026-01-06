@@ -31,7 +31,7 @@ export default function SimpleFooter({
           ))}
         </div>
         <p className="mt-8 text-center text-sm/6 text-gray-600 md:order-1 md:mt-0">
-          &copy; 2025 testy.cool
+          &copy; {new Date().getFullYear()} testy.cool
         </p>
       </div>
     </footer>

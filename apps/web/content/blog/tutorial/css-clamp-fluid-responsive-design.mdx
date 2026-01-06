@@ -1,14 +1,16 @@
 ---
-title: CSS clamp() for Fluid Responsive Design
-description: Stop using breakpoint jumps. Learn how to create smooth, fluid typography and spacing that scales perfectly from mobile to desktop.
+title: Fluid Typography and Spacing That Actually Scales
+description: Stop using breakpoint jumps. Learn how to make text and spacing scale smoothly across all screen sizes, from mobile to ultrawide.
 date: 2026-01-06
 author: testy.cool
 tags: [css, responsive, tailwind, figma]
 ---
 
-If you're tired of writing `text-base md:text-lg lg:text-xl xl:text-2xl` and watching your designs jump awkwardly between breakpoints, there's a better way: **CSS `clamp()`**.
+Ever notice how some websites feel janky when you resize the browser? Text snaps awkwardly between sizes at certain widths. Spacing suddenly doubles. It's because they're using **breakpoints** — fixed rules like "be this size on mobile, that size on desktop."
 
-I built a [Clamp Calculator](/tools/clamp-calculator) to generate these values automatically, but here's the full explanation of how it works.
+There's a better approach: **fluid scaling**. Instead of jumping between fixed values, your typography and spacing smoothly interpolates based on screen width. A heading that's 24px on a phone gradually becomes 48px on a desktop, hitting every size in between.
+
+The CSS function that makes this possible is called `clamp()`. Here's how it works — and there's a [calculator tool](/tools/clamp-calculator) to generate these values automatically.
 
 ## The Problem with Breakpoints
 
@@ -172,6 +174,6 @@ Here are pre-calculated values for a 430px → 1440px design system:
 | Section Padding | 40px | 100px | `clamp(40px,5.94vw+14.45px,100px)` |
 | Card Gap | 16px | 32px | `clamp(16px,1.58vw+9.19px,32px)` |
 
-## The Tool
+## Skip the Math
 
-Don't want to do the math? Use the [Clamp Calculator](/tools/clamp-calculator) — enter your mobile and desktop values, get the clamp() output instantly.
+The [Clamp Calculator](/tools/clamp-calculator) does all of this automatically — enter your mobile and desktop values, get the CSS output instantly.

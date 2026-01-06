@@ -10,7 +10,7 @@ export const ohimgConfig: OhImgBaseTemplateProps = {
   content: {
     title: "Mostly LLMs, mostly.",
     description:
-      "Notes on LLMs, agents, and automation. Sometimes it works.",
+      "Notes on LLMs, agents, automation and development. Tools too.",
     website: "testy.cool",
     // tags: ["personal", "website"],
     // logoSrc: "/avatar.png",

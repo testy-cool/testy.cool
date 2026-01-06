@@ -5,12 +5,41 @@ export const contentType = "image/png";
 export const dynamic = "force-static";
 export const revalidate = false;
 
-const imageOptions: ImageResponseOptions = {
-  width: 1200,
-  height: 630,
-};
+// Fetch fonts
+async function loadFonts() {
+  const [geistSans, geistMono] = await Promise.all([
+    fetch("https://cdn.jsdelivr.net/npm/geist@1.2.0/dist/fonts/geist-sans/Geist-Bold.ttf").then(
+      (res) => res.arrayBuffer()
+    ),
+    fetch("https://cdn.jsdelivr.net/npm/geist@1.2.0/dist/fonts/geist-mono/GeistMono-Medium.ttf").then(
+      (res) => res.arrayBuffer()
+    ),
+  ]);
+  return { geistSans, geistMono };
+}
 
-export function generateOGImage(title: string) {
+export async function generateOGImage(title: string) {
+  const { geistSans, geistMono } = await loadFonts();
+
+  const imageOptions: ImageResponseOptions = {
+    width: 1200,
+    height: 630,
+    fonts: [
+      {
+        name: "Geist",
+        data: geistSans,
+        weight: 700,
+        style: "normal",
+      },
+      {
+        name: "GeistMono",
+        data: geistMono,
+        weight: 500,
+        style: "normal",
+      },
+    ],
+  };
+
   return new ImageResponse(
     (
       <div
@@ -44,6 +73,7 @@ export function generateOGImage(title: string) {
           <div
             tw="text-white text-center"
             style={{
+              fontFamily: "Geist",
               fontSize: "64px",
               fontWeight: 700,
               lineHeight: 1.15,
@@ -58,15 +88,15 @@ export function generateOGImage(title: string) {
         <div
           tw="absolute flex"
           style={{
+            fontFamily: "GeistMono",
             bottom: "40px",
-            fontSize: "16px",
+            fontSize: "14px",
             color: "#666",
-            fontWeight: 600,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
+            fontWeight: 500,
+            letterSpacing: "0.05em",
           }}
         >
-          Testy.Cool
+          testy.cool
         </div>
       </div>
     ),

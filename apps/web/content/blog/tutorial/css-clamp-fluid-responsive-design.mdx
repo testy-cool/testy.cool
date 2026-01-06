@@ -1,0 +1,177 @@
+---
+title: CSS clamp() for Fluid Responsive Design
+description: Stop using breakpoint jumps. Learn how to create smooth, fluid typography and spacing that scales perfectly from mobile to desktop.
+date: 2026-01-06
+author: testy.cool
+tags: [css, responsive, tailwind, figma]
+---
+
+If you're tired of writing `text-base md:text-lg lg:text-xl xl:text-2xl` and watching your designs jump awkwardly between breakpoints, there's a better way: **CSS `clamp()`**.
+
+I built a [Clamp Calculator](/tools/clamp-calculator) to generate these values automatically, but here's the full explanation of how it works.
+
+## The Problem with Breakpoints
+
+Traditional responsive design uses media queries:
+
+```css
+.heading {
+  font-size: 24px;
+}
+@media (min-width: 768px) {
+  .heading {
+    font-size: 36px;
+  }
+}
+@media (min-width: 1024px) {
+  .heading {
+    font-size: 48px;
+  }
+}
+```
+
+This creates **jarring jumps** at each breakpoint. Resize your browser slowly and watch the text snap between sizes. It's not elegant.
+
+## Enter clamp()
+
+The `clamp()` function takes three values:
+
+```css
+clamp(MIN, PREFERRED, MAX)
+```
+
+- **MIN** — The smallest the value can be (mobile floor)
+- **PREFERRED** — A viewport-relative value that scales smoothly
+- **MAX** — The largest the value can be (desktop ceiling)
+
+For example:
+
+```css
+.heading {
+  font-size: clamp(24px, 5vw, 48px);
+}
+```
+
+Now the font size scales fluidly. At narrow viewports it's 24px, at wide viewports it's 48px, and everywhere in between it interpolates smoothly.
+
+## The Math: One Design Value
+
+If your designer gives you "48px at 1440px desktop", you can calculate the vw value:
+
+```
+vw = (target_px / reference_viewport) × 100
+vw = (48 / 1440) × 100 = 3.33vw
+```
+
+So your clamp becomes:
+
+```css
+font-size: clamp(24px, 3.33vw, 48px);
+```
+
+**The problem:** At 430px mobile, 3.33vw = only 14px. That might be too small. You're guessing the MIN value.
+
+## The Better Math: Two Design Values
+
+If you have both mobile (430px) and desktop (1440px) designs, you can create a perfect line between them.
+
+Given:
+- Mobile: 24px at 430px viewport
+- Desktop: 48px at 1440px viewport
+
+The formula finds a linear equation `y = mx + b`:
+
+```
+slope = (desktop - mobile) / (1440 - 430)
+      = (48 - 24) / 1010
+      = 0.0238
+
+intercept = mobile - (slope × 430)
+          = 24 - (0.0238 × 430)
+          = 13.77px
+
+vw = slope × 100 = 2.38vw
+```
+
+Result:
+
+```css
+font-size: clamp(24px, 2.38vw + 13.77px, 48px);
+```
+
+This hits **exactly** 24px at 430px and **exactly** 48px at 1440px.
+
+## When Linear Scaling Fails
+
+Large values scale aggressively. A 60px heading at 1440px becomes 107px at 2560px if you let it scale freely. That's probably too big.
+
+| Element | Desktop (1440px) | Linear at 2560px | Problem |
+|---------|------------------|------------------|---------|
+| Body text | 16px | 28px | Maybe OK |
+| Heading | 60px | 107px | Too big |
+| Hero padding | 200px | 356px | Massive |
+
+### Solutions
+
+**1. Cap the MAX at desktop value**
+
+```css
+/* Don't let it grow past 60px */
+font-size: clamp(24px, 4.17vw, 60px);
+```
+
+**2. Use a hybrid approach**
+
+```css
+/* Scale up to 1440px, then stay fixed */
+.heading {
+  font-size: clamp(24px, 4.17vw, 60px);
+}
+@media (min-width: 1440px) {
+  .heading {
+    font-size: 60px;
+  }
+}
+```
+
+## Quick Decision Guide
+
+**Do I have both mobile and desktop values?**
+- YES → Use the two-point formula (pixel-perfect at both)
+- NO → Use single-value formula, pick a sensible MIN
+
+**Should this element keep growing on 4K screens?**
+- TEXT → Usually cap at desktop size
+- SPACING → Can grow larger (more breathing room is nice)
+
+## In Tailwind
+
+Use arbitrary values:
+
+```html
+<!-- Simple -->
+<h1 class="text-[clamp(24px,3.33vw,48px)]">Heading</h1>
+
+<!-- With base offset -->
+<h1 class="text-[clamp(24px,2.38vw+13.77px,48px)]">Heading</h1>
+
+<!-- Spacing -->
+<section class="py-[clamp(40px,5.94vw+14.45px,100px)]">
+```
+
+## Common Patterns
+
+Here are pre-calculated values for a 430px → 1440px design system:
+
+| Element | Mobile | Desktop | Clamp |
+|---------|--------|---------|-------|
+| Hero Title | 36px | 130px | `clamp(36px,9.31vw+-4px,130px)` |
+| Page Title | 28px | 85px | `clamp(28px,5.64vw+3.73px,85px)` |
+| Section Title | 24px | 48px | `clamp(24px,2.38vw+13.77px,48px)` |
+| Body Text | 16px | 18px | `clamp(16px,0.2vw+15.14px,18px)` |
+| Section Padding | 40px | 100px | `clamp(40px,5.94vw+14.45px,100px)` |
+| Card Gap | 16px | 32px | `clamp(16px,1.58vw+9.19px,32px)` |
+
+## The Tool
+
+Don't want to do the math? Use the [Clamp Calculator](/tools/clamp-calculator) — enter your mobile and desktop values, get the clamp() output instantly.

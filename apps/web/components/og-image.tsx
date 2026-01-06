@@ -1,44 +1,29 @@
 import { ImageResponse } from "next/og";
-import type { ImageResponseOptions } from "next/server";
 
 export const contentType = "image/png";
 export const dynamic = "force-static";
 export const revalidate = false;
 
-// Fetch fonts
-async function loadFonts() {
-  const [interBold, firaCode] = await Promise.all([
-    fetch("https://github.com/rsms/inter/raw/master/docs/font-files/Inter-Bold.otf").then(
-      (res) => res.arrayBuffer()
-    ),
-    fetch("https://github.com/tonsky/FiraCode/raw/master/distr/otf/FiraCode-Medium.otf").then(
-      (res) => res.arrayBuffer()
-    ),
-  ]);
-  return { interBold, firaCode };
-}
-
 export async function generateOGImage(title: string) {
-  const { interBold, firaCode } = await loadFonts();
+  // Load Inter from Google Fonts - using the correct API endpoint
+  const interFont = await fetch(
+    "https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap"
+  ).then((res) => res.text())
+    .then((css) => {
+      // Extract the font URL from the CSS
+      const match = css.match(/src: url\(([^)]+)\)/);
+      if (match) return fetch(match[1]).then((res) => res.arrayBuffer());
+      return null;
+    });
 
-  const imageOptions: ImageResponseOptions = {
-    width: 1200,
-    height: 630,
-    fonts: [
-      {
-        name: "Inter",
-        data: interBold,
-        weight: 700,
-        style: "normal",
-      },
-      {
-        name: "FiraCode",
-        data: firaCode,
-        weight: 500,
-        style: "normal",
-      },
-    ],
-  };
+  const sourceCodeFont = await fetch(
+    "https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@500&display=swap"
+  ).then((res) => res.text())
+    .then((css) => {
+      const match = css.match(/src: url\(([^)]+)\)/);
+      if (match) return fetch(match[1]).then((res) => res.arrayBuffer());
+      return null;
+    });
 
   return new ImageResponse(
     (
@@ -88,7 +73,7 @@ export async function generateOGImage(title: string) {
         <div
           tw="absolute flex"
           style={{
-            fontFamily: "FiraCode",
+            fontFamily: "SourceCodePro",
             bottom: "40px",
             fontSize: "14px",
             color: "#666",
@@ -100,6 +85,23 @@ export async function generateOGImage(title: string) {
         </div>
       </div>
     ),
-    imageOptions
+    {
+      width: 1200,
+      height: 630,
+      fonts: [
+        ...(interFont ? [{
+          name: "Inter",
+          data: interFont,
+          weight: 700 as const,
+          style: "normal" as const,
+        }] : []),
+        ...(sourceCodeFont ? [{
+          name: "SourceCodePro",
+          data: sourceCodeFont,
+          weight: 500 as const,
+          style: "normal" as const,
+        }] : []),
+      ],
+    }
   );
 }

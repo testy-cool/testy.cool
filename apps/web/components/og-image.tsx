@@ -19,6 +19,17 @@ export function generateOGImage(title: string) {
           background: "radial-gradient(ellipse 80% 80% at 50% 50%, #1a0a2e 0%, #050505 70%)",
         }}
       >
+        {/* Grid background */}
+        <div
+          tw="absolute inset-0"
+          style={{
+            opacity: 0.12,
+            backgroundImage:
+              "linear-gradient(to right, #888 1px, transparent 1px), linear-gradient(to bottom, #888 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
+
         {/* Content */}
         <div tw="flex flex-col items-center" style={{ gap: "32px", maxWidth: "950px", padding: "80px" }}>
           {/* Logo */}

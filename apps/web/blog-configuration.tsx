@@ -33,7 +33,7 @@ import { SocialIcons } from "@repo/ui/components/social-icons";
 export const blogConstants: BlogConstants = {
   // General
   blogTitle: "Blog",
-  blogDescription: "Notes and ramblings about LLMs, automation and dev.",
+  blogDescription: "Posts, notes, and tutorials. Mostly related to LLMs.",
   siteName: "testy.cool",
   defaultAuthorName: "testy.cool",
   xUsername: "@testy_cool",

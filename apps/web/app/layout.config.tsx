@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export const title = "testy.cool";
 export const description =
-  "Notes and ramblings about LLMs, automation and dev.";
+  "Posts, notes, and tutorials. Mostly related to LLMs.";
 export const owner = "testy.cool";
 /**
  * Shared layout configurations

@@ -1,14 +1,20 @@
 /** @type {import('next-sitemap').IConfig} */
 
-const baseUrl =
-  process.env.NODE_ENV === "development" || !process.env.NEXT_PUBLIC_SITE_URL
-    ? new URL("http://localhost:3000")
-    : new URL(`https://${process.env.NEXT_PUBLIC_SITE_URL}`);
+// Ensure siteUrl is a string, prioritizing the production URL
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL 
+  ? `https://${process.env.NEXT_PUBLIC_SITE_URL}` 
+  : "https://testy.cool"; 
 
 module.exports = {
   outDir: "out",
-  siteUrl: baseUrl,
+  siteUrl: siteUrl,
   generateRobotsTxt: true,
+  robotsTxtOptions: {
+    policies: [
+      { userAgent: '*', allow: '/' },
+      { userAgent: '*', disallow: ['/api/', '/_next/', '/static/'] },
+    ],
+  },
   transform: async (config, path) => {
     // custom function to ignore the path
     if (customIgnoreFunction(path)) {

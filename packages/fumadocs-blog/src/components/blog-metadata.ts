@@ -84,6 +84,10 @@ export async function generateBlogMetadata(props: {
       openGraph: {
         url: page.url,
         images: imageMetaData,
+        type: "article",
+        publishedTime: page.data.date.toISOString(),
+        authors: [page.data.author || blogConstants.defaultAuthorName],
+        tags: page.data.tags,
       },
       twitter: {
         images: imageMetaData,

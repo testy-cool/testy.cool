@@ -6,7 +6,7 @@ author: testy.cool
 tags: [cloudflare, troubleshooting, deployment, seo]
 ---
 
-I have Cloudflare Pages deploying from GitHub with a custom domain. Both `testy-cool.pages.dev` and `testy.cool` work—but Google is indexing the wrong one.
+I have Cloudflare Pages deploying from GitHub with a custom domain. Both `testy-cool.pages.dev` and `testy.cool` work - but Google is indexing the wrong one.
 
 ![Google SERP showing pages.dev instead of custom domain](/images/blog/cloudflare-bulk-redirects/testycool-serp.png)
 
@@ -14,7 +14,7 @@ The `pages.dev` URL is ranking instead of my actual domain. Without a proper 301
 
 Bonus problem: sometimes Chrome flags the `pages.dev` URL with a "looks fake" warning because it resembles my custom domain.
 
-The fix? A properly configured Bulk Redirect.
+The solution is a properly configured Bulk Redirect.
 
 ## Fix the Bulk Redirect Entry
 
@@ -66,7 +66,7 @@ If you or your users see Chrome's lookalike-URL warning on the `pages.dev` URL:
 
 > The site you just tried to visit looks fake. Attackers sometimes mimic sites by making small, hard-to-see changes to the URL.
 
-This is Chrome's **lookalike-URL warning**—it's generated in the browser by comparing URLs to popular/previously-visited sites. It doesn't mean your site is hacked.
+This is Chrome's **lookalike-URL warning** - it's generated in the browser by comparing URLs to popular/previously-visited sites. It doesn't mean your site is hacked.
 
 Once the redirect works and Google stops surfacing the `pages.dev` URL, users won't hit that warning anymore.
 

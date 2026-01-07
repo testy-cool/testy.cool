@@ -1,16 +1,20 @@
 ---
 title: Fix Cloudflare Pages Redirect to Custom Domain
-description: Your *.pages.dev URL shows a "fake site" warning and won't redirect to your custom domain. Here's how to fix it.
+description: Your *.pages.dev URL is ranking in Google instead of your custom domain. Here's how to fix it with a proper 301 redirect.
 date: 2026-01-07
 author: testy.cool
-tags: [cloudflare, troubleshooting, deployment]
+tags: [cloudflare, troubleshooting, deployment, seo]
 ---
 
-I have Cloudflare Pages deploying from GitHub with a custom domain. Both `testy-cool.pages.dev` and `testy.cool` work, but visiting the Pages URL shows Chrome's "looks fake" warning:
+I have Cloudflare Pages deploying from GitHub with a custom domain. Both `testy-cool.pages.dev` and `testy.cool` work—but Google is indexing the wrong one.
 
-> The site you just tried to visit looks fake. Attackers sometimes mimic sites by making small, hard-to-see changes to the URL.
+![Google SERP showing pages.dev instead of custom domain](/images/blog/cloudflare-bulk-redirects/testycool-serp.png)
 
-I'm not doing anything wrong. The issue? My Bulk Redirect wasn't matching the Pages hostname.
+The `pages.dev` URL is ranking instead of my actual domain. Without a proper 301 redirect, Google sees two separate sites with duplicate content and picks whichever it crawled first.
+
+Bonus problem: sometimes Chrome flags the `pages.dev` URL with a "looks fake" warning because it resembles my custom domain.
+
+The fix? A properly configured Bulk Redirect.
 
 ## Fix the Bulk Redirect Entry
 
@@ -47,18 +51,24 @@ curl -I "https://testy-cool.pages.dev/some/path?x=1"
 
 You should see `301` and a `Location: https://testy.cool/some/path?x=1`.
 
-## About the "Looks Fake" Warning
-
-That specific wording is Chrome's **lookalike-URL warning** mechanism. It's generated **in the browser** by comparing the URL to popular/previously-visited sites—it does **not** mean your site is hacked.
-
-Once the redirect works and Google stops surfacing the `pages.dev` URL, users won't hit that warning anymore (because they won't navigate to the lookalike URL).
-
 ## Getting pages.dev Out of Google
 
 After the 301 is working:
 
-1. Make sure your site outputs canonical URLs pointing at `https://testy.cool` (and your sitemap uses `testy.cool`)
-2. In Google Search Console, add a **URL-prefix property** for `https://testy-cool.pages.dev/` and use **Removals / URL inspection** to speed up cleanup
+1. Make sure your site outputs canonical URLs pointing at your custom domain (and your sitemap uses the custom domain)
+2. In Google Search Console, add a **URL-prefix property** for `https://your-project.pages.dev/` and use **Removals / URL inspection** to speed up cleanup
+
+Google will eventually follow the 301 and consolidate ranking signals to your custom domain.
+
+## About the "Looks Fake" Warning
+
+If you or your users see Chrome's lookalike-URL warning on the `pages.dev` URL:
+
+> The site you just tried to visit looks fake. Attackers sometimes mimic sites by making small, hard-to-see changes to the URL.
+
+This is Chrome's **lookalike-URL warning**—it's generated in the browser by comparing URLs to popular/previously-visited sites. It doesn't mean your site is hacked.
+
+Once the redirect works and Google stops surfacing the `pages.dev` URL, users won't hit that warning anymore.
 
 ## References
 

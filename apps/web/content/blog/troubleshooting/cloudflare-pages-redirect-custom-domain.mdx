@@ -1,0 +1,66 @@
+---
+title: Fix Cloudflare Pages Redirect to Custom Domain
+description: Your *.pages.dev URL shows a "fake site" warning and won't redirect to your custom domain. Here's how to fix it.
+date: 2026-01-07
+author: testy.cool
+tags: [cloudflare, troubleshooting, deployment]
+---
+
+I have Cloudflare Pages deploying from GitHub with a custom domain. Both `testy-cool.pages.dev` and `testy.cool` work, but visiting the Pages URL shows Chrome's "looks fake" warning:
+
+> The site you just tried to visit looks fake. Attackers sometimes mimic sites by making small, hard-to-see changes to the URL.
+
+I'm not doing anything wrong. The issue? My Bulk Redirect wasn't matching the Pages hostname.
+
+## Fix the Bulk Redirect Entry
+
+Cloudflare's Pages docs expect the **exact** Pages hostname as the source (not `*.pages.dev/`) and specific parameters enabled.
+
+In **Rules → Bulk Redirects → (your list) → Edit URLs**, set:
+
+| Field | Value |
+|-------|-------|
+| **Source URL** | `testy-cool.pages.dev` (no `*`, no trailing `/`) |
+| **Target URL** | `https://testy.cool` |
+| **Status** | `301` |
+
+![Cloudflare Bulk Redirects Settings](/images/blog/cloudflare-bulk-redirects/cloudflare-bulk-redirects.png)
+
+### Enable These Parameters
+
+Click **Edit parameters** and enable all of these:
+
+- Preserve query string
+- Include subdomains
+- Subpath matching
+- Preserve path suffix
+
+![Cloudflare Bulk Redirect URL Parameters](/images/blog/cloudflare-bulk-redirects/cloudflare-bulk-redirects-params.png)
+
+Save, and make sure the **Bulk Redirect Rule** that uses this list is **Enabled**.
+
+### Test It
+
+```bash
+curl -I "https://testy-cool.pages.dev/some/path?x=1"
+```
+
+You should see `301` and a `Location: https://testy.cool/some/path?x=1`.
+
+## About the "Looks Fake" Warning
+
+That specific wording is Chrome's **lookalike-URL warning** mechanism. It's generated **in the browser** by comparing the URL to popular/previously-visited sites—it does **not** mean your site is hacked.
+
+Once the redirect works and Google stops surfacing the `pages.dev` URL, users won't hit that warning anymore (because they won't navigate to the lookalike URL).
+
+## Getting pages.dev Out of Google
+
+After the 301 is working:
+
+1. Make sure your site outputs canonical URLs pointing at `https://testy.cool` (and your sitemap uses `testy.cool`)
+2. In Google Search Console, add a **URL-prefix property** for `https://testy-cool.pages.dev/` and use **Removals / URL inspection** to speed up cleanup
+
+## References
+
+- [Cloudflare Docs: Redirecting *.pages.dev to a Custom Domain](https://developers.cloudflare.com/pages/how-to/redirect-to-custom-domain/)
+- [Chromium Docs: Lookalike Warnings in Google Chrome](https://chromium.googlesource.com/chromium/src/+/master/docs/security/lookalikes/lookalike-domains.md)

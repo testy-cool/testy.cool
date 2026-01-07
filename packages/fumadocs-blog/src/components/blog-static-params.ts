@@ -119,7 +119,7 @@ export function generateSeriesPathParams(posts: BlogPost[]) {
 
 /**
  * Generates static parameters for OG image routes
- * Creates image routes with and without image.png suffix
+ * Only generates image.png suffixed routes to avoid path conflicts
  */
 export async function generateOgImageStaticParams(
   blogSource: any,
@@ -128,16 +128,14 @@ export async function generateOgImageStaticParams(
   // Get all the regular params first
   const params = await generateAllParams(blogSource, posts, true);
 
-  // Create both variants: with and without image.png suffix
+  // Create only image.png suffixed routes
   const imageRoutes: Array<{ slug: string[] }> = [];
 
   for (const param of params) {
     if (param.slug && param.slug.length > 0) {
-      imageRoutes.push({ slug: param.slug }); // without image.png
-      imageRoutes.push({ slug: [...param.slug, "image.png"] }); // with image.png
+      imageRoutes.push({ slug: [...param.slug, "image.png"] });
     } else {
-      imageRoutes.push({ slug: [] }); // root without image.png
-      imageRoutes.push({ slug: ["image.png"] }); // root with image.png
+      imageRoutes.push({ slug: ["image.png"] });
     }
   }
 

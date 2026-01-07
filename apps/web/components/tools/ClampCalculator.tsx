@@ -13,6 +13,8 @@ export function ClampCalculator() {
   const [mode, setMode] = useState<"two" | "one">("two");
   const [mobile, setMobile] = useState(24);
   const [desktop, setDesktop] = useState(48);
+  const [mobileVp, setMobileVp] = useState(430);
+  const [desktopVp, setDesktopVp] = useState(1440);
   const [desktopOnly, setDesktopOnly] = useState(48);
   const [minFloor, setMinFloor] = useState(16);
   const [viewport, setViewport] = useState(1440);
@@ -35,8 +37,8 @@ export function ClampCalculator() {
     if (mode === "two") {
       min = Math.min(mobile, desktop);
       max = Math.max(mobile, desktop);
-      const slope = (desktop - mobile) / (1440 - 430);
-      base = mobile - slope * 430;
+      const slope = (desktop - mobile) / (desktopVp - mobileVp);
+      base = mobile - slope * mobileVp;
       vw = slope * 100;
 
       if (Math.abs(base) < 0.5) {
@@ -56,7 +58,7 @@ export function ClampCalculator() {
 
     setClampValues({ min, vw, base, max });
     setResult(resultStr);
-  }, [mode, mobile, desktop, desktopOnly, minFloor]);
+  }, [mode, mobile, desktop, mobileVp, desktopVp, desktopOnly, minFloor]);
 
   useEffect(() => {
     calc();
@@ -117,28 +119,54 @@ export function ClampCalculator() {
 
         {/* Two Values Mode */}
         {mode === "two" && (
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
-                Mobile value (430px)
-              </label>
-              <input
-                type="number"
-                value={mobile}
-                onChange={(e) => setMobile(Number(e.target.value))}
-                className="w-full bg-fd-background border border-fd-border rounded px-3 py-2.5 font-mono focus:outline-none focus:border-fd-primary"
-              />
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+                  Mobile value (px)
+                </label>
+                <input
+                  type="number"
+                  value={mobile}
+                  onChange={(e) => setMobile(Number(e.target.value))}
+                  className="w-full bg-fd-background border border-fd-border rounded px-3 py-2.5 font-mono focus:outline-none focus:border-fd-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+                  Desktop value (px)
+                </label>
+                <input
+                  type="number"
+                  value={desktop}
+                  onChange={(e) => setDesktop(Number(e.target.value))}
+                  className="w-full bg-fd-background border border-fd-border rounded px-3 py-2.5 font-mono focus:outline-none focus:border-fd-primary"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
-                Desktop value (1440px)
-              </label>
-              <input
-                type="number"
-                value={desktop}
-                onChange={(e) => setDesktop(Number(e.target.value))}
-                className="w-full bg-fd-background border border-fd-border rounded px-3 py-2.5 font-mono focus:outline-none focus:border-fd-primary"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+                  Mobile viewport (px)
+                </label>
+                <input
+                  type="number"
+                  value={mobileVp}
+                  onChange={(e) => setMobileVp(Number(e.target.value))}
+                  className="w-full bg-fd-background border border-fd-border rounded px-3 py-2.5 font-mono focus:outline-none focus:border-fd-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+                  Desktop viewport (px)
+                </label>
+                <input
+                  type="number"
+                  value={desktopVp}
+                  onChange={(e) => setDesktopVp(Number(e.target.value))}
+                  className="w-full bg-fd-background border border-fd-border rounded px-3 py-2.5 font-mono focus:outline-none focus:border-fd-primary"
+                />
+              </div>
             </div>
           </div>
         )}

@@ -22,14 +22,6 @@ const tools: Tool[] = [
     // This tool is embedded in a blog post
     blogPath: "/blog/tutorial/css-clamp-fluid-responsive-design",
   },
-  {
-    slug: "chatgpt-conversation-exporter",
-    title: "ChatGPT Conversation Exporter",
-    description: "Export a single ChatGPT conversation to clean Markdown or HTML.",
-    screenshot:
-      "/images/tools/chatgpt-conversation-exporter/export-chatgpt-conversation-markdown-html.png",
-    tags: ["Chrome", "Export"],
-  },
 ];
 
 export default function ToolsIndex() {

@@ -55,6 +55,12 @@ export const linkItems: LinkItemType[] = [
     url: "/about",
     active: "url",
   },
+  {
+    icon: <Icons.info />,
+    text: "Privacy",
+    url: "/privacy",
+    active: "url",
+  },
   // {
   //   icon: <Icons.posts />,
   //   text: "Me",

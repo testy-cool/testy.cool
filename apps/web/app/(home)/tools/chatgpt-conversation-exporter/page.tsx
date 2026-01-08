@@ -1,8 +1,10 @@
+import Link from "next/link";
 import { DocsDescription, DocsTitle } from "fumadocs-ui/page";
 
 const screenshot =
   "/images/tools/chatgpt-conversation-exporter/export-chatgpt-conversation-markdown-html.png";
 const githubUrl = "https://github.com/testy-cool/export-chatgpt-conversation";
+const privacyUrl = "/privacy#chatgpt-conversation-exporter";
 
 export default function ChatGPTConversationExporterPage() {
   return (
@@ -31,9 +33,15 @@ export default function ChatGPTConversationExporterPage() {
           </div>
           <div className="sm:col-span-5">
             <p className="text-muted-foreground">
-              Local-only export with no tracking. Grab the extension here:
+              A Chrome extension for exporting ChatGPT conversations to Markdown or HTML.
+              Runs locally in your browser with no tracking.
             </p>
-            <div className="mt-4">
+            <ul className="mt-4 list-disc pl-5 text-muted-foreground space-y-1">
+              <li>One-click export to Markdown or HTML</li>
+              <li>Preserves code blocks, tables, and links</li>
+              <li>No data leaves your browser</li>
+            </ul>
+            <div className="mt-6 flex flex-col gap-2">
               <a
                 href={githubUrl}
                 target="_blank"
@@ -42,6 +50,12 @@ export default function ChatGPTConversationExporterPage() {
               >
                 GitHub repository
               </a>
+              <Link
+                href={privacyUrl}
+                className="inline-flex items-center font-semibold hover:underline md:text-base"
+              >
+                Privacy policy
+              </Link>
             </div>
           </div>
         </div>

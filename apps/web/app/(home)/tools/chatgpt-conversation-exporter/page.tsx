@@ -1,0 +1,51 @@
+import { DocsDescription, DocsTitle } from "fumadocs-ui/page";
+
+const screenshot =
+  "/images/tools/chatgpt-conversation-exporter/export-chatgpt-conversation-markdown-html.png";
+const githubUrl = "https://github.com/testy-cool/export-chatgpt-conversation";
+
+export default function ChatGPTConversationExporterPage() {
+  return (
+    <>
+      <section className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left bg-zinc-50/50 dark:bg-zinc-900/50">
+        <div className="text-center">
+          <DocsTitle className="dark:text-white capitalize">
+            ChatGPT Conversation Exporter
+          </DocsTitle>
+          <DocsDescription className="mt-3 dark:text-gray-300 mb-0">
+            Export a single ChatGPT conversation to clean Markdown or HTML.
+          </DocsDescription>
+        </div>
+      </section>
+
+      <section className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left">
+        <div className="grid gap-y-6 sm:grid-cols-12 sm:gap-x-6 md:gap-x-10 items-center">
+          <div className="sm:col-span-7">
+            <div className="aspect-[16/9] overflow-clip rounded-lg border border-border">
+              <img
+                src={screenshot}
+                alt="ChatGPT conversation export preview"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </div>
+          <div className="sm:col-span-5">
+            <p className="text-muted-foreground">
+              Local-only export with no tracking. Grab the extension here:
+            </p>
+            <div className="mt-4">
+              <a
+                href={githubUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center font-semibold hover:underline md:text-base"
+              >
+                GitHub repository
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}

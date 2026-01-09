@@ -1,7 +1,22 @@
-import { Pagination } from "./pagination";
+import { Fragment } from "react";
+import Link from "next/link";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@repo/shadverse/components/breadcrumb";
 import { DocsTitle, DocsDescription } from "fumadocs-ui/page";
+import { Pagination } from "./pagination";
 import { BlogConfiguration, type BlogPost } from "./types";
 import { slot } from "./shared";
+
+export type BreadcrumbEntry = {
+  label: string;
+  href?: string;
+};
 
 export type PostListProps = {
   posts: BlogPost[];
@@ -12,6 +27,7 @@ export type PostListProps = {
   basePath?: string;
   disablePagination?: boolean;
   configuration?: BlogConfiguration;
+  breadcrumbs?: BreadcrumbEntry[];
 };
 
 export function PostList({
@@ -23,6 +39,7 @@ export function PostList({
   basePath = "/blog",
   disablePagination = false,
   configuration,
+  breadcrumbs = [],
 }: PostListProps) {
   // PostCard is now imported directly
 
@@ -32,6 +49,26 @@ export function PostList({
         {slot(configuration?.backgroundPattern, null)}
 
         <div className="text-center">
+          {breadcrumbs.length > 0 && (
+            <Breadcrumb className="mb-4 flex justify-center">
+              <BreadcrumbList className="justify-center">
+                {breadcrumbs.map((crumb, index) => (
+                  <Fragment key={`${crumb.label}-${index}`}>
+                    {index > 0 && <BreadcrumbSeparator />}
+                    <BreadcrumbItem>
+                      {crumb.href ? (
+                        <BreadcrumbLink asChild>
+                          <Link href={crumb.href}>{crumb.label}</Link>
+                        </BreadcrumbLink>
+                      ) : (
+                        <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                      )}
+                    </BreadcrumbItem>
+                  </Fragment>
+                ))}
+              </BreadcrumbList>
+            </Breadcrumb>
+          )}
           <DocsTitle className="dark:text-white capitalize">
             {heading}
           </DocsTitle>

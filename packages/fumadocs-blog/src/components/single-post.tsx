@@ -1,5 +1,13 @@
 import React from "react";
 import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@repo/shadverse/components/breadcrumb";
+import {
   DocsPage,
   DocsBody,
   DocsDescription,
@@ -42,30 +50,59 @@ export function SinglePost({
   // Use configuration.cn if available, otherwise use the imported cn
   const classNames = configuration?.cn || cn;
   const MDX = page.data.body;
+  const blogBase = configuration?.config?.blogBase ?? "/blog";
+  const categoryInfo = category ? getCategoryBySlug(category) : null;
+  const categoryUrl = category
+    ? configuration?.config
+      ? createUrlUtils(configuration.config).getCategoryUrl(category)
+      : `/blog/${category}`
+    : null;
 
   return (
     <>
       <div className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left">
         {slot(configuration?.backgroundPattern, null)}
 
-        {category && (
+        <Breadcrumb className="mb-3">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href={blogBase}>Blog</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            {categoryInfo && categoryUrl && (
+              <>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link href={categoryUrl}>{categoryInfo.label}</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+            )}
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{page.data.title}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        {categoryInfo && categoryUrl && (
           <div className="mb-4 text-gray-600 dark:text-gray-400 text-sm font-medium">
             <div className="flex flex-wrap gap-3">
               <span className="inline-flex items-center gap-1.5 capitalize">
-                {getCategoryBySlug(category).icon &&
-                  React.createElement(getCategoryBySlug(category).icon, {
+                {categoryInfo.icon &&
+                  React.createElement(categoryInfo.icon, {
                     className: "h-4 w-4",
                   })}
-                <Link
-                  href={
-                    configuration?.config
-                      ? createUrlUtils(configuration.config).getCategoryUrl(
-                          category
-                        )
-                      : `/blog/${category}`
-                  }
-                >
-                  {getCategoryBySlug(category).label}
+                <Link href={categoryUrl}>
+                  {categoryInfo.label}
                 </Link>
               </span>
               <span className="inline-flex items-center gap-1.5">

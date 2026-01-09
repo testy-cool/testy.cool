@@ -1,4 +1,4 @@
-import { PostList } from "./post-list";
+import { PostList, type BreadcrumbEntry } from "./post-list";
 import { BlogConfiguration, type BlogPost } from "./types";
 import { getSortedByDatePosts } from "./utils";
 import { createUrlUtils } from "./url-utils";
@@ -56,6 +56,14 @@ export function BlogList({
     ? createUrlUtils(configuration.config)
     : null;
   const basePath = urlUtils?.getBlogUrl() || "/blog";
+  const breadcrumbs: BreadcrumbEntry[] = [
+    { label: "Home", href: "/" },
+    { label: "Blog", href: page > 1 ? basePath : undefined },
+  ];
+
+  if (page > 1) {
+    breadcrumbs.push({ label: `Page ${page}` });
+  }
 
   return (
     <PostList
@@ -67,6 +75,7 @@ export function BlogList({
       heading={heading}
       description={description}
       basePath={basePath}
+      breadcrumbs={breadcrumbs}
     />
   );
 }
@@ -101,6 +110,16 @@ export function CategoryBlogList({
     ? createUrlUtils(configuration.config)
     : null;
   const basePath = urlUtils?.getCategoryUrl(category) || `/blog/${category}`;
+  const blogBase = urlUtils?.getBlogUrl() || "/blog";
+  const breadcrumbs: BreadcrumbEntry[] = [
+    { label: "Home", href: "/" },
+    { label: "Blog", href: blogBase },
+    { label: categoryInfo.label, href: page > 1 ? basePath : undefined },
+  ];
+
+  if (page > 1) {
+    breadcrumbs.push({ label: `Page ${page}` });
+  }
 
   return (
     <PostList
@@ -112,6 +131,7 @@ export function CategoryBlogList({
       basePath={basePath}
       disablePagination={disablePagination}
       configuration={configuration}
+      breadcrumbs={breadcrumbs}
     />
   );
 }

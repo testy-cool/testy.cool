@@ -1,7 +1,7 @@
 import Hero from "@/components/hero";
 import { GridBackground } from "@repo/ui/components/grid-background";
 import { getBlogPosts } from "@/lib/source";
-import { RecentPosts } from "@repo/fumadocs-blog/blog";
+import { BlogList } from "@repo/fumadocs-blog/blog";
 import { getBlogConfiguration } from "@/blog-configuration";
 
 export default function HomePage() {
@@ -16,11 +16,12 @@ export default function HomePage() {
           </div>
         </div>
 
-        <RecentPosts
+        <BlogList
           configuration={getBlogConfiguration()}
           posts={getBlogPosts()}
           heading="Recent Posts"
           description="The recently published"
+          disablePagination={true}
         />
       </div>
     </div>

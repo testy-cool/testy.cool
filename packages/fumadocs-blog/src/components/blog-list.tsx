@@ -49,8 +49,10 @@ export function BlogList({
   description?: string;
 }) {
   const pageSize = configuration?.config?.pageSize || 5;
-  const displayPosts = posts.slice((page - 1) * pageSize, page * pageSize);
-  const totalPages = Math.ceil(posts.length / pageSize);
+  const displayPosts = disablePagination
+    ? posts
+    : posts.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = disablePagination ? 1 : Math.ceil(posts.length / pageSize);
 
   const urlUtils = configuration?.config
     ? createUrlUtils(configuration.config)

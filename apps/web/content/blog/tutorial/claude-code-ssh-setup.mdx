@@ -1,0 +1,108 @@
+---
+title: Setting Up SSH for Claude Code
+description: How to configure SSH so Claude Code can run commands on remote servers
+date: 2026-01-15
+author: testy.cool
+tags: [claude-code, ssh, tutorial, devops]
+---
+
+Claude Code can SSH into remote servers and run commands, as long as the connection is non-interactive (no password prompts, no 2FA).
+
+## Requirements
+
+1. **SSH key-based auth** - The server must accept your SSH key without a password
+2. **Passwordless sudo** (optional) - If you want Claude to run sudo commands
+
+## Setup Steps
+
+### 1. Generate SSH key (if you don't have one)
+
+```powershell
+ssh-keygen -t ed25519 -C "your-email@example.com"
+```
+
+### 2. Copy your public key to the server
+
+```powershell
+# Windows - manually copy the key
+cat ~/.ssh/id_ed25519.pub
+# Then paste into ~/.ssh/authorized_keys on the server
+
+# Or if you have ssh-copy-id (Git Bash, WSL, Linux, Mac):
+ssh-copy-id user@server
+```
+
+### 3. Create an SSH config alias (optional but nice)
+
+Edit `~/.ssh/config`:
+
+```
+Host myserver
+    HostName 192.168.1.100
+    User claude
+    IdentityFile ~/.ssh/id_ed25519
+```
+
+Now you can just use `ssh myserver` instead of the full command.
+
+### 4. Test it works without prompts
+
+```powershell
+ssh myserver "echo 'it works'"
+```
+
+If this runs without asking for anything, Claude can use it.
+
+### 5. Enable passwordless sudo (optional)
+
+On the server, run:
+
+```bash
+sudo visudo
+```
+
+Add this line at the end (replace `claude` with your username):
+
+```
+claude ALL=(ALL) NOPASSWD: ALL
+```
+
+## How Claude Uses SSH
+
+Claude runs each command as a separate SSH call:
+
+```powershell
+ssh myserver "command here"
+```
+
+There's no persistent session - each command connects, runs, and disconnects. This means:
+
+- No interactive programs (vim, htop, etc.)
+- No environment variables carrying over between commands
+- Each command must be self-contained
+
+## Example Commands Claude Can Run
+
+```powershell
+# Check server status
+ssh myserver "hostname && uptime && df -h"
+
+# Install packages
+ssh myserver "sudo apt update && sudo apt install -y nginx"
+
+# Copy files to server
+scp localfile.txt myserver:~/destination/
+
+# Run a script
+ssh myserver "cd ~/project && ./run.sh"
+```
+
+## Troubleshooting
+
+**"Permission denied"** - Key not set up properly, check `~/.ssh/authorized_keys` on server
+
+**"Host key verification failed"** - First time connecting, SSH manually once to accept the host key
+
+**Sudo asks for password** - Add NOPASSWD rule in sudoers (step 5)
+
+**Command hangs** - Probably waiting for input, make sure the command is non-interactive

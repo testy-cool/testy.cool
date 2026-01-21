@@ -41,6 +41,13 @@ const extensions: Tool[] = [
       "/images/tools/chatgpt-conversation-exporter/export-chatgpt-conversation-markdown-html.png",
     tags: ["Chrome", "Export"],
   },
+  {
+    slug: "hnes",
+    title: "Hacker News Enhancement Suite",
+    description: "Maintained Manifest V3 fork of HNES. Collapsible comments, keyboard shortcuts, user tagging, and more.",
+    screenshot: "/images/tools/hnes/hnes-screenshot.png",
+    tags: ["Chrome", "Hacker News"],
+  },
 ];
 
 const pageTitle = "Tools";

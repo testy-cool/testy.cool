@@ -11,7 +11,7 @@ import {
 
 const toolTitle = "ChatGPT Conversation Exporter";
 const screenshot =
-  "/images/tools/chatgpt-conversation-exporter/export-chatgpt-conversation-markdown-html.png";
+  "/images/tools/chatgpt-conversation-exporter/export-chatgpt-conversation-markdown-html.webp";
 const githubUrl = "https://github.com/testy-cool/export-chatgpt-conversation";
 const privacyUrl = "/privacy#chatgpt-conversation-exporter";
 

@@ -10,7 +10,7 @@ import {
 } from "@repo/shadverse/components/breadcrumb";
 
 const toolTitle = "Hacker News Enhancement Suite";
-const screenshot = "/images/tools/hnes/hnes-screenshot.png";
+const screenshot = "/images/tools/hnes/hnes-screenshot.webp";
 const chromeWebStoreUrl =
   "https://chromewebstore.google.com/detail/hacker-news-enhancement-s/ebmjdaaabekgefdnfkcoejejhkodkepg";
 const githubUrl = "https://github.com/testy-cool/hackernews-enhancement-suite";

@@ -18,7 +18,7 @@ export const baseOptions: BaseLayoutProps = {
     title: (
       <>
         <img
-          src="/avatar.png"
+          src="/avatar.webp"
           width={28}
           height={28}
           alt="testy.cool logo"

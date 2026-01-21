@@ -1,0 +1,57 @@
+# testy.cool SEO Optimization PRD
+
+## Overview
+Fix SEO issues identified in the site audit to improve Google indexing and search presence.
+
+## Tasks
+
+### 1. Compress Large Images
+The following images are too large and hurting page load speed:
+- apps/web/public/images/tools/chatgpt-conversation-exporter/export-chatgpt-conversation-markdown-html.png (4.0 MB) - compress to under 300KB
+- apps/web/public/images/tools/hnes/hnes-screenshot.png (439 KB) - compress to under 150KB
+- apps/web/public/images/avatar.png (691 KB) - compress to under 100KB
+
+Use sharp or similar tool to convert to WebP format and resize appropriately.
+
+### 2. Add Metadata to Tool Pages
+The following pages are missing metadata exports:
+- apps/web/app/(home)/tools/page.tsx - add metadata with title "Tools" and description
+- apps/web/app/(home)/tools/hnes/page.tsx - add metadata with title and description
+- apps/web/app/(home)/tools/chatgpt-conversation-exporter/page.tsx - add metadata with title and description
+
+### 3. Fix Sitemap Configuration
+The sitemap is missing several pages. Update next-sitemap.config.cjs to include:
+- All standalone tool pages (/tools/hnes, /tools/chatgpt-conversation-exporter)
+- All blog posts including /blog/tutorial/claude-code-ssh-setup
+- Privacy page (/privacy)
+
+May need to add additionalPaths function to manually include dynamic routes.
+
+### 4. Fix Canonical URLs
+In apps/web/lib/metadata.ts, the canonical URL is hardcoded to "/" for all pages.
+Make canonical URLs dynamic so each page gets its own canonical URL.
+
+### 5. Remove Unused Dependencies
+Remove these unused packages from apps/web/package.json:
+- katex
+- rehype-katex
+- mermaid (if not used)
+
+Run pnpm install after removing.
+
+### 6. Add JSON-LD Structured Data
+Add structured data schemas:
+- Organization schema on homepage
+- BlogPosting schema on blog post pages
+- BreadcrumbList schema for navigation
+
+Create a component or utility to generate JSON-LD and add to relevant pages.
+
+### 7. Fix Image Alt Text Issues
+- In apps/web/components/og-image.tsx or similar, change "scrapedrive.com" to "testy.cool"
+- In apps/web/content/blog/tutorial/setup-blog-with-testy-blog.mdx, improve image alt text from generic "Homepage" and "Post" to descriptive text
+
+### 8. Expand Thin Content
+These posts need more content:
+- apps/web/content/blog/troubleshooting/windows-nul-file.mdx (~170 words) - expand to 400+ words
+- apps/web/content/blog/tutorial/setup-blog-with-testy-blog.mdx (~350 words) - expand with more detail

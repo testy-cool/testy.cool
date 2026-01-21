@@ -1,0 +1,113 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Compress Large Images to WebP Format",
+        "description": "Compress specified large images using Sharp to meet size targets and convert to WebP for better performance.",
+        "details": "Install sharp: `pnpm add sharp`. Use Node script: import sharp from 'sharp'; sharp('path/to/export-chatgpt-conversation-markdown-html.png').resize({width:1200,height:800,fit:'inside'}).webp({quality:80}).toFile('apps/web/public/images/tools/chatgpt-conversation-exporter/export-chatgpt-conversation-markdown-html.webp', () => {}); Repeat for hnes-screenshot.png (target <150KB, resize to 800x600), avatar.png (<100KB, resize to 300x300). Replace original files with .webp versions and update img src in code to use new files with srcset for fallback.",
+        "testStrategy": "Verify file sizes < targets using ls -lh. Test page load with Lighthouse (aim for >90 Performance). Check images display correctly across browsers using WebP support detection.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "in-progress",
+        "subtasks": [],
+        "updatedAt": "2026-01-21T22:17:09.981Z"
+      },
+      {
+        "id": "2",
+        "title": "Add Metadata to Tool Pages",
+        "description": "Implement dynamic metadata exports for specified tool pages using Next.js generateMetadata.",
+        "details": "In apps/web/app/(home)/tools/page.tsx: export const metadata = {title: 'Tools', description: 'Discover powerful tools for productivity and development at testy.cool'}; For hnes/page.tsx: title: 'HNES - Hacker News Export Service', description: '...'; For chatgpt-conversation-exporter/page.tsx: title: 'ChatGPT Conversation Exporter', description: '...'. Use Next.js 14+ App Router metadata API. Ensure openGraph and twitter metadata included.",
+        "testStrategy": "View page source to verify <title> and <meta name=\"description\"> present. Use Google Rich Results Test and Twitter Card Validator. Check SEO tools like Screaming Frog.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "3",
+        "title": "Update Sitemap Configuration",
+        "description": "Fix next-sitemap.config.cjs to include all tool pages, blog posts, and privacy page.",
+        "details": "Update next-sitemap.config.cjs: module.exports = { siteUrl: 'https://testy.cool', generateRobotsTxt: true, additionalPaths: async (config) => [ { loc: '/tools/hnes', changefreq: 'monthly', priority: 0.7 }, { loc: '/tools/chatgpt-conversation-exporter', changefreq: 'monthly', priority: 0.7 }, { loc: '/privacy', priority: 0.6 }, { loc: '/blog/tutorial/claude-code-ssh-setup', changefreq: 'yearly', priority: 0.8 } ], exclude: ['/admin/*'] }; Run `pnpm next-sitemap` to generate.",
+        "testStrategy": "Verify sitemap.xml at /sitemap.xml contains all paths using browser inspection. Submit to Google Search Console and check indexing status.",
+        "priority": "high",
+        "dependencies": [
+          "2"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "4",
+        "title": "Implement Dynamic Canonical URLs",
+        "description": "Update apps/web/lib/metadata.ts to generate page-specific canonical URLs.",
+        "details": "Modify metadata.ts: export function getCanonicalUrl(pathname: string): string { return `https://testy.cool${pathname}`; }; In page metadata: <link rel=\"canonical\" href={getCanonicalUrl(router.asPath)} />; Use Next.js Head or metadata API: canonical: `https://testy.cool${pathname}`. Ensure no hardcoded '/' values remain.",
+        "testStrategy": "Inspect page source for <link rel=\"canonical\" href=\"https://testy.cool/tools/hnes\" /> on each page. Use SEO tools to verify canonicals match current URLs.",
+        "priority": "medium",
+        "dependencies": [
+          "2"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "5",
+        "title": "Remove Unused Dependencies",
+        "description": "Clean package.json by removing unused packages and reinstall dependencies.",
+        "details": "Edit apps/web/package.json, remove \"katex\", \"rehype-katex\", \"mermaid\" if unused. Run `pnpm install` to update lockfile. Verify no import errors: `pnpm build`. Check bundle size reduction with `pnpm build --stats`.",
+        "testStrategy": "Run `pnpm build` and `pnpm start` successfully. Verify no console errors mentioning removed packages. Check bundle size reduced via webpack-bundle-analyzer.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "6",
+        "title": "Implement JSON-LD Structured Data",
+        "description": "Add Organization schema to homepage, BlogPosting to blog posts, BreadcrumbList site-wide.",
+        "details": "Create lib/jsonld.ts: export function OrganizationSchema() { return { \"@context\": \"https://schema.org\", \"@type\": \"Organization\", \"name\": \"testy.cool\", \"url\": \"https://testy.cool\" }; }; For BlogPosting in blog pages: { \"@type\": \"BlogPosting\", \"headline\": post.title, \"datePublished\": post.date }; BreadcrumbList: [{\"@type\":\"ListItem\",\"position\":1,\"name\":\"Home\",\"item\":\"https://testy.cool\"},...]; Add to <Head> or use next/script: <script type=\"application/ld+json\" dangerouslySetInnerHTML={{__html: JSON.stringify(schema)}} />.",
+        "testStrategy": "Use Google's Rich Results Test on affected pages. Verify structured data appears in page source. Check Search Console Enhancements report.",
+        "priority": "medium",
+        "dependencies": [
+          "2",
+          "4"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "7",
+        "title": "Fix Image Alt Text Issues",
+        "description": "Update alt texts in og-image.tsx and blog MDX files for better accessibility and SEO.",
+        "details": "In apps/web/components/og-image.tsx: replace alt=\"scrapedrive.com\" with alt=\"testy.cool logo\"; In apps/web/content/blog/tutorial/setup-blog-with-testy-blog.mdx: change alt=\"Homepage\" to alt=\"testy.cool homepage showing blog posts list\"; alt=\"Post\" to alt=\"Sample blog post preview on testy.cool\". Use descriptive, keyword-relevant alt text.",
+        "testStrategy": "Run axe DevTools or Lighthouse Accessibility audit (aim for 100%). Manually inspect img elements in browser dev tools. Verify alt texts appear in Google Image search.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "8",
+        "title": "Expand Thin Blog Content",
+        "description": "Expand specified thin content posts to 400+ words with valuable additions.",
+        "details": "For windows-nul-file.mdx: Add sections on Linux equivalents (/dev/null), programming usage (Python os.devnull), troubleshooting steps, related Windows quirks, code examples. Target 450 words. For setup-blog-with-testy-blog.mdx: Add deployment guides, custom domain setup, theme customization, performance tips, migration from other platforms. Target 600 words. Maintain MDX format and SEO structure.",
+        "testStrategy": "Count words using wordcounter.net (>400 each). Check readability scores (Flesch >60). Verify content adds value via internal review. Monitor GSC performance post-publish.",
+        "priority": "low",
+        "dependencies": [
+          "6"
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2026-01-21T22:17:09.981Z",
+      "taskCount": 8,
+      "completedCount": 0,
+      "tags": [
+        "master"
+      ]
+    }
+  }
+}

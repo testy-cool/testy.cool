@@ -38,14 +38,14 @@ const extensions: Tool[] = [
     title: "ChatGPT Conversation Exporter",
     description: "Export a single ChatGPT conversation to clean Markdown or HTML.",
     screenshot:
-      "/images/tools/chatgpt-conversation-exporter/export-chatgpt-conversation-markdown-html.png",
+      "/images/tools/chatgpt-conversation-exporter/export-chatgpt-conversation-markdown-html.webp",
     tags: ["Chrome", "Export"],
   },
   {
     slug: "hnes",
     title: "Hacker News Enhancement Suite",
     description: "Maintained Manifest V3 fork of HNES. Collapsible comments, keyboard shortcuts, user tagging, and more.",
-    screenshot: "/images/tools/hnes/hnes-screenshot.png",
+    screenshot: "/images/tools/hnes/hnes-screenshot.webp",
     tags: ["Chrome", "Hacker News"],
   },
 ];

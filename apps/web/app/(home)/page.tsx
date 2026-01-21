@@ -3,10 +3,17 @@ import { GridBackground } from "@repo/ui/components/grid-background";
 import { getBlogPosts } from "@/lib/source";
 import { BlogList } from "@repo/fumadocs-blog/blog";
 import { getBlogConfiguration } from "@/blog-configuration";
+import { organizationSchema, websiteSchema } from "@/lib/jsonld";
 
 export default function HomePage() {
   return (
     <div className="flex flex-1 flex-col justify-center text-center">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([organizationSchema(), websiteSchema()]),
+        }}
+      />
       <div className="relative flex w-full flex-col items-center overflow-x-hidden">
         <GridBackground maxWidthClass="container" />
 

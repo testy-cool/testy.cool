@@ -9,9 +9,9 @@
         "testStrategy": "Verify file sizes < targets using ls -lh. Test page load with Lighthouse (aim for >90 Performance). Check images display correctly across browsers using WebP support detection.",
         "priority": "high",
         "dependencies": [],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [],
-        "updatedAt": "2026-01-21T22:17:09.981Z"
+        "updatedAt": "2026-01-21T22:22:36.224Z"
       },
       {
         "id": "2",
@@ -21,8 +21,9 @@
         "testStrategy": "View page source to verify <title> and <meta name=\"description\"> present. Use Google Rich Results Test and Twitter Card Validator. Check SEO tools like Screaming Frog.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-21T22:23:23.027Z"
       },
       {
         "id": "3",
@@ -34,8 +35,9 @@
         "dependencies": [
           "2"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-21T22:26:13.252Z"
       },
       {
         "id": "4",
@@ -47,8 +49,9 @@
         "dependencies": [
           "2"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-21T22:26:49.651Z"
       },
       {
         "id": "5",
@@ -58,8 +61,9 @@
         "testStrategy": "Run `pnpm build` and `pnpm start` successfully. Verify no console errors mentioning removed packages. Check bundle size reduced via webpack-bundle-analyzer.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-21T22:24:48.208Z"
       },
       {
         "id": "6",
@@ -72,8 +76,9 @@
           "2",
           "4"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-21T22:27:50.945Z"
       },
       {
         "id": "7",
@@ -83,8 +88,9 @@
         "testStrategy": "Run axe DevTools or Lighthouse Accessibility audit (aim for 100%). Manually inspect img elements in browser dev tools. Verify alt texts appear in Google Image search.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-21T22:25:36.092Z"
       },
       {
         "id": "8",
@@ -102,9 +108,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-01-21T22:17:09.981Z",
+      "lastModified": "2026-01-21T22:27:50.946Z",
       "taskCount": 8,
-      "completedCount": 0,
+      "completedCount": 7,
       "tags": [
         "master"
       ]

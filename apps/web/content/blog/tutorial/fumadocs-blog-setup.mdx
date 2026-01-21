@@ -1,0 +1,136 @@
+---
+title: How to Set Up a Blog with Fumadocs
+description: Build a documentation-style blog using Fumadocs and Next.js. Get table of contents, MDX support, and clean typography out of the box.
+date: 2026-01-06
+author: testy.cool
+tags: [fumadocs, blog, tutorial, nextjs, mdx, cloudflare]
+image: /images/blog/testy-blog-homepage.png
+---
+
+Most blog templates look like blogs. This one looks like documentation - because it uses Fumadocs, a documentation framework for Next.js.
+
+The result is a blog with automatic table of contents, clean typography, code blocks with syntax highlighting, and the familiar docs sidebar feel. This site runs on it.
+
+| | |
+|--|--|
+| ![Fumadocs blog homepage showing article listings](/images/blog/testy-blog-homepage.png) | ![Fumadocs blog post with table of contents](/images/blog/testy-blog-post.png) |
+
+## Why Use Fumadocs for a Blog?
+
+Documentation sites have great UX for reading long-form content. Fumadocs gives you:
+
+- **Table of contents** - Auto-generated from headings, sticky on the side
+- **MDX support** - Markdown with React components inline
+- **Code highlighting** - Shiki with copy button, line highlighting, language tabs
+- **Fast builds** - Static export, deploys to Cloudflare Pages
+- **Search** - Built-in full-text search
+
+## Prerequisites
+
+- Node.js 20+
+- pnpm
+
+## Quick Start
+
+Clone the template and start customizing:
+
+```bash
+# Clone the template
+git clone https://github.com/testy-cool/testy-blog.git my-blog
+cd my-blog
+
+# Remove git history and start fresh
+rm -rf .git
+git init
+
+# Install dependencies
+pnpm install
+
+# Run dev server
+pnpm dev
+```
+
+Open `http://localhost:3000` to see your blog.
+
+## Project Structure
+
+The template is a pnpm monorepo:
+
+```
+my-blog/
+├── apps/web/                 # Next.js blog app
+│   ├── app/                  # App router pages
+│   ├── content/blog/         # Your MDX posts go here
+│   └── components/           # React components
+├── packages/
+│   ├── fumadocs-blog/        # Blog components
+│   └── ui/                   # Shared UI components
+```
+
+## Customize Your Blog
+
+### 1. Update Site Config
+
+Edit `apps/web/app/layout.config.tsx`:
+
+```tsx
+export const title = "Your Site Name";
+export const description = "Your site description";
+export const owner = "Your Name";
+```
+
+### 2. Update Blog Constants
+
+Edit `apps/web/blog-configuration.tsx` with your social links and site info.
+
+### 3. Update Hero Section
+
+Edit `apps/web/components/hero.tsx` with your tagline.
+
+### 4. Add Your Posts
+
+Create MDX files in `apps/web/content/blog/[category]/your-post.mdx`:
+
+```mdx
+---
+title: My First Post
+description: A short description
+date: 2026-01-06
+author: Your Name
+tags: [tag1, tag2]
+---
+
+Your content here. You can use **Markdown** and React components.
+```
+
+Posts are organized by category (the folder name). Create new folders for new categories.
+
+## Deploy to Cloudflare Pages
+
+Cloudflare Pages handles static Next.js sites well and has a generous free tier.
+
+1. Push your repo to GitHub
+2. Go to Cloudflare Pages dashboard
+3. Connect your GitHub repo
+4. Set build command: `pnpm build`
+5. Set output directory: `apps/web/out`
+6. Add environment variable `NODE_VERSION` = `20`
+
+That's it. Your blog deploys on every push to main.
+
+Once deployed, make sure Google indexes your custom domain instead of the pages.dev URL - see [Fix Cloudflare Pages Redirect to Custom Domain](/blog/troubleshooting/cloudflare-pages-redirect-custom-domain).
+
+## Adding Features
+
+The template includes:
+
+- **RSS feed** - Auto-generated at `/api/rss.xml`
+- **Sitemap** - Auto-generated via next-sitemap
+- **OG images** - Auto-generated for social sharing
+- **Search** - Built-in Fumadocs search
+
+To add more features, check the [Fumadocs documentation](https://fumadocs.vercel.app/).
+
+## Credits
+
+This template builds on [rjv.im's fumadocs blog setup](https://rjv.im/blog/solution/setup-blog-with-fuma-docs) and the official Fumadocs examples.

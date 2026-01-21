@@ -1,7 +1,7 @@
 import { generateOGImage } from "@/components/og-image";
 
 // Image metadata
-export const alt = "scrapedrive.com";
+export const alt = "testy.cool";
 export const size = {
   width: 1200,
   height: 630,
@@ -13,5 +13,5 @@ export const revalidate = false; // Revalidate every hour (or your preferred int
 
 // Image generation
 export default async function Image() {
-  return generateOGImage("scrapedrive.com");
+  return generateOGImage("testy.cool");
 }

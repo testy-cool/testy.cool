@@ -15,6 +15,13 @@ module.exports = {
       { userAgent: '*', disallow: ['/api/', '/_next/', '/static/'] },
     ],
   },
+  additionalPaths: async (config) => [
+    // Standalone tool pages
+    { loc: '/tools/hnes', changefreq: 'monthly', priority: 0.7 },
+    { loc: '/tools/chatgpt-conversation-exporter', changefreq: 'monthly', priority: 0.7 },
+    // Privacy page
+    { loc: '/privacy', changefreq: 'yearly', priority: 0.3 },
+  ],
   transform: async (config, path) => {
     // custom function to ignore the path
     if (customIgnoreFunction(path)) {

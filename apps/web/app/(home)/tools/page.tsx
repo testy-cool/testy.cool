@@ -1,6 +1,16 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { DocsTitle, DocsDescription } from "fumadocs-ui/page";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Tools",
+  description: "Dev tools, calculators, and browser extensions for developers.",
+  openGraph: {
+    title: "Tools | testy.cool",
+    description: "Dev tools, calculators, and browser extensions for developers.",
+  },
+};
 import {
   Breadcrumb,
   BreadcrumbItem,

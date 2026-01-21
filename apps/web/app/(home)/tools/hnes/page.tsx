@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DocsDescription, DocsTitle } from "fumadocs-ui/page";
+import type { Metadata } from "next";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,6 +9,15 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@repo/shadverse/components/breadcrumb";
+
+export const metadata: Metadata = {
+  title: "Hacker News Enhancement Suite",
+  description: "Maintained Manifest V3 fork of HNES with collapsible comments, keyboard shortcuts, user tagging, and more.",
+  openGraph: {
+    title: "Hacker News Enhancement Suite | testy.cool",
+    description: "Maintained Manifest V3 fork of HNES with collapsible comments, keyboard shortcuts, user tagging, and more.",
+  },
+};
 
 const toolTitle = "Hacker News Enhancement Suite";
 const screenshot = "/images/tools/hnes/hnes-screenshot.webp";

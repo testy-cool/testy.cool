@@ -1,266 +1,278 @@
 ---
-title: UCP - The Protocol for AI Agents That Buy Things
-description: Universal Commerce Protocol lets AI agents complete purchases via API. No browser. No scraping. Here's what it is and why you should care.
+title: UCP - How to Actually Make Money With It
+description: Universal Commerce Protocol lets AI agents buy things. Here's how developers can monetize it and what store owners need to know.
 date: 2026-01-23
 author: testy.cool
 tags: [agents, commerce, protocols, ai, standards]
 ---
 
-<Callout title="TL;DR" type="info">
-Google and Shopify co-created an open standard that lets AI agents buy things via API. Instead of redirecting to checkout pages, agents call endpoints. Your agent asks "does nike.com speak UCP?" If yes, it can complete a purchase without ever touching a browser.
+<Callout title="What is this?" type="info">
+UCP is an open standard from Google and Shopify that lets apps complete purchases without redirecting users away. Your app becomes the checkout. This post is about the money, not the theory.
 </Callout>
 
-## See it in action
+## See the flow
 
 <UCPDemo />
 
 ---
 
-## What this actually is
+## You're a developer. How do you make money?
 
-AI agents can't buy things right now. They can browse, they can recommend, but when it's time to pay? They hand you a link and say "go finish this yourself."
+In UCP terms, you're a **Platform** - the app that sits between users and stores. Here's where the money is:
 
-UCP fixes that. It's a spec - not a product, not a startup - that defines how agents talk to merchants.
+### 1. High-conversion affiliate
+
+Traditional affiliate: you send a click, pray they convert, get maybe 5% commission on whatever survives the redirect.
+
+UCP affiliate: you render checkout inside your app. User's shipping and payment are already saved. One tap. Done.
 
 ```
-// Today
-User: "Buy me that hoodie"
-Agent: "Here's the link! [redirects to nike.com]"
-User: [fills out forms, enters card, confirms]
+Traditional:  Click → Redirect → Login → Enter address → Enter card → Buy
+              (50%+ drop-off at each step)
 
-// With UCP
-User: "Buy me that hoodie"
-Agent: [calls API, uses your saved payment method]
-Agent: "Done. Shipping Thursday."
+UCP:          Click → Confirm → Done
+              (You control the whole funnel)
 ```
 
-### The four players
+Higher conversion = you can negotiate better rates. You're delivering completed orders, not clicks.
 
-<div className="grid md:grid-cols-2 gap-4 my-6">
-  <Card>
-    <CardHeader>
-      <CardTitle>Platform</CardTitle>
-      <CardDescription>The agent acting on your behalf</CardDescription>
-    </CardHeader>
-    <CardContent>
-      <Badge variant="secondary">Claude</Badge>{" "}
-      <Badge variant="secondary">ChatGPT</Badge>{" "}
-      <Badge variant="secondary">Your custom agent</Badge>
-    </CardContent>
-  </Card>
+<Card className="mb-4">
+  <CardHeader>
+    <CardTitle>Revenue models</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <div className="grid md:grid-cols-3 gap-4">
+      <Alert>
+        <AlertTitle>Per-transaction</AlertTitle>
+        <AlertDescription>$0.05-0.50 per completed order</AlertDescription>
+      </Alert>
+      <Alert>
+        <AlertTitle>Revenue share</AlertTitle>
+        <AlertDescription>% of order value or savings</AlertDescription>
+      </Alert>
+      <Alert>
+        <AlertTitle>API subscription</AlertTitle>
+        <AlertDescription>Monthly access for other platforms</AlertDescription>
+      </Alert>
+    </div>
+  </CardContent>
+</Card>
 
-  <Card>
-    <CardHeader>
-      <CardTitle>Business</CardTitle>
-      <CardDescription>The merchant selling stuff</CardDescription>
-    </CardHeader>
-    <CardContent>
-      <Badge variant="secondary">Nike</Badge>{" "}
-      <Badge variant="secondary">Any Shopify store</Badge>
-    </CardContent>
-  </Card>
+### 2. Become the wallet
 
-  <Card>
-    <CardHeader>
-      <CardTitle>Credential Provider</CardTitle>
-      <CardDescription>Holds your payment info</CardDescription>
-    </CardHeader>
-    <CardContent>
-      <Badge variant="secondary">Google Pay</Badge>{" "}
-      <Badge variant="secondary">Apple Pay</Badge>
-    </CardContent>
-  </Card>
+UCP has **Identity Linking** - OAuth that connects user accounts across merchants.
 
-  <Card>
-    <CardHeader>
-      <CardTitle>PSP</CardTitle>
-      <CardDescription>Moves the money</CardDescription>
-    </CardHeader>
-    <CardContent>
-      <Badge variant="secondary">Stripe</Badge>{" "}
-      <Badge variant="secondary">Adyen</Badge>
-    </CardContent>
-  </Card>
-</div>
+If you store the user's shipping address and payment methods, you become their "one-click checkout" everywhere. Every merchant they buy from through your app = stickier users.
+
+This is the super-app play. WeChat did it in China. UCP makes it possible in the US without building payment rails from scratch.
+
+### 3. Sell the automation
+
+Building an AI agent? UCP has **AP2 Mandates** - cryptographic proof that the user actually authorized a purchase.
+
+Your agent can autonomously:
+- Reorder groceries when they run low
+- Book the same hotel the user always gets
+- Buy concert tickets the moment they drop
+
+Charge a subscription for the convenience. $10/month for "my AI handles routine purchases" is reasonable if it saves people time.
+
+### 4. The discount oracle
+
+If you have coupon/deal data, you can become the service that AI agents query before checkout.
+
+```
+User → AI Agent → Your discount API → "Here are 3 valid codes for Nike"
+                       ↓
+              UCP Checkout with code applied
+```
+
+Every AI platform needs this. Charge per query, per successful discount, or monthly API access.
 
 ---
 
-## How it works
+## You're a Shopify store owner. What changes?
+
+Shopify co-founded UCP. It's likely already available or coming to your store. Here's what that means:
+
+### The good
+
+<Card className="mb-4">
+  <CardContent className="pt-6 space-y-3">
+    <Alert>
+      <AlertTitle>AI agents can find you</AlertTitle>
+      <AlertDescription>When someone asks ChatGPT "buy me running shoes under $150", UCP-enabled stores can actually complete that sale. Non-UCP stores get a link and a "go finish this yourself."</AlertDescription>
+    </Alert>
+    <Alert>
+      <AlertTitle>You stay the merchant</AlertTitle>
+      <AlertDescription>Unlike Amazon where you're a vendor in their marketplace, UCP keeps you as Merchant of Record. You own the customer relationship, the data, the liability.</AlertDescription>
+    </Alert>
+    <Alert>
+      <AlertTitle>Lower cart abandonment</AlertTitle>
+      <AlertDescription>Checkout happens in whatever app the user is already in. No redirect. No "create an account." No re-entering shipping info.</AlertDescription>
+    </Alert>
+    <Alert>
+      <AlertTitle>No replatforming</AlertTitle>
+      <AlertDescription>UCP is a protocol layer on top of your existing Shopify backend. You expose a /.well-known/ucp endpoint. Your inventory, logistics, everything else stays the same.</AlertDescription>
+    </Alert>
+  </CardContent>
+</Card>
+
+### The bad
+
+<Card className="mb-4">
+  <CardContent className="pt-6 space-y-3">
+    <Alert variant="destructive">
+      <AlertTitle>You lose the storefront visit</AlertTitle>
+      <AlertDescription>Users might buy your product without ever seeing your website. The sale happens inside someone else's app. You get revenue but lose brand touchpoints and upsell opportunities.</AlertDescription>
+    </Alert>
+    <Alert variant="destructive">
+      <AlertTitle>Race to bottom on price</AlertTitle>
+      <AlertDescription>AI agents optimize for user preferences, often price. If agents compare you to competitors in real-time, margin pressure increases.</AlertDescription>
+    </Alert>
+    <Alert variant="destructive">
+      <AlertTitle>Platform dependence</AlertTitle>
+      <AlertDescription>If most of your sales come through AI agents, you're dependent on how those agents rank and recommend products. Sound familiar? (cough Google SEO cough)</AlertDescription>
+    </Alert>
+  </CardContent>
+</Card>
+
+### The discount extension
+
+UCP has a specific **Discount Extension** for programmatic coupon codes. As a store owner:
+
+- You see which platform submitted which code
+- You can reject invalid codes with specific error messages
+- You can surface your own "automatic discounts" without coupon sites
+- You get analytics on discount-sensitive traffic
+
+This is actually more control than you have today with browser extensions guessing codes.
+
+---
+
+## Technical cheat sheet
+
+If you're actually building on this, here's what matters:
 
 ### Discovery
 
-Agents check a well-known URL:
+Everything starts at `/.well-known/ucp`. Hit that endpoint, get back what the store supports.
 
 ```bash
 curl https://nike.com/.well-known/ucp
 ```
 
-Returns JSON? They support UCP. 404? They don't.
+Returns capabilities, payment handlers, API endpoints.
 
-### The flow
+### Capabilities are modular
 
-<Steps>
-  <Step>
-    **Discovery** - Agent finds merchant's UCP profile
-  </Step>
-  <Step>
-    **Negotiation** - Both sides figure out what they both support (checkout? discounts? fulfillment tracking?)
-  </Step>
-  <Step>
-    **Checkout** - Agent creates session, adds items, sets shipping
-  </Step>
-  <Step>
-    **Payment** - User approves via Google Pay (or whatever). Token goes to merchant.
-  </Step>
-  <Step>
-    **Done** - Order placed. Webhooks for shipping updates.
-  </Step>
-</Steps>
+UCP isn't one giant API. It's modules:
 
-### Capability matching
+- **checkout** - the basics (line items, totals, complete purchase)
+- **fulfillment** - shipping options
+- **discounts** - promo codes
+- **identity_linking** - OAuth for loyalty accounts
+- **ap2_mandates** - cryptographic authorization for autonomous agents
 
-Merchants publish what they support. Agents check what they can handle. They transact using the intersection.
+You advertise what you support. Store returns the intersection. You only use what both sides understand.
 
-```
-Nike supports:     checkout + fulfillment + discounts
-Your agent knows:  checkout + fulfillment
-They use:          checkout + fulfillment ✓
-```
+### Three ways to talk
 
-The agent doesn't break if Nike adds discount support later - it just ignores what it doesn't understand.
-
----
-
-## Who cares about this
-
-<Card className="mb-4">
-  <CardHeader>
-    <Badge className="w-fit mb-2">Agent builders</Badge>
-    <CardDescription>
-      You're building an agent that books flights or orders groceries. Right now you're either scraping (fragile), using proprietary APIs (one integration per merchant), or punting to the user (defeats the purpose). UCP means: implement once, buy from anyone who supports it.
-    </CardDescription>
-  </CardHeader>
-</Card>
-
-<Card className="mb-4">
-  <CardHeader>
-    <Badge className="w-fit mb-2" variant="secondary">Merchants</Badge>
-    <CardDescription>
-      Instead of building integrations for every AI assistant (Alexa skills, ChatGPT plugins, Google Shopping actions), you expose one endpoint. As agents get better at shopping, stores without agent access lose that traffic.
-    </CardDescription>
-  </CardHeader>
-</Card>
-
-<Card className="mb-4">
-  <CardHeader>
-    <Badge className="w-fit mb-2" variant="outline">Payment folks</Badge>
-    <CardDescription>
-      Wallets and PSPs get a standard way to plug into agentic transactions. Google Pay already works with this.
-    </CardDescription>
-  </CardHeader>
-</Card>
-
----
-
-## The technical bits that matter
-
-### Your card number stays safe
-
-The agent never sees your actual card. Here's the flow:
-
-1. Agent tells merchant "user wants to pay with Google Pay"
-2. Merchant says "cool, here's my payment handler config"
-3. User approves in Google Pay UI
-4. Google Pay gives agent an opaque token
-5. Agent passes token to merchant
-6. Merchant sends token to their PSP (Stripe, etc)
-7. PSP charges the card
-
-The agent only ever touches encrypted tokens. The merchant gets a token they can charge but can't decode. Only the PSP sees the real card number.
-
-### Transport doesn't matter
-
-The spec defines REST endpoints, but also works over MCP (Model Context Protocol), A2A (agent-to-agent), and embedded protocols. Same capability, different transport.
-
-### Authorization proof for high-stakes purchases
-
-For expensive stuff, UCP supports AP2 mandates - cryptographic proof that you actually authorized the purchase. Not just "the agent says you said yes" but "here's a signed assertion you can verify."
-
----
-
-## Good and bad
-
-<Tabs items={["The good", "The bad"]}>
-  <Tab value="The good">
-    <Card>
-      <CardContent className="pt-6 space-y-3">
-        <Alert>
-          <AlertTitle>Works everywhere (eventually)</AlertTitle>
-          <AlertDescription>One implementation, any compliant merchant</AlertDescription>
-        </Alert>
-        <Alert>
-          <AlertTitle>Security-first</AlertTitle>
-          <AlertDescription>Card numbers never touch agents. Tokens flow one direction.</AlertDescription>
-        </Alert>
-        <Alert>
-          <AlertTitle>Extensible</AlertTitle>
-          <AlertDescription>New capabilities (loyalty, subscriptions) can be added without breaking old stuff</AlertDescription>
-        </Alert>
-        <Alert>
-          <AlertTitle>Open</AlertTitle>
-          <AlertDescription>Apache 2.0 license. Anyone can implement it.</AlertDescription>
-        </Alert>
-      </CardContent>
-    </Card>
+<Tabs items={["REST", "MCP", "Embedded"]}>
+  <Tab value="REST">
+    Standard HTTP. POST to `/checkout-sessions`. Good for traditional apps.
+    ```
+    POST /api/ucp/checkout-sessions
+    { "line_items": [...] }
+    ```
   </Tab>
-  <Tab value="The bad">
-    <Card>
-      <CardContent className="pt-6 space-y-3">
-        <Alert variant="destructive">
-          <AlertTitle>Chicken and egg</AlertTitle>
-          <AlertDescription>Agents need merchants to support it. Merchants need agents to use it.</AlertDescription>
-        </Alert>
-        <Alert variant="destructive">
-          <AlertTitle>Complex spec</AlertTitle>
-          <AlertDescription>Small merchants won't implement this themselves. They'll need Shopify or middleware.</AlertDescription>
-        </Alert>
-        <Alert variant="destructive">
-          <AlertTitle>Early days</AlertTitle>
-          <AlertDescription>Version 2026-01-11. Core works, ecosystem is thin.</AlertDescription>
-        </Alert>
-        <Alert variant="destructive">
-          <AlertTitle>No product search</AlertTitle>
-          <AlertDescription>UCP handles checkout, not browsing. You still need to find products elsewhere.</AlertDescription>
-        </Alert>
-      </CardContent>
-    </Card>
+  <Tab value="MCP">
+    Model Context Protocol. UCP maps directly to MCP tools. Built for LLMs.
+    ```
+    tool: create_checkout_session
+    params: { line_items: [...] }
+    ```
+  </Tab>
+  <Tab value="Embedded">
+    JSON-RPC over postMessage. Render merchant checkout in iframe, but handle payment UI natively (Apple Pay button in your app, not theirs).
   </Tab>
 </Tabs>
+
+### You never touch card numbers
+
+UCP uses **Payment Handlers**. You get an opaque token from Google Pay or a tokenizer, pass it to the merchant. They pass it to their PSP. Only the PSP sees real card data.
+
+```
+User approves in Google Pay
+    ↓
+You get: gpay_token_abc123
+    ↓
+You send to merchant: { payment: { handler: "gpay", token: "abc123" } }
+    ↓
+Merchant sends to Stripe
+    ↓
+Card charged
+```
+
+You're never in PCI scope.
+
+---
+
+## Who's positioned to win
+
+<Card>
+  <CardContent className="pt-6">
+    <div className="space-y-2 text-sm">
+      <div className="flex justify-between p-2 bg-red-500/10 rounded">
+        <span className="font-medium">Google</span>
+        <span className="text-muted-foreground">Co-founder. Owns Gemini. Has Google Pay.</span>
+      </div>
+      <div className="flex justify-between p-2 bg-red-500/10 rounded">
+        <span className="font-medium">Shopify</span>
+        <span className="text-muted-foreground">Co-founder. 4M+ merchants already.</span>
+      </div>
+      <div className="flex justify-between p-2 bg-yellow-500/10 rounded">
+        <span className="font-medium">Honey (PayPal)</span>
+        <span className="text-muted-foreground">Browser extension + PayPal checkout. Natural fit.</span>
+      </div>
+      <div className="flex justify-between p-2 bg-yellow-500/10 rounded">
+        <span className="font-medium">Klarna/Affirm</span>
+        <span className="text-muted-foreground">Can register as UCP Payment Handler for BNPL.</span>
+      </div>
+      <div className="flex justify-between p-2 bg-muted rounded">
+        <span className="font-medium">You?</span>
+        <span className="text-muted-foreground">If you move now while the ecosystem is small.</span>
+      </div>
+    </div>
+  </CardContent>
+</Card>
 
 ---
 
 ## Bottom line
 
-Right now, asking an AI to buy something is like asking it to drive - technically possible in limited conditions, practically useless for most people.
+UCP is infrastructure for AI commerce. The bet:
 
-UCP is infrastructure for a future where that changes. The bet is that agents will eventually handle routine purchases: reordering toilet paper, booking the same hotel you always get, buying concert tickets the moment they drop.
+1. AI agents will handle more purchasing decisions
+2. They need APIs, not browser automation
+3. Whoever controls the checkout flow captures value
 
-The security design (AP2 mandates, token isolation, handler-based routing) suggests Google and Shopify are thinking seriously about what "agent buys things for you" actually requires.
+If you're building agents: UCP lets you complete transactions instead of handing off links.
 
-Shopify already implements this for their merchants. That's 4+ million stores with potential UCP support. Google Pay integration is baked in.
+If you're a merchant: UCP makes you AI-accessible but trades some brand control for reach.
 
-If you're building agents that need to transact, start here. If you're a merchant wondering how AI assistants will interact with your store, this is the standard that's emerging.
+If you're neither: watch Shopify's rollout. When 4M+ stores speak the same protocol, the ecosystem moves fast.
 
 <Card className="my-8">
   <CardContent className="pt-6">
     <div className="grid md:grid-cols-2 gap-4">
       <Alert variant="destructive">
-        <AlertTitle>If this flops</AlertTitle>
-        <AlertDescription>Every AI platform builds proprietary integrations. Small players can't compete. Fragmentation forever.</AlertDescription>
+        <AlertTitle>If you ignore this</AlertTitle>
+        <AlertDescription>AI agents route around you to competitors who are API-accessible. Same thing that happened to businesses without websites in 2005.</AlertDescription>
       </Alert>
       <Alert>
-        <AlertTitle>If this works</AlertTitle>
-        <AlertDescription>Any agent buys from any merchant. Commerce APIs become commoditized like payment processing did.</AlertDescription>
+        <AlertTitle>If you build on this</AlertTitle>
+        <AlertDescription>You're early to the platform layer of AI commerce. Network effects compound. First movers in protocols tend to stay.</AlertDescription>
       </Alert>
     </div>
   </CardContent>

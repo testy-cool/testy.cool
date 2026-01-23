@@ -6,208 +6,206 @@ author: testy.cool
 tags: [agents, commerce, protocols, ai, standards]
 ---
 
-<div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border-l-4 border-orange-500 p-6 rounded-r-lg mb-8">
-  <p className="text-lg leading-relaxed mb-2">
-    <strong>TL;DR:</strong> UCP is an open standard (co-founded by Google and Shopify) that lets AI agents complete purchases via API. Instead of redirecting users to checkout pages, agents call standardized endpoints.
-  </p>
-  <p className="text-muted-foreground">
-    This matters because AI agents currently can't buy things - every merchant speaks a different dialect. UCP creates a universal language.
-  </p>
-</div>
+<Callout title="TL;DR" type="info">
+UCP is an open standard (co-founded by Google and Shopify) that lets AI agents complete purchases via API. Instead of redirecting users to checkout pages, agents call standardized endpoints. This matters because AI agents currently can't buy things - every merchant speaks a different dialect. UCP creates a universal language.
+</Callout>
 
 ---
 
-<div className="flex items-center gap-3 mb-4 mt-8">
-  <span className="bg-orange-500 text-black w-10 h-10 rounded-full flex items-center justify-center font-bold">1</span>
-  <h2 className="text-2xl font-bold m-0">What UCP Actually Is</h2>
-</div>
+## 1. What UCP Actually Is
 
 UCP is a **specification** - not a product, not a platform, not a company. It defines how AI agents discover, negotiate with, and transact through any business that implements it.
 
-<div className="bg-card rounded-lg p-4 font-mono text-sm my-6 border">
-  <span className="text-muted-foreground">// Without UCP</span><br/>
-  User clicks "Buy" → Redirect to nike.com → Agent loses context<br/><br/>
-  <span className="text-muted-foreground">// With UCP</span><br/>
-  User says "Buy" → Agent calls UCP API → Checkout happens programmatically
-</div>
+```
+// Without UCP
+User clicks "Buy" → Redirect to nike.com → Agent loses context
+
+// With UCP
+User says "Buy" → Agent calls UCP API → Checkout happens programmatically
+```
 
 ### The Four Actors
 
 <div className="grid md:grid-cols-2 gap-4 my-6">
-  <div className="bg-card border rounded-lg p-5">
-    <div className="text-3xl mb-3">🖥️</div>
-    <h4 className="font-semibold text-lg mb-2">Platform</h4>
-    <p className="text-sm text-muted-foreground mb-2">Consumer-facing surface that orchestrates commerce</p>
-    <p className="text-xs text-muted-foreground">Examples: Claude, ChatGPT, Gemini, custom agents</p>
-  </div>
-  <div className="bg-card border rounded-lg p-5">
-    <div className="text-3xl mb-3">🏪</div>
-    <h4 className="font-semibold text-lg mb-2">Business</h4>
-    <p className="text-sm text-muted-foreground mb-2">Sells goods/services, remains Merchant of Record</p>
-    <p className="text-xs text-muted-foreground">Examples: Nike, Target, any Shopify store</p>
-  </div>
-  <div className="bg-card border rounded-lg p-5">
-    <div className="text-3xl mb-3">🔐</div>
-    <h4 className="font-semibold text-lg mb-2">Credential Provider</h4>
-    <p className="text-sm text-muted-foreground mb-2">Manages payment credentials securely</p>
-    <p className="text-xs text-muted-foreground">Examples: Google Pay, Apple Pay, digital wallets</p>
-  </div>
-  <div className="bg-card border rounded-lg p-5">
-    <div className="text-3xl mb-3">💳</div>
-    <h4 className="font-semibold text-lg mb-2">PSP</h4>
-    <p className="text-sm text-muted-foreground mb-2">Payment Service Provider - processes the money</p>
-    <p className="text-xs text-muted-foreground">Examples: Stripe, Adyen, PayPal</p>
-  </div>
+  <Card>
+    <CardHeader>
+      <CardTitle>🖥️ Platform</CardTitle>
+      <CardDescription>Consumer-facing surface that orchestrates commerce</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <Badge variant="secondary">Claude</Badge>{" "}
+      <Badge variant="secondary">ChatGPT</Badge>{" "}
+      <Badge variant="secondary">Gemini</Badge>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
+      <CardTitle>🏪 Business</CardTitle>
+      <CardDescription>Sells goods/services, remains Merchant of Record</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <Badge variant="secondary">Nike</Badge>{" "}
+      <Badge variant="secondary">Target</Badge>{" "}
+      <Badge variant="secondary">Shopify stores</Badge>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
+      <CardTitle>🔐 Credential Provider</CardTitle>
+      <CardDescription>Manages payment credentials securely</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <Badge variant="secondary">Google Pay</Badge>{" "}
+      <Badge variant="secondary">Apple Pay</Badge>{" "}
+      <Badge variant="secondary">Wallets</Badge>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
+      <CardTitle>💳 PSP</CardTitle>
+      <CardDescription>Payment Service Provider - processes the money</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <Badge variant="secondary">Stripe</Badge>{" "}
+      <Badge variant="secondary">Adyen</Badge>{" "}
+      <Badge variant="secondary">PayPal</Badge>
+    </CardContent>
+  </Card>
 </div>
 
 ---
 
-<div className="flex items-center gap-3 mb-4 mt-8">
-  <span className="bg-orange-500 text-black w-10 h-10 rounded-full flex items-center justify-center font-bold">2</span>
-  <h2 className="text-2xl font-bold m-0">How It Works</h2>
-</div>
+## 2. How It Works
 
 ### Discovery
 
 Businesses publish their capabilities at a well-known URL:
 
-<div className="bg-card rounded-lg p-4 font-mono text-sm my-4 border">
-  curl https://nike.com/.well-known/ucp
-</div>
+```bash
+curl https://nike.com/.well-known/ucp
+```
 
 If it returns JSON with capabilities, they support UCP. If 404, they don't.
 
 ### The Flow
 
-<div className="space-y-3 my-6">
-  <div className="flex items-center gap-4 p-3 bg-blue-500/10 rounded border border-blue-500/30">
-    <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">1</span>
-    <div>
-      <p className="font-medium">Discovery</p>
-      <p className="text-sm text-muted-foreground">Platform finds business's UCP profile</p>
-    </div>
-  </div>
-  <div className="flex items-center gap-4 p-3 bg-blue-500/10 rounded border border-blue-500/30">
-    <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">2</span>
-    <div>
-      <p className="font-medium">Negotiation</p>
-      <p className="text-sm text-muted-foreground">Parties compute capability intersection (what both support)</p>
-    </div>
-  </div>
-  <div className="flex items-center gap-4 p-3 bg-blue-500/10 rounded border border-blue-500/30">
-    <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">3</span>
-    <div>
-      <p className="font-medium">Checkout</p>
-      <p className="text-sm text-muted-foreground">Platform creates session, adds items, collects payment</p>
-    </div>
-  </div>
-  <div className="flex items-center gap-4 p-3 bg-blue-500/10 rounded border border-blue-500/30">
-    <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">4</span>
-    <div>
-      <p className="font-medium">Order Tracking</p>
-      <p className="text-sm text-muted-foreground">Business sends webhooks for shipped, delivered, etc.</p>
-    </div>
-  </div>
-</div>
+<Steps>
+  <Step>
+    **Discovery** - Platform finds business's UCP profile
+  </Step>
+  <Step>
+    **Negotiation** - Parties compute capability intersection (what both support)
+  </Step>
+  <Step>
+    **Checkout** - Platform creates session, adds items, collects payment
+  </Step>
+  <Step>
+    **Order Tracking** - Business sends webhooks for shipped, delivered, etc.
+  </Step>
+</Steps>
 
 ### Core Capabilities
 
 <div className="grid md:grid-cols-2 gap-4 my-6">
-  <div className="flex items-start gap-4 p-4 bg-card rounded-lg border">
-    <span className="text-2xl">🛒</span>
-    <div>
-      <h4 className="font-semibold">Checkout</h4>
-      <p className="text-sm text-muted-foreground">Create, update, complete checkout sessions via API</p>
-    </div>
-  </div>
-  <div className="flex items-start gap-4 p-4 bg-card rounded-lg border">
-    <span className="text-2xl">🔗</span>
-    <div>
-      <h4 className="font-semibold">Identity Linking</h4>
-      <p className="text-sm text-muted-foreground">OAuth 2.0 to act on user's behalf (loyalty, wishlists)</p>
-    </div>
-  </div>
-  <div className="flex items-start gap-4 p-4 bg-card rounded-lg border">
-    <span className="text-2xl">📦</span>
-    <div>
-      <h4 className="font-semibold">Order</h4>
-      <p className="text-sm text-muted-foreground">Webhook-based order lifecycle tracking</p>
-    </div>
-  </div>
-  <div className="flex items-start gap-4 p-4 bg-card rounded-lg border">
-    <span className="text-2xl">🏷️</span>
-    <div>
-      <h4 className="font-semibold">Discounts</h4>
-      <p className="text-sm text-muted-foreground">Programmatic coupon code submission and validation</p>
-    </div>
-  </div>
+  <Card>
+    <CardHeader>
+      <CardTitle>🛒 Checkout</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <CardDescription>Create, update, complete checkout sessions via API</CardDescription>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
+      <CardTitle>🔗 Identity Linking</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <CardDescription>OAuth 2.0 to act on user's behalf (loyalty, wishlists)</CardDescription>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
+      <CardTitle>📦 Order</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <CardDescription>Webhook-based order lifecycle tracking</CardDescription>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
+      <CardTitle>🏷️ Discounts</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <CardDescription>Programmatic coupon code submission and validation</CardDescription>
+    </CardContent>
+  </Card>
 </div>
 
 ---
 
-<div className="flex items-center gap-3 mb-4 mt-8">
-  <span className="bg-orange-500 text-black w-10 h-10 rounded-full flex items-center justify-center font-bold">3</span>
-  <h2 className="text-2xl font-bold m-0">Who Would Use This</h2>
-</div>
+## 3. Who Would Use This
 
-<div className="space-y-6 my-6">
-  <div className="bg-card border rounded-xl p-6">
-    <div className="flex items-center gap-3 mb-4">
-      <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm font-medium">AI Agent Developers</span>
-    </div>
-    <p className="text-muted-foreground mb-4">
+<Card className="mb-4">
+  <CardHeader>
+    <Badge className="w-fit mb-2">AI Agent Developers</Badge>
+    <CardDescription>
       If you're building agents that need to complete purchases - travel booking, e-commerce, subscriptions - you currently face a nightmare of integrations. Each merchant has their own API (if they have one at all).
-    </p>
-    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-      <p className="text-sm text-green-400">
-        <strong>UCP promise:</strong> Implement the protocol once, transact with any compliant business.
-      </p>
-    </div>
-  </div>
+    </CardDescription>
+  </CardHeader>
+  <CardContent>
+    <Callout type="info">
+      **UCP promise:** Implement the protocol once, transact with any compliant business.
+    </Callout>
+  </CardContent>
+</Card>
 
-  <div className="bg-card border rounded-xl p-6">
-    <div className="flex items-center gap-3 mb-4">
-      <span className="bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full text-sm font-medium">Businesses</span>
-    </div>
-    <p className="text-muted-foreground mb-4">
+<Card className="mb-4">
+  <CardHeader>
+    <Badge className="w-fit mb-2" variant="secondary">Businesses</Badge>
+    <CardDescription>
       Instead of building integrations with every AI platform individually (Alexa skills, Google Shopping actions, ChatGPT plugins), expose a single standard interface.
-    </p>
-    <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
-      <p className="text-sm text-purple-400">
-        <strong>Key insight:</strong> As agents become more capable at shopping, businesses that aren't agent-accessible miss that traffic entirely.
-      </p>
-    </div>
-  </div>
+    </CardDescription>
+  </CardHeader>
+  <CardContent>
+    <Callout type="warn">
+      **Key insight:** As agents become more capable at shopping, businesses that aren't agent-accessible miss that traffic entirely.
+    </Callout>
+  </CardContent>
+</Card>
 
-  <div className="bg-card border rounded-xl p-6">
-    <div className="flex items-center gap-3 mb-4">
-      <span className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-sm font-medium">Payment Providers & Wallets</span>
-    </div>
-    <p className="text-muted-foreground">
+<Card className="mb-4">
+  <CardHeader>
+    <Badge className="w-fit mb-2" variant="outline">Payment Providers & Wallets</Badge>
+    <CardDescription>
       PSPs get a standard way to plug into agentic transactions. Digital wallets get a standard way to participate via OAuth-based identity linking.
-    </p>
-  </div>
-</div>
+    </CardDescription>
+  </CardHeader>
+</Card>
 
 ---
 
-<div className="flex items-center gap-3 mb-4 mt-8">
-  <span className="bg-orange-500 text-black w-10 h-10 rounded-full flex items-center justify-center font-bold">4</span>
-  <h2 className="text-2xl font-bold m-0">The Interesting Technical Bits</h2>
-</div>
+## 4. The Interesting Technical Bits
 
 ### Composable Capabilities
 
 UCP doesn't force everyone to implement everything. Businesses publish what they support. Agents check compatibility. They transact using only the intersection.
 
-<div className="bg-card rounded-lg p-4 font-mono text-sm my-4 border">
-  <span className="text-muted-foreground">// Business supports:</span><br/>
-  checkout + fulfillment + discounts<br/><br/>
-  <span className="text-muted-foreground">// Agent supports:</span><br/>
-  checkout + fulfillment<br/><br/>
-  <span className="text-muted-foreground">// They transact using:</span><br/>
-  checkout + fulfillment <span className="text-green-400">✓</span>
-</div>
+```
+// Business supports:
+checkout + fulfillment + discounts
+
+// Agent supports:
+checkout + fulfillment
+
+// They transact using:
+checkout + fulfillment ✓
+```
 
 ### Transport Agnostic
 
@@ -222,11 +220,9 @@ Same capability, multiple transports.
 
 For autonomous agents making purchases, AP2 mandates provide cryptographic proof of authorization. When your agent makes a purchase, it includes a signed assertion that you actually authorized it.
 
-<div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 my-4">
-  <p className="text-sm text-yellow-400">
-    <strong>Why this matters:</strong> Non-repudiation for high-value transactions. Proof that the right person authorized the charge.
-  </p>
-</div>
+<Callout type="warn">
+**Why this matters:** Non-repudiation for high-value transactions. Proof that the right person authorized the charge.
+</Callout>
 
 ### PCI-DSS Separation
 
@@ -238,111 +234,70 @@ Raw credentials never flow where they shouldn't.
 
 ---
 
-<div className="flex items-center gap-3 mb-4 mt-8">
-  <span className="bg-orange-500 text-black w-10 h-10 rounded-full flex items-center justify-center font-bold">5</span>
-  <h2 className="text-2xl font-bold m-0">Advantages vs Disadvantages</h2>
-</div>
+## 5. Advantages vs Disadvantages
 
-<div className="grid md:grid-cols-2 gap-6 my-6">
-  <div>
-    <h3 className="text-xl font-semibold mb-4 text-green-400">Advantages</h3>
-    <div className="space-y-3">
-      <div className="flex items-start gap-3 p-3 bg-green-500/10 rounded border border-green-500/30">
-        <span className="text-green-400 text-xl">✓</span>
-        <div>
-          <p className="font-medium">True interoperability</p>
-          <p className="text-sm text-muted-foreground">One implementation, any compliant counterparty</p>
-        </div>
-      </div>
-      <div className="flex items-start gap-3 p-3 bg-green-500/10 rounded border border-green-500/30">
-        <span className="text-green-400 text-xl">✓</span>
-        <div>
-          <p className="font-medium">Security by design</p>
-          <p className="text-sm text-muted-foreground">Credentials flow one direction only, signatures prove authorization</p>
-        </div>
-      </div>
-      <div className="flex items-start gap-3 p-3 bg-green-500/10 rounded border border-green-500/30">
-        <span className="text-green-400 text-xl">✓</span>
-        <div>
-          <p className="font-medium">Extensibility</p>
-          <p className="text-sm text-muted-foreground">Capability/extension model lets ecosystem evolve</p>
-        </div>
-      </div>
-      <div className="flex items-start gap-3 p-3 bg-green-500/10 rounded border border-green-500/30">
-        <span className="text-green-400 text-xl">✓</span>
-        <div>
-          <p className="font-medium">Decentralized governance</p>
-          <p className="text-sm text-muted-foreground">Reverse-domain naming - extend without permission</p>
-        </div>
-      </div>
-      <div className="flex items-start gap-3 p-3 bg-green-500/10 rounded border border-green-500/30">
-        <span className="text-green-400 text-xl">✓</span>
-        <div>
-          <p className="font-medium">Open source</p>
-          <p className="text-sm text-muted-foreground">Apache 2.0 license</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div>
-    <h3 className="text-xl font-semibold mb-4 text-red-400">Disadvantages</h3>
-    <div className="space-y-3">
-      <div className="flex items-start gap-3 p-3 bg-red-500/10 rounded border border-red-500/30">
-        <span className="text-red-400 text-xl">✗</span>
-        <div>
-          <p className="font-medium">Adoption chicken-and-egg</p>
-          <p className="text-sm text-muted-foreground">Agents need businesses. Businesses need agents.</p>
-        </div>
-      </div>
-      <div className="flex items-start gap-3 p-3 bg-red-500/10 rounded border border-red-500/30">
-        <span className="text-red-400 text-xl">✗</span>
-        <div>
-          <p className="font-medium">Complexity</p>
-          <p className="text-sm text-muted-foreground">Full spec is substantial - small businesses need middleware</p>
-        </div>
-      </div>
-      <div className="flex items-start gap-3 p-3 bg-red-500/10 rounded border border-red-500/30">
-        <span className="text-red-400 text-xl">✗</span>
-        <div>
-          <p className="font-medium">Early stage</p>
-          <p className="text-sm text-muted-foreground">v2026-01-11 - core works, ecosystem incomplete</p>
-        </div>
-      </div>
-      <div className="flex items-start gap-3 p-3 bg-red-500/10 rounded border border-red-500/30">
-        <span className="text-red-400 text-xl">✗</span>
-        <div>
-          <p className="font-medium">No product catalog</p>
-          <p className="text-sm text-muted-foreground">UCP handles checkout, not browsing/search</p>
-        </div>
-      </div>
-      <div className="flex items-start gap-3 p-3 bg-red-500/10 rounded border border-red-500/30">
-        <span className="text-red-400 text-xl">✗</span>
-        <div>
-          <p className="font-medium">Server-selects</p>
-          <p className="text-sm text-muted-foreground">Business picks protocol version, platforms adapt</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<Tabs items={["Advantages", "Disadvantages"]}>
+  <Tab value="Advantages">
+    <Card className="border-green-500/30 bg-green-500/5">
+      <CardContent className="pt-6 space-y-3">
+        <Alert>
+          <AlertTitle>✓ True interoperability</AlertTitle>
+          <AlertDescription>One implementation, any compliant counterparty</AlertDescription>
+        </Alert>
+        <Alert>
+          <AlertTitle>✓ Security by design</AlertTitle>
+          <AlertDescription>Credentials flow one direction only, signatures prove authorization</AlertDescription>
+        </Alert>
+        <Alert>
+          <AlertTitle>✓ Extensibility</AlertTitle>
+          <AlertDescription>Capability/extension model lets ecosystem evolve</AlertDescription>
+        </Alert>
+        <Alert>
+          <AlertTitle>✓ Decentralized governance</AlertTitle>
+          <AlertDescription>Reverse-domain naming - extend without permission</AlertDescription>
+        </Alert>
+        <Alert>
+          <AlertTitle>✓ Open source</AlertTitle>
+          <AlertDescription>Apache 2.0 license</AlertDescription>
+        </Alert>
+      </CardContent>
+    </Card>
+  </Tab>
+  <Tab value="Disadvantages">
+    <Card className="border-red-500/30 bg-red-500/5">
+      <CardContent className="pt-6 space-y-3">
+        <Alert variant="destructive">
+          <AlertTitle>✗ Adoption chicken-and-egg</AlertTitle>
+          <AlertDescription>Agents need businesses. Businesses need agents.</AlertDescription>
+        </Alert>
+        <Alert variant="destructive">
+          <AlertTitle>✗ Complexity</AlertTitle>
+          <AlertDescription>Full spec is substantial - small businesses need middleware</AlertDescription>
+        </Alert>
+        <Alert variant="destructive">
+          <AlertTitle>✗ Early stage</AlertTitle>
+          <AlertDescription>v2026-01-11 - core works, ecosystem incomplete</AlertDescription>
+        </Alert>
+        <Alert variant="destructive">
+          <AlertTitle>✗ No product catalog</AlertTitle>
+          <AlertDescription>UCP handles checkout, not browsing/search</AlertDescription>
+        </Alert>
+        <Alert variant="destructive">
+          <AlertTitle>✗ Server-selects</AlertTitle>
+          <AlertDescription>Business picks protocol version, platforms adapt</AlertDescription>
+        </Alert>
+      </CardContent>
+    </Card>
+  </Tab>
+</Tabs>
 
 ---
 
-<div className="flex items-center gap-3 mb-4 mt-8">
-  <span className="bg-orange-500 text-black w-10 h-10 rounded-full flex items-center justify-center font-bold">6</span>
-  <h2 className="text-2xl font-bold m-0">Does It Matter?</h2>
-</div>
+## 6. Does It Matter?
 
-<div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-6 my-6">
-  <h3 className="text-xl font-semibold mb-4 text-blue-400">The Core Bet</h3>
-  <p className="text-lg mb-4">
-    AI agents will increasingly handle purchasing decisions, and they need standard protocols to do so.
-  </p>
-  <p className="text-muted-foreground">
-    If that happens, something like UCP becomes necessary. The alternative is the current mess - proprietary integrations, platform-specific plugins, manual checkout for anything outside walled gardens.
-  </p>
-</div>
+<Callout title="The Core Bet" type="info">
+AI agents will increasingly handle purchasing decisions, and they need standard protocols to do so. If that happens, something like UCP becomes necessary. The alternative is the current mess - proprietary integrations, platform-specific plugins, manual checkout for anything outside walled gardens.
+</Callout>
 
 The timing question is whether agents are ready for autonomous purchasing. Right now, most people wouldn't trust an AI to buy things without confirmation. But the same was true of:
 - Saving credit cards online
@@ -351,19 +306,23 @@ The timing question is whether agents are ready for autonomous purchasing. Right
 
 The security design suggests the authors are thinking seriously about this. AP2 mandates, credential isolation, handler-based payment routing - these aren't afterthoughts.
 
-<div className="bg-card border rounded-xl p-6 my-8">
-  <h3 className="text-xl font-bold mb-4">Bottom Line</h3>
-  <div className="grid md:grid-cols-2 gap-4">
-    <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-      <p className="font-medium text-red-400 mb-2">If UCP fails</p>
-      <p className="text-sm text-muted-foreground">Agentic commerce remains fragmented. Each major platform builds proprietary integrations. Small players can't compete.</p>
+<Card className="my-8">
+  <CardHeader>
+    <CardTitle>Bottom Line</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <div className="grid md:grid-cols-2 gap-4">
+      <Alert variant="destructive">
+        <AlertTitle>If UCP fails</AlertTitle>
+        <AlertDescription>Agentic commerce remains fragmented. Each major platform builds proprietary integrations. Small players can't compete.</AlertDescription>
+      </Alert>
+      <Alert>
+        <AlertTitle>If UCP succeeds</AlertTitle>
+        <AlertDescription>Any agent can transact with any merchant. The interface between AI and commerce becomes commoditized.</AlertDescription>
+      </Alert>
     </div>
-    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-      <p className="font-medium text-green-400 mb-2">If UCP succeeds</p>
-      <p className="text-sm text-muted-foreground">Any agent can transact with any merchant. The interface between AI and commerce becomes commoditized.</p>
-    </div>
-  </div>
-</div>
+  </CardContent>
+</Card>
 
 Whether UCP specifically wins is harder to predict. Standards wars favor network effects, and right now the network is small. But the design is thoughtful, the spec is open, and the problem is real.
 

@@ -28,6 +28,7 @@ import {
   BreakpointComparison,
   TwoPointCalculator,
 } from "./components/tools/ClampCalculator";
+import { UCPDemo } from "./components/tools/UCPDemo";
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
@@ -62,6 +63,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     ScalingPreview,
     BreakpointComparison,
     TwoPointCalculator,
+    UCPDemo,
     ...components,
   };
 }

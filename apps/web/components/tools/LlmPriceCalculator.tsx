@@ -149,48 +149,51 @@ function formatCost(cost: number): string {
   if (cost === 0) return "$0.00";
   if (cost < 0.01) return `$${cost.toFixed(4)}`;
   if (cost < 1) return `$${cost.toFixed(3)}`;
+  if (cost >= 1000)
+    return `$${cost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   return `$${cost.toFixed(2)}`;
 }
 
-function formatTokens(n: number): string {
-  if (n >= 1_000_000) {
-    const val = n / 1_000_000;
-    return val % 1 === 0 ? `${val}M` : `${val.toFixed(1)}M`;
-  }
-  if (n >= 1_000) {
-    const val = n / 1_000;
-    return val % 1 === 0 ? `${val}K` : `${val.toFixed(1)}K`;
-  }
-  return n.toLocaleString();
-}
-
 export function LlmPriceCalculator() {
-  const [inputAmount, setInputAmount] = useState(1);
-  const [inputUnit, setInputUnit] = useState(1_000_000);
-  const [outputAmount, setOutputAmount] = useState(100);
-  const [outputUnit, setOutputUnit] = useState(1_000);
+  const [inputTokens, setInputTokens] = useState(1_000_000);
+  const [outputTokens, setOutputTokens] = useState(100_000);
+  const [apiCalls, setApiCalls] = useState(1);
   const [cachePercent, setCachePercent] = useState(0);
   const [sortBy, setSortBy] = useState<"provider" | "price">("provider");
 
-  const inputTokens = inputAmount * inputUnit;
-  const outputTokens = outputAmount * outputUnit;
   const cacheRatio = cachePercent / 100;
+  const showBulk = apiCalls > 1;
 
   const calculated = useMemo(() => {
     return models.map((model) => {
       const inputCost = (inputTokens / 1_000_000) * model.input;
       const outputCost = (outputTokens / 1_000_000) * model.output;
-      const total = inputCost + outputCost;
+      const perCall = inputCost + outputCost;
 
-      const cachedInputCost =
+      // First call always pays full input price (cache write).
+      // Subsequent calls: only cached portion of input tokens gets the discount.
+      // Output tokens are never cached.
+      const cachedInputPerCall =
         (inputTokens / 1_000_000) *
         ((1 - cacheRatio) * model.input + cacheRatio * model.cachedInput);
-      const cachedTotal = cachedInputCost + outputCost;
-      const savings = total > 0 ? ((total - cachedTotal) / total) * 100 : 0;
+      const cachedPerCall = cachedInputPerCall + outputCost;
+      const subsequentCalls = Math.max(0, apiCalls - 1);
+      const cachedTotal = perCall + cachedPerCall * subsequentCalls;
 
-      return { ...model, inputCost, outputCost, total, cachedTotal, savings };
+      const fullTotal = perCall * apiCalls;
+      const savings =
+        fullTotal > 0 ? ((fullTotal - cachedTotal) / fullTotal) * 100 : 0;
+
+      return {
+        ...model,
+        perCall,
+        total: fullTotal,
+        cachedPerCall,
+        cachedTotal,
+        savings,
+      };
     });
-  }, [inputTokens, outputTokens, cacheRatio]);
+  }, [inputTokens, outputTokens, apiCalls, cacheRatio]);
 
   const sorted = useMemo(() => {
     if (sortBy === "price") {
@@ -210,7 +213,12 @@ export function LlmPriceCalculator() {
     return [{ provider: null as Provider | null, models: sorted }];
   }, [sorted, sortBy]);
 
-  const colCount = cachePercent > 0 ? 6 : 4;
+  // Column count for colspan on provider header rows
+  const showCache = cachePercent > 0;
+  let colCount = 2; // model + 1st call / per call
+  if (showCache) colCount++; // next calls
+  if (showBulk) colCount++; // N calls total
+  if (showCache) colCount++; // savings
 
   return (
     <div className="not-prose">
@@ -227,33 +235,19 @@ export function LlmPriceCalculator() {
 
       {/* Input Controls */}
       <div className="bg-fd-card border border-fd-border rounded-lg p-5 mb-4">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {/* Input Tokens */}
           <div>
             <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
               Input tokens
             </label>
-            <div className="flex gap-1.5">
-              <input
-                type="number"
-                value={inputAmount}
-                onChange={(e) => setInputAmount(Number(e.target.value))}
-                min={0}
-                className="flex-1 min-w-0 bg-fd-background border border-fd-border rounded px-3 py-2.5 font-mono focus:outline-none focus:border-fd-primary"
-              />
-              <select
-                value={inputUnit}
-                onChange={(e) => setInputUnit(Number(e.target.value))}
-                className="bg-fd-background border border-fd-border rounded px-2 py-2.5 text-sm focus:outline-none focus:border-fd-primary"
-              >
-                <option value={1}>tokens</option>
-                <option value={1000}>K</option>
-                <option value={1000000}>M</option>
-              </select>
-            </div>
-            <div className="text-[0.65rem] text-fd-muted-foreground mt-1 font-mono">
-              = {formatTokens(inputTokens)} tokens
-            </div>
+            <input
+              type="number"
+              value={inputTokens}
+              onChange={(e) => setInputTokens(Number(e.target.value))}
+              min={0}
+              className="w-full bg-fd-background border border-fd-border rounded px-3 py-2.5 font-mono focus:outline-none focus:border-fd-primary"
+            />
           </div>
 
           {/* Output Tokens */}
@@ -261,27 +255,27 @@ export function LlmPriceCalculator() {
             <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
               Output tokens
             </label>
-            <div className="flex gap-1.5">
-              <input
-                type="number"
-                value={outputAmount}
-                onChange={(e) => setOutputAmount(Number(e.target.value))}
-                min={0}
-                className="flex-1 min-w-0 bg-fd-background border border-fd-border rounded px-3 py-2.5 font-mono focus:outline-none focus:border-fd-primary"
-              />
-              <select
-                value={outputUnit}
-                onChange={(e) => setOutputUnit(Number(e.target.value))}
-                className="bg-fd-background border border-fd-border rounded px-2 py-2.5 text-sm focus:outline-none focus:border-fd-primary"
-              >
-                <option value={1}>tokens</option>
-                <option value={1000}>K</option>
-                <option value={1000000}>M</option>
-              </select>
-            </div>
-            <div className="text-[0.65rem] text-fd-muted-foreground mt-1 font-mono">
-              = {formatTokens(outputTokens)} tokens
-            </div>
+            <input
+              type="number"
+              value={outputTokens}
+              onChange={(e) => setOutputTokens(Number(e.target.value))}
+              min={0}
+              className="w-full bg-fd-background border border-fd-border rounded px-3 py-2.5 font-mono focus:outline-none focus:border-fd-primary"
+            />
+          </div>
+
+          {/* API Calls */}
+          <div>
+            <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+              API calls
+            </label>
+            <input
+              type="number"
+              value={apiCalls}
+              onChange={(e) => setApiCalls(Math.max(1, Number(e.target.value)))}
+              min={1}
+              className="w-full bg-fd-background border border-fd-border rounded px-3 py-2.5 font-mono focus:outline-none focus:border-fd-primary"
+            />
           </div>
 
           {/* Cache Hit % */}
@@ -303,11 +297,6 @@ export function LlmPriceCalculator() {
                 {cachePercent}%
               </span>
             </div>
-            <div className="text-[0.65rem] text-fd-muted-foreground mt-1">
-              {cachePercent === 0
-                ? "Drag to compare with caching"
-                : `${formatTokens(Math.round(inputTokens * cacheRatio))} tokens served from cache`}
-            </div>
           </div>
         </div>
       </div>
@@ -317,8 +306,10 @@ export function LlmPriceCalculator() {
         {/* Table header bar */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-fd-border">
           <span className="text-sm text-fd-muted-foreground">
-            {formatTokens(inputTokens)} in + {formatTokens(outputTokens)} out
-            {cachePercent > 0 && ` · ${cachePercent}% cached`}
+            {inputTokens.toLocaleString()} in + {outputTokens.toLocaleString()}{" "}
+            out
+            {showBulk && ` × ${apiCalls.toLocaleString()} calls`}
+            {showCache && ` · ${cachePercent}% cached`}
           </span>
           <div className="flex gap-1">
             <button
@@ -350,15 +341,20 @@ export function LlmPriceCalculator() {
             <thead>
               <tr className="border-b border-fd-border text-fd-muted-foreground text-[0.65rem] uppercase tracking-wider">
                 <th className="text-left px-4 py-2.5 font-medium">Model</th>
-                <th className="text-right px-4 py-2.5 font-medium">Input</th>
-                <th className="text-right px-4 py-2.5 font-medium">Output</th>
-                <th className="text-right px-4 py-2.5 font-medium">Total</th>
-                {cachePercent > 0 && (
+                <th className="text-right px-4 py-2.5 font-medium">
+                  {showCache ? "1st call" : showBulk ? "Per call" : "Total"}
+                </th>
+                {showCache && (
                   <th className="text-right px-4 py-2.5 font-medium">
-                    With cache
+                    Next calls
                   </th>
                 )}
-                {cachePercent > 0 && (
+                {showBulk && (
+                  <th className="text-right px-4 py-2.5 font-medium">
+                    {apiCalls.toLocaleString()} calls
+                  </th>
+                )}
+                {showCache && (
                   <th className="text-right px-4 py-2.5 font-medium">
                     Savings
                   </th>
@@ -372,7 +368,8 @@ export function LlmPriceCalculator() {
                   provider={group.provider}
                   models={group.models}
                   colCount={colCount}
-                  showCache={cachePercent > 0}
+                  showCache={showCache}
+                  showBulk={showBulk}
                   sortBy={sortBy}
                   isFirst={gi === 0}
                 />
@@ -384,8 +381,8 @@ export function LlmPriceCalculator() {
         {/* Footer */}
         <div className="px-4 py-2.5 border-t border-fd-border text-[0.65rem] text-fd-muted-foreground">
           Prices per million tokens. Last updated March 2026.
-          {cachePercent > 0 &&
-            " Cache prices reflect read/hit rates only - initial write costs are higher."}
+          {showCache &&
+            " Only input tokens are cached. 1st call pays full price, subsequent calls use cache read rates."}
         </div>
       </div>
     </div>
@@ -393,9 +390,9 @@ export function LlmPriceCalculator() {
 }
 
 interface CalculatedModel extends Model {
-  inputCost: number;
-  outputCost: number;
+  perCall: number;
   total: number;
+  cachedPerCall: number;
   cachedTotal: number;
   savings: number;
 }
@@ -405,6 +402,7 @@ function ProviderGroup({
   models,
   colCount,
   showCache,
+  showBulk,
   sortBy,
   isFirst,
 }: {
@@ -412,6 +410,7 @@ function ProviderGroup({
   models: CalculatedModel[];
   colCount: number;
   showCache: boolean;
+  showBulk: boolean;
   sortBy: string;
   isFirst: boolean;
 }) {
@@ -442,20 +441,20 @@ function ProviderGroup({
               </span>
             )}
           </td>
-          <td className="px-4 py-2.5 text-right font-mono text-fd-muted-foreground">
-            {formatCost(model.inputCost)}
+          {/* 1st call (full price) / per call / total depending on context */}
+          <td className="px-4 py-2.5 text-right font-mono font-medium">
+            {formatCost(model.perCall)}
           </td>
-          <td className="px-4 py-2.5 text-right font-mono text-fd-muted-foreground">
-            {formatCost(model.outputCost)}
-          </td>
-          <td
-            className={`px-4 py-2.5 text-right font-mono font-medium ${showCache ? "text-fd-muted-foreground line-through decoration-fd-muted-foreground/40" : ""}`}
-          >
-            {formatCost(model.total)}
-          </td>
+          {/* Subsequent calls with cache discount (only input tokens cached) */}
           {showCache && (
             <td className="px-4 py-2.5 text-right font-mono text-fd-primary font-medium">
-              {formatCost(model.cachedTotal)}
+              {formatCost(model.cachedPerCall)}
+            </td>
+          )}
+          {/* Bulk total: 1st call full + remaining cached */}
+          {showBulk && (
+            <td className="px-4 py-2.5 text-right font-mono font-medium">
+              {formatCost(showCache ? model.cachedTotal : model.total)}
             </td>
           )}
           {showCache && (

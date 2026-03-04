@@ -391,10 +391,10 @@ function ProviderGroup({
           </td>
         </tr>
       )}
-      {models.map((model) => (
+      {models.map((model, i) => (
         <tr
           key={model.name}
-          className="border-b border-fd-border/50 hover:bg-fd-muted/30 transition-colors"
+          className={`border-b border-fd-border/50 hover:bg-fd-muted/30 transition-colors ${i % 2 === 1 ? "bg-fd-muted/20" : ""}`}
         >
           <td className="px-4 py-3 font-medium whitespace-nowrap">
             {model.name}
@@ -404,27 +404,27 @@ function ProviderGroup({
               </span>
             )}
           </td>
-          <td className="px-4 py-3 text-right font-mono text-fd-muted-foreground text-xs">
+          <td className="px-4 py-3 text-right font-mono text-fd-muted-foreground">
             {formatTokenCount(model.context)}/{formatTokenCount(model.maxOutput)}
           </td>
-          <td className="px-4 py-3 text-right font-mono text-fd-muted-foreground">
-            ${model.input}
+          <td className="px-4 py-3 text-right font-mono">
+            <span className="text-fd-muted-foreground">$</span>{model.input}
           </td>
-          <td className="px-4 py-3 text-right font-mono text-fd-muted-foreground">
-            ${model.output}
+          <td className="px-4 py-3 text-right font-mono">
+            <span className="text-fd-muted-foreground">$</span>{model.output}
           </td>
-          <td className="px-4 py-3 text-right font-mono font-medium">
+          <td className="px-4 py-3 text-right font-mono font-semibold">
             {formatCost(model.perCall)}
           </td>
-          <td className={`py-3 text-right font-mono font-medium text-fd-primary ${cacheCol}`}>
+          <td className={`py-3 text-right font-mono font-semibold text-fd-primary ${cacheCol}`}>
             {formatCost(model.cachedPerCall)}
           </td>
           {showBulk && (
-            <td className="px-4 py-3 text-right font-mono font-medium">
+            <td className="px-4 py-3 text-right font-mono font-semibold">
               {formatCost(showCache ? model.cachedTotal : model.total)}
             </td>
           )}
-          <td className={`py-3 text-right font-mono text-green-600 dark:text-green-400 ${cacheCol}`}>
+          <td className={`py-3 text-right font-mono font-medium text-green-600 dark:text-green-400 ${cacheCol}`}>
             -{model.savings.toFixed(0)}%
           </td>
         </tr>

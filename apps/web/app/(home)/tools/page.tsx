@@ -32,6 +32,13 @@ interface Tool {
 
 const tools: Tool[] = [
   {
+    slug: "llm-price-calculator",
+    title: "LLM Price Calculator",
+    description:
+      "Compare API pricing across Claude, GPT, and Gemini models. Supports prompt caching calculations.",
+    tags: ["LLM", "API", "Pricing"],
+  },
+  {
     slug: "clamp-calculator",
     title: "CSS Clamp Calculator",
     description: "Generate fluid responsive CSS clamp() values from your Figma designs. Includes full tutorial explaining the math.",

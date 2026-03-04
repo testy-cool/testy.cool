@@ -205,10 +205,10 @@ export function LlmPriceCalculator() {
       `}</style>
 
       {/* Input Controls */}
-      <div className="bg-fd-card border border-fd-border rounded-lg p-5 mb-4">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="bg-fd-card border border-fd-border rounded-lg p-6 mb-5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
           <div>
-            <label className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+            <label className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-2">
               Input tokens
             </label>
             <input
@@ -216,11 +216,11 @@ export function LlmPriceCalculator() {
               value={inputTokens}
               onChange={(e) => setInputTokens(Number(e.target.value))}
               min={0}
-              className="w-full bg-fd-background border border-fd-border rounded px-3 py-2.5 text-sm font-mono focus:outline-none focus:border-fd-primary"
+              className="w-full bg-fd-background border border-fd-border rounded-md px-3.5 py-3 font-mono focus:outline-none focus:border-fd-primary"
             />
           </div>
           <div>
-            <label className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+            <label className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-2">
               Output tokens
             </label>
             <input
@@ -228,11 +228,11 @@ export function LlmPriceCalculator() {
               value={outputTokens}
               onChange={(e) => setOutputTokens(Number(e.target.value))}
               min={0}
-              className="w-full bg-fd-background border border-fd-border rounded px-3 py-2.5 text-sm font-mono focus:outline-none focus:border-fd-primary"
+              className="w-full bg-fd-background border border-fd-border rounded-md px-3.5 py-3 font-mono focus:outline-none focus:border-fd-primary"
             />
           </div>
           <div>
-            <label className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+            <label className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-2">
               API calls
             </label>
             <input
@@ -240,11 +240,11 @@ export function LlmPriceCalculator() {
               value={apiCalls}
               onChange={(e) => setApiCalls(Math.max(1, Number(e.target.value)))}
               min={1}
-              className="w-full bg-fd-background border border-fd-border rounded px-3 py-2.5 text-sm font-mono focus:outline-none focus:border-fd-primary"
+              className="w-full bg-fd-background border border-fd-border rounded-md px-3.5 py-3 font-mono focus:outline-none focus:border-fd-primary"
             />
           </div>
           <div>
-            <label className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+            <label className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-2">
               Cache hit rate
             </label>
             <div className="flex items-center gap-3 mt-1">
@@ -267,7 +267,7 @@ export function LlmPriceCalculator() {
 
       {/* Results Table */}
       <div className="bg-fd-card border border-fd-border rounded-lg overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-fd-border">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-fd-border">
           <span className="text-sm text-fd-muted-foreground">
             {inputTokens.toLocaleString()} in + {outputTokens.toLocaleString()}{" "}
             out
@@ -301,23 +301,23 @@ export function LlmPriceCalculator() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-fd-border text-fd-muted-foreground text-[0.7rem] uppercase tracking-wider">
-                <th className="text-left px-4 py-2.5 font-medium">Model</th>
-                <th className="text-right px-4 py-2.5 font-medium">Context</th>
-                <th className="text-right px-4 py-2.5 font-medium">In/M</th>
-                <th className="text-right px-4 py-2.5 font-medium">Out/M</th>
-                <th className="text-right px-4 py-2.5 font-medium">
+              <tr className="border-b border-fd-border text-fd-muted-foreground text-xs uppercase tracking-wider">
+                <th className="text-left px-5 py-3 font-medium">Model</th>
+                <th className="text-right px-5 py-3 font-medium">Context</th>
+                <th className="text-right px-5 py-3 font-medium">In/M</th>
+                <th className="text-right px-5 py-3 font-medium">Out/M</th>
+                <th className="text-right px-5 py-3 font-medium">
                   {showCache ? "1st call" : "Per call"}
                 </th>
-                <th className={`text-right py-2.5 font-medium ${cacheCol}`}>
+                <th className={`text-right py-3 font-medium ${cacheCol}`}>
                   Next calls
                 </th>
                 {showBulk && (
-                  <th className="text-right px-4 py-2.5 font-medium">
+                  <th className="text-right px-5 py-3 font-medium">
                     {apiCalls.toLocaleString()} calls
                   </th>
                 )}
-                <th className={`text-right py-2.5 font-medium ${cacheCol}`}>
+                <th className={`text-right py-3 font-medium ${cacheCol}`}>
                   Savings
                 </th>
               </tr>
@@ -340,7 +340,7 @@ export function LlmPriceCalculator() {
           </table>
         </div>
 
-        <div className="px-4 py-2.5 border-t border-fd-border text-xs text-fd-muted-foreground">
+        <div className="px-5 py-3 border-t border-fd-border text-xs text-fd-muted-foreground">
           Prices per million tokens. Last updated March 2026.
           {showCache &&
             " Only input tokens are cached. 1st call pays full price, subsequent calls use cache read rates."}
@@ -385,7 +385,7 @@ function ProviderGroup({
         >
           <td
             colSpan={colCount}
-            className="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-fd-muted-foreground"
+            className="px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-fd-muted-foreground"
           >
             {providerLabels[provider]}
           </td>
@@ -396,35 +396,35 @@ function ProviderGroup({
           key={model.name}
           className={`border-b border-fd-border/50 hover:bg-fd-muted/30 transition-colors ${i % 2 === 1 ? "bg-fd-muted/20" : ""}`}
         >
-          <td className="px-4 py-3 font-medium whitespace-nowrap">
+          <td className="px-5 py-3.5 font-medium whitespace-nowrap">
             {model.name}
             {sortBy === "price" && (
-              <span className="ml-2 text-[0.7rem] text-fd-muted-foreground">
+              <span className="ml-2 text-xs text-fd-muted-foreground">
                 {providerLabels[model.provider]}
               </span>
             )}
           </td>
-          <td className="px-4 py-3 text-right font-mono text-fd-muted-foreground">
+          <td className="px-5 py-3.5 text-right font-mono text-fd-muted-foreground">
             {formatTokenCount(model.context)}/{formatTokenCount(model.maxOutput)}
           </td>
-          <td className="px-4 py-3 text-right font-mono">
+          <td className="px-5 py-3.5 text-right font-mono">
             <span className="text-fd-muted-foreground">$</span>{model.input}
           </td>
-          <td className="px-4 py-3 text-right font-mono">
+          <td className="px-5 py-3.5 text-right font-mono">
             <span className="text-fd-muted-foreground">$</span>{model.output}
           </td>
-          <td className="px-4 py-3 text-right font-mono font-semibold">
+          <td className="px-5 py-3.5 text-right font-mono font-semibold">
             {formatCost(model.perCall)}
           </td>
-          <td className={`py-3 text-right font-mono font-semibold text-fd-primary ${cacheCol}`}>
+          <td className={`py-3.5 text-right font-mono font-semibold text-fd-primary ${cacheCol}`}>
             {formatCost(model.cachedPerCall)}
           </td>
           {showBulk && (
-            <td className="px-4 py-3 text-right font-mono font-semibold">
+            <td className="px-5 py-3.5 text-right font-mono font-semibold">
               {formatCost(showCache ? model.cachedTotal : model.total)}
             </td>
           )}
-          <td className={`py-3 text-right font-mono font-medium text-green-600 dark:text-green-400 ${cacheCol}`}>
+          <td className={`py-3.5 text-right font-mono font-medium text-green-600 dark:text-green-400 ${cacheCol}`}>
             -{model.savings.toFixed(0)}%
           </td>
         </tr>

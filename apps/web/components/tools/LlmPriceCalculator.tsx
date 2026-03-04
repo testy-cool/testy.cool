@@ -10,131 +10,43 @@ interface Model {
   input: number; // $ per 1M tokens
   output: number; // $ per 1M tokens
   cachedInput: number; // $ per 1M tokens (cache read/hit price)
+  context: number; // max input context window in tokens
+  maxOutput: number; // max output tokens
+}
+
+function formatTokenCount(n: number): string {
+  if (n >= 1_000_000) {
+    const val = n / 1_000_000;
+    return val % 1 === 0 ? `${val}M` : `${val.toFixed(1)}M`;
+  }
+  if (n >= 1_000) {
+    const val = n / 1_000;
+    return val % 1 === 0 ? `${val}K` : `${val.toFixed(1)}K`;
+  }
+  return String(n);
 }
 
 const models: Model[] = [
-  // Anthropic - cache read = 0.1x base input
-  {
-    name: "Claude Opus 4.6",
-    provider: "anthropic",
-    input: 5,
-    output: 25,
-    cachedInput: 0.5,
-  },
-  {
-    name: "Claude Sonnet 4.6",
-    provider: "anthropic",
-    input: 3,
-    output: 15,
-    cachedInput: 0.3,
-  },
-  {
-    name: "Claude Haiku 4.5",
-    provider: "anthropic",
-    input: 1,
-    output: 5,
-    cachedInput: 0.1,
-  },
-  // OpenAI - cached input prices are model-specific
-  {
-    name: "GPT-5.3",
-    provider: "openai",
-    input: 1.75,
-    output: 14,
-    cachedInput: 0.175,
-  },
-  {
-    name: "GPT-5-mini",
-    provider: "openai",
-    input: 0.25,
-    output: 2,
-    cachedInput: 0.025,
-  },
-  {
-    name: "GPT-4.1",
-    provider: "openai",
-    input: 2,
-    output: 8,
-    cachedInput: 0.5,
-  },
-  {
-    name: "GPT-4.1-mini",
-    provider: "openai",
-    input: 0.4,
-    output: 1.6,
-    cachedInput: 0.1,
-  },
-  {
-    name: "GPT-4o",
-    provider: "openai",
-    input: 2.5,
-    output: 10,
-    cachedInput: 1.25,
-  },
-  {
-    name: "GPT-4o-mini",
-    provider: "openai",
-    input: 0.15,
-    output: 0.6,
-    cachedInput: 0.075,
-  },
-  {
-    name: "o3",
-    provider: "openai",
-    input: 2,
-    output: 8,
-    cachedInput: 0.5,
-  },
-  {
-    name: "o4-mini",
-    provider: "openai",
-    input: 1.1,
-    output: 4.4,
-    cachedInput: 0.275,
-  },
-  // Google - cache read = 0.1x base input
-  {
-    name: "Gemini 3.1 Pro",
-    provider: "google",
-    input: 2,
-    output: 12,
-    cachedInput: 0.2,
-  },
-  {
-    name: "Gemini 3.1 Flash-Lite",
-    provider: "google",
-    input: 0.25,
-    output: 1.5,
-    cachedInput: 0.025,
-  },
-  {
-    name: "Gemini 3 Flash",
-    provider: "google",
-    input: 0.5,
-    output: 3,
-    cachedInput: 0.05,
-  },
-  {
-    name: "Gemini 2.5 Pro",
-    provider: "google",
-    input: 1.25,
-    output: 10,
-    cachedInput: 0.125,
-  },
-  {
-    name: "Gemini 2.5 Flash",
-    provider: "google",
-    input: 0.3,
-    output: 2.5,
-    cachedInput: 0.03,
-  },
-  {
-    name: "Gemini 2.5 Flash-Lite",
-    provider: "google",
-    input: 0.1,
-    output: 0.4,
-    cachedInput: 0.01,
-  },
+  // Anthropic
+  { name: "Claude Opus 4.6", provider: "anthropic", input: 5, output: 25, cachedInput: 0.5, context: 200_000, maxOutput: 128_000 },
+  { name: "Claude Sonnet 4.6", provider: "anthropic", input: 3, output: 15, cachedInput: 0.3, context: 200_000, maxOutput: 64_000 },
+  { name: "Claude Haiku 4.5", provider: "anthropic", input: 1, output: 5, cachedInput: 0.1, context: 200_000, maxOutput: 64_000 },
+  // OpenAI
+  { name: "GPT-5.3", provider: "openai", input: 1.75, output: 14, cachedInput: 0.175, context: 128_000, maxOutput: 128_000 },
+  { name: "GPT-5-mini", provider: "openai", input: 0.25, output: 2, cachedInput: 0.025, context: 128_000, maxOutput: 16_000 },
+  { name: "GPT-4.1", provider: "openai", input: 2, output: 8, cachedInput: 0.5, context: 1_000_000, maxOutput: 32_000 },
+  { name: "GPT-4.1-mini", provider: "openai", input: 0.4, output: 1.6, cachedInput: 0.1, context: 1_000_000, maxOutput: 32_000 },
+  { name: "GPT-4o", provider: "openai", input: 2.5, output: 10, cachedInput: 1.25, context: 128_000, maxOutput: 16_000 },
+  { name: "GPT-4o-mini", provider: "openai", input: 0.15, output: 0.6, cachedInput: 0.075, context: 128_000, maxOutput: 16_000 },
+  { name: "o3", provider: "openai", input: 2, output: 8, cachedInput: 0.5, context: 200_000, maxOutput: 100_000 },
+  { name: "o4-mini", provider: "openai", input: 1.1, output: 4.4, cachedInput: 0.275, context: 200_000, maxOutput: 100_000 },
+  // Google
+  { name: "Gemini 3.1 Pro", provider: "google", input: 2, output: 12, cachedInput: 0.2, context: 1_000_000, maxOutput: 65_000 },
+  { name: "Gemini 3.1 Flash-Lite", provider: "google", input: 0.25, output: 1.5, cachedInput: 0.025, context: 1_000_000, maxOutput: 65_000 },
+  { name: "Gemini 3 Flash", provider: "google", input: 0.5, output: 3, cachedInput: 0.05, context: 1_000_000, maxOutput: 65_000 },
+  { name: "Gemini 2.5 Pro", provider: "google", input: 1.25, output: 10, cachedInput: 0.125, context: 1_000_000, maxOutput: 65_000 },
+  { name: "Gemini 2.5 Flash", provider: "google", input: 0.3, output: 2.5, cachedInput: 0.03, context: 1_000_000, maxOutput: 65_000 },
+  { name: "Gemini 2.5 Flash-Lite", provider: "google", input: 0.1, output: 0.4, cachedInput: 0.01, context: 1_000_000, maxOutput: 65_000 },
 ];
 
 const providerLabels: Record<Provider, string> = {
@@ -190,7 +102,6 @@ export function LlmPriceCalculator() {
   const [cachePercent, setCachePercent] = useState(initial.cachePercent);
   const [sortBy, setSortBy] = useState<"provider" | "price">(initial.sortBy);
 
-  // Sync state to URL
   const syncUrl = useCallback(() => {
     const params = new URLSearchParams();
     if (inputTokens !== DEFAULTS.in) params.set("in", String(inputTokens));
@@ -209,6 +120,7 @@ export function LlmPriceCalculator() {
 
   const cacheRatio = cachePercent / 100;
   const showBulk = apiCalls > 1;
+  const showCache = cachePercent > 0;
 
   const calculated = useMemo(() => {
     return models.map((model) => {
@@ -216,9 +128,6 @@ export function LlmPriceCalculator() {
       const outputCost = (outputTokens / 1_000_000) * model.output;
       const perCall = inputCost + outputCost;
 
-      // First call always pays full input price (cache write).
-      // Subsequent calls: only cached portion of input tokens gets the discount.
-      // Output tokens are never cached.
       const cachedInputPerCall =
         (inputTokens / 1_000_000) *
         ((1 - cacheRatio) * model.input + cacheRatio * model.cachedInput);
@@ -243,11 +152,11 @@ export function LlmPriceCalculator() {
 
   const sorted = useMemo(() => {
     if (sortBy === "price") {
-      const key = cachePercent > 0 ? "cachedTotal" : "total";
+      const key = showCache ? "cachedTotal" : "total";
       return [...calculated].sort((a, b) => a[key] - b[key]);
     }
     return calculated;
-  }, [calculated, sortBy, cachePercent]);
+  }, [calculated, sortBy, showCache]);
 
   const grouped = useMemo(() => {
     if (sortBy === "provider") {
@@ -259,12 +168,10 @@ export function LlmPriceCalculator() {
     return [{ provider: null as Provider | null, models: sorted }];
   }, [sorted, sortBy]);
 
-  // Column count for colspan on provider header rows
-  const showCache = cachePercent > 0;
-  let colCount = 2; // model + 1st call / per call
-  if (showCache) colCount++; // next calls
-  if (showBulk) colCount++; // N calls total
-  if (showCache) colCount++; // savings
+  // model + context + in/M + out/M + per call + (cache cols) + (bulk col)
+  let colCount = 5;
+  if (showCache) colCount += 2; // next calls + savings
+  if (showBulk) colCount++; // total
 
   return (
     <div className="not-prose">
@@ -282,7 +189,6 @@ export function LlmPriceCalculator() {
       {/* Input Controls */}
       <div className="bg-fd-card border border-fd-border rounded-lg p-5 mb-4">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {/* Input Tokens */}
           <div>
             <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
               Input tokens
@@ -295,8 +201,6 @@ export function LlmPriceCalculator() {
               className="w-full bg-fd-background border border-fd-border rounded px-3 py-2.5 font-mono focus:outline-none focus:border-fd-primary"
             />
           </div>
-
-          {/* Output Tokens */}
           <div>
             <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
               Output tokens
@@ -309,8 +213,6 @@ export function LlmPriceCalculator() {
               className="w-full bg-fd-background border border-fd-border rounded px-3 py-2.5 font-mono focus:outline-none focus:border-fd-primary"
             />
           </div>
-
-          {/* API Calls */}
           <div>
             <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
               API calls
@@ -323,8 +225,6 @@ export function LlmPriceCalculator() {
               className="w-full bg-fd-background border border-fd-border rounded px-3 py-2.5 font-mono focus:outline-none focus:border-fd-primary"
             />
           </div>
-
-          {/* Cache Hit % */}
           <div>
             <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
               Cache hit rate
@@ -349,7 +249,6 @@ export function LlmPriceCalculator() {
 
       {/* Results Table */}
       <div className="bg-fd-card border border-fd-border rounded-lg overflow-hidden">
-        {/* Table header bar */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-fd-border">
           <span className="text-sm text-fd-muted-foreground">
             {inputTokens.toLocaleString()} in + {outputTokens.toLocaleString()}{" "}
@@ -381,14 +280,16 @@ export function LlmPriceCalculator() {
           </div>
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-fd-border text-fd-muted-foreground text-[0.65rem] uppercase tracking-wider">
                 <th className="text-left px-4 py-2.5 font-medium">Model</th>
+                <th className="text-right px-4 py-2.5 font-medium">Context</th>
+                <th className="text-right px-4 py-2.5 font-medium">In/M</th>
+                <th className="text-right px-4 py-2.5 font-medium">Out/M</th>
                 <th className="text-right px-4 py-2.5 font-medium">
-                  {showCache ? "1st call" : showBulk ? "Per call" : "Total"}
+                  {showCache ? "1st call" : "Per call"}
                 </th>
                 {showCache && (
                   <th className="text-right px-4 py-2.5 font-medium">
@@ -424,7 +325,6 @@ export function LlmPriceCalculator() {
           </table>
         </div>
 
-        {/* Footer */}
         <div className="px-4 py-2.5 border-t border-fd-border text-[0.65rem] text-fd-muted-foreground">
           Prices per million tokens. Last updated March 2026.
           {showCache &&
@@ -487,17 +387,23 @@ function ProviderGroup({
               </span>
             )}
           </td>
-          {/* 1st call (full price) / per call / total depending on context */}
+          <td className="px-4 py-2.5 text-right font-mono text-fd-muted-foreground text-xs">
+            {formatTokenCount(model.context)}/{formatTokenCount(model.maxOutput)}
+          </td>
+          <td className="px-4 py-2.5 text-right font-mono text-fd-muted-foreground">
+            ${model.input}
+          </td>
+          <td className="px-4 py-2.5 text-right font-mono text-fd-muted-foreground">
+            ${model.output}
+          </td>
           <td className="px-4 py-2.5 text-right font-mono font-medium">
             {formatCost(model.perCall)}
           </td>
-          {/* Subsequent calls with cache discount (only input tokens cached) */}
           {showCache && (
             <td className="px-4 py-2.5 text-right font-mono text-fd-primary font-medium">
               {formatCost(model.cachedPerCall)}
             </td>
           )}
-          {/* Bulk total: 1st call full + remaining cached */}
           {showBulk && (
             <td className="px-4 py-2.5 text-right font-mono font-medium">
               {formatCost(showCache ? model.cachedTotal : model.total)}

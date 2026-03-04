@@ -299,7 +299,7 @@ export function LlmPriceCalculator() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full">
             <thead>
               <tr className="border-b border-fd-border text-fd-muted-foreground text-xs uppercase tracking-wider">
                 <th className="text-left px-5 py-3 font-medium">Model</th>

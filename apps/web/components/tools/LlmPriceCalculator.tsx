@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 
 type Provider = "anthropic" | "openai" | "google";
 
@@ -154,12 +154,58 @@ function formatCost(cost: number): string {
   return `$${cost.toFixed(2)}`;
 }
 
+const DEFAULTS = { in: 1000, out: 500, calls: 1000, cache: 0, sort: "provider" };
+
+function readParams(): {
+  inputTokens: number;
+  outputTokens: number;
+  apiCalls: number;
+  cachePercent: number;
+  sortBy: "provider" | "price";
+} {
+  if (typeof window === "undefined") {
+    return {
+      inputTokens: DEFAULTS.in,
+      outputTokens: DEFAULTS.out,
+      apiCalls: DEFAULTS.calls,
+      cachePercent: DEFAULTS.cache,
+      sortBy: DEFAULTS.sort as "provider" | "price",
+    };
+  }
+  const p = new URLSearchParams(window.location.search);
+  return {
+    inputTokens: Number(p.get("in")) || DEFAULTS.in,
+    outputTokens: Number(p.get("out")) || DEFAULTS.out,
+    apiCalls: Math.max(1, Number(p.get("calls")) || DEFAULTS.calls),
+    cachePercent: Math.min(100, Math.max(0, Number(p.get("cache")) || DEFAULTS.cache)),
+    sortBy: p.get("sort") === "price" ? "price" : "provider",
+  };
+}
+
 export function LlmPriceCalculator() {
-  const [inputTokens, setInputTokens] = useState(1_000_000);
-  const [outputTokens, setOutputTokens] = useState(100_000);
-  const [apiCalls, setApiCalls] = useState(1);
-  const [cachePercent, setCachePercent] = useState(0);
-  const [sortBy, setSortBy] = useState<"provider" | "price">("provider");
+  const initial = readParams();
+  const [inputTokens, setInputTokens] = useState(initial.inputTokens);
+  const [outputTokens, setOutputTokens] = useState(initial.outputTokens);
+  const [apiCalls, setApiCalls] = useState(initial.apiCalls);
+  const [cachePercent, setCachePercent] = useState(initial.cachePercent);
+  const [sortBy, setSortBy] = useState<"provider" | "price">(initial.sortBy);
+
+  // Sync state to URL
+  const syncUrl = useCallback(() => {
+    const params = new URLSearchParams();
+    if (inputTokens !== DEFAULTS.in) params.set("in", String(inputTokens));
+    if (outputTokens !== DEFAULTS.out) params.set("out", String(outputTokens));
+    if (apiCalls !== DEFAULTS.calls) params.set("calls", String(apiCalls));
+    if (cachePercent !== DEFAULTS.cache) params.set("cache", String(cachePercent));
+    if (sortBy !== DEFAULTS.sort) params.set("sort", sortBy);
+    const qs = params.toString();
+    const url = window.location.pathname + (qs ? `?${qs}` : "");
+    window.history.replaceState(null, "", url);
+  }, [inputTokens, outputTokens, apiCalls, cachePercent, sortBy]);
+
+  useEffect(() => {
+    syncUrl();
+  }, [syncUrl]);
 
   const cacheRatio = cachePercent / 100;
   const showBulk = apiCalls > 1;

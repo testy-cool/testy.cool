@@ -184,6 +184,13 @@ export function LlmPriceCalculator() {
         input[type="number"] {
           -moz-appearance: textfield;
         }
+        @keyframes colFadeIn {
+          from { opacity: 0; transform: translateX(-6px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        .cache-col-in {
+          animation: colFadeIn 0.2s ease-out;
+        }
       `}</style>
 
       {/* Input Controls */}
@@ -292,7 +299,7 @@ export function LlmPriceCalculator() {
                   {showCache ? "1st call" : "Per call"}
                 </th>
                 {showCache && (
-                  <th className="text-right px-4 py-2.5 font-medium">
+                  <th className="text-right px-4 py-2.5 font-medium cache-col-in">
                     Next calls
                   </th>
                 )}
@@ -302,7 +309,7 @@ export function LlmPriceCalculator() {
                   </th>
                 )}
                 {showCache && (
-                  <th className="text-right px-4 py-2.5 font-medium">
+                  <th className="text-right px-4 py-2.5 font-medium cache-col-in">
                     Savings
                   </th>
                 )}
@@ -400,7 +407,7 @@ function ProviderGroup({
             {formatCost(model.perCall)}
           </td>
           {showCache && (
-            <td className="px-4 py-2.5 text-right font-mono text-fd-primary font-medium">
+            <td className="px-4 py-2.5 text-right font-mono text-fd-primary font-medium cache-col-in">
               {formatCost(model.cachedPerCall)}
             </td>
           )}
@@ -410,7 +417,7 @@ function ProviderGroup({
             </td>
           )}
           {showCache && (
-            <td className="px-4 py-2.5 text-right font-mono text-green-600 dark:text-green-400">
+            <td className="px-4 py-2.5 text-right font-mono text-green-600 dark:text-green-400 cache-col-in">
               -{model.savings.toFixed(0)}%
             </td>
           )}

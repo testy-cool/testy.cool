@@ -185,10 +185,9 @@ export function LlmPriceCalculator() {
           -moz-appearance: textfield;
         }
         .cache-col {
-          transition: opacity 0.35s ease, max-width 0.35s ease,
-            padding-left 0.35s ease, padding-right 0.35s ease;
           overflow: hidden;
           white-space: nowrap;
+          transition: opacity 0.3s ease;
         }
         .cache-hidden {
           opacity: 0;
@@ -199,8 +198,8 @@ export function LlmPriceCalculator() {
         .cache-visible {
           opacity: 1;
           max-width: 10rem;
-          padding-left: 1rem;
-          padding-right: 1rem;
+          padding-left: 1.25rem;
+          padding-right: 1.25rem;
         }
       `}</style>
 

@@ -28,25 +28,161 @@ function formatTokenCount(n: number): string {
 
 const models: Model[] = [
   // Anthropic
-  { name: "Claude Opus 4.6", provider: "anthropic", input: 5, output: 25, cachedInput: 0.5, context: 200_000, maxOutput: 128_000 },
-  { name: "Claude Sonnet 4.6", provider: "anthropic", input: 3, output: 15, cachedInput: 0.3, context: 200_000, maxOutput: 64_000 },
-  { name: "Claude Haiku 4.5", provider: "anthropic", input: 1, output: 5, cachedInput: 0.1, context: 200_000, maxOutput: 64_000 },
+  {
+    name: "Claude Opus 4.6",
+    provider: "anthropic",
+    input: 5,
+    output: 25,
+    cachedInput: 0.5,
+    context: 200_000,
+    maxOutput: 128_000,
+  },
+  {
+    name: "Claude Sonnet 4.6",
+    provider: "anthropic",
+    input: 3,
+    output: 15,
+    cachedInput: 0.3,
+    context: 200_000,
+    maxOutput: 64_000,
+  },
+  {
+    name: "Claude Haiku 4.5",
+    provider: "anthropic",
+    input: 1,
+    output: 5,
+    cachedInput: 0.1,
+    context: 200_000,
+    maxOutput: 64_000,
+  },
   // OpenAI
-  { name: "GPT-5.3", provider: "openai", input: 1.75, output: 14, cachedInput: 0.175, context: 128_000, maxOutput: 128_000 },
-  { name: "GPT-5-mini", provider: "openai", input: 0.25, output: 2, cachedInput: 0.025, context: 128_000, maxOutput: 16_000 },
-  { name: "GPT-4.1", provider: "openai", input: 2, output: 8, cachedInput: 0.5, context: 1_000_000, maxOutput: 32_000 },
-  { name: "GPT-4.1-mini", provider: "openai", input: 0.4, output: 1.6, cachedInput: 0.1, context: 1_000_000, maxOutput: 32_000 },
-  { name: "GPT-4o", provider: "openai", input: 2.5, output: 10, cachedInput: 1.25, context: 128_000, maxOutput: 16_000 },
-  { name: "GPT-4o-mini", provider: "openai", input: 0.15, output: 0.6, cachedInput: 0.075, context: 128_000, maxOutput: 16_000 },
-  { name: "o3", provider: "openai", input: 2, output: 8, cachedInput: 0.5, context: 200_000, maxOutput: 100_000 },
-  { name: "o4-mini", provider: "openai", input: 1.1, output: 4.4, cachedInput: 0.275, context: 200_000, maxOutput: 100_000 },
+  {
+    name: "GPT-5.3",
+    provider: "openai",
+    input: 1.75,
+    output: 14,
+    cachedInput: 0.175,
+    context: 128_000,
+    maxOutput: 128_000,
+  },
+  {
+    name: "GPT-5-mini",
+    provider: "openai",
+    input: 0.25,
+    output: 2,
+    cachedInput: 0.025,
+    context: 128_000,
+    maxOutput: 16_000,
+  },
+  {
+    name: "GPT-4.1",
+    provider: "openai",
+    input: 2,
+    output: 8,
+    cachedInput: 0.5,
+    context: 1_000_000,
+    maxOutput: 32_000,
+  },
+  {
+    name: "GPT-4.1-mini",
+    provider: "openai",
+    input: 0.4,
+    output: 1.6,
+    cachedInput: 0.1,
+    context: 1_000_000,
+    maxOutput: 32_000,
+  },
+  {
+    name: "GPT-4o",
+    provider: "openai",
+    input: 2.5,
+    output: 10,
+    cachedInput: 1.25,
+    context: 128_000,
+    maxOutput: 16_000,
+  },
+  {
+    name: "GPT-4o-mini",
+    provider: "openai",
+    input: 0.15,
+    output: 0.6,
+    cachedInput: 0.075,
+    context: 128_000,
+    maxOutput: 16_000,
+  },
+  {
+    name: "o3",
+    provider: "openai",
+    input: 2,
+    output: 8,
+    cachedInput: 0.5,
+    context: 200_000,
+    maxOutput: 100_000,
+  },
+  {
+    name: "o4-mini",
+    provider: "openai",
+    input: 1.1,
+    output: 4.4,
+    cachedInput: 0.275,
+    context: 200_000,
+    maxOutput: 100_000,
+  },
   // Google
-  { name: "Gemini 3.1 Pro", provider: "google", input: 2, output: 12, cachedInput: 0.2, context: 1_000_000, maxOutput: 65_000 },
-  { name: "Gemini 3.1 Flash-Lite", provider: "google", input: 0.25, output: 1.5, cachedInput: 0.025, context: 1_000_000, maxOutput: 65_000 },
-  { name: "Gemini 3 Flash", provider: "google", input: 0.5, output: 3, cachedInput: 0.05, context: 1_000_000, maxOutput: 65_000 },
-  { name: "Gemini 2.5 Pro", provider: "google", input: 1.25, output: 10, cachedInput: 0.125, context: 1_000_000, maxOutput: 65_000 },
-  { name: "Gemini 2.5 Flash", provider: "google", input: 0.3, output: 2.5, cachedInput: 0.03, context: 1_000_000, maxOutput: 65_000 },
-  { name: "Gemini 2.5 Flash-Lite", provider: "google", input: 0.1, output: 0.4, cachedInput: 0.01, context: 1_000_000, maxOutput: 65_000 },
+  {
+    name: "Gemini 3.1 Pro",
+    provider: "google",
+    input: 2,
+    output: 12,
+    cachedInput: 0.2,
+    context: 1_000_000,
+    maxOutput: 65_000,
+  },
+  {
+    name: "Gemini 3.1 Flash-Lite",
+    provider: "google",
+    input: 0.25,
+    output: 1.5,
+    cachedInput: 0.025,
+    context: 1_000_000,
+    maxOutput: 65_000,
+  },
+  {
+    name: "Gemini 3 Flash",
+    provider: "google",
+    input: 0.5,
+    output: 3,
+    cachedInput: 0.05,
+    context: 1_000_000,
+    maxOutput: 65_000,
+  },
+  {
+    name: "Gemini 2.5 Pro",
+    provider: "google",
+    input: 1.25,
+    output: 10,
+    cachedInput: 0.125,
+    context: 1_000_000,
+    maxOutput: 65_000,
+  },
+  {
+    name: "Gemini 2.5 Flash",
+    provider: "google",
+    input: 0.3,
+    output: 2.5,
+    cachedInput: 0.03,
+    context: 1_000_000,
+    maxOutput: 65_000,
+  },
+  {
+    name: "Gemini 2.5 Flash-Lite",
+    provider: "google",
+    input: 0.1,
+    output: 0.4,
+    cachedInput: 0.01,
+    context: 1_000_000,
+    maxOutput: 65_000,
+  },
 ];
 
 const providerLabels: Record<Provider, string> = {
@@ -66,7 +202,13 @@ function formatCost(cost: number): string {
   return `$${cost.toFixed(2)}`;
 }
 
-const DEFAULTS = { in: 1000, out: 500, calls: 1000, cache: 0, sort: "provider" };
+const DEFAULTS = {
+  in: 1000,
+  out: 500,
+  calls: 1000,
+  cache: 0,
+  sort: "provider",
+};
 
 function readParams(): {
   inputTokens: number;
@@ -89,7 +231,10 @@ function readParams(): {
     inputTokens: Number(p.get("in")) || DEFAULTS.in,
     outputTokens: Number(p.get("out")) || DEFAULTS.out,
     apiCalls: Math.max(1, Number(p.get("calls")) || DEFAULTS.calls),
-    cachePercent: Math.min(100, Math.max(0, Number(p.get("cache")) || DEFAULTS.cache)),
+    cachePercent: Math.min(
+      100,
+      Math.max(0, Number(p.get("cache")) || DEFAULTS.cache),
+    ),
     sortBy: p.get("sort") === "price" ? "price" : "provider",
   };
 }
@@ -107,7 +252,8 @@ export function LlmPriceCalculator() {
     if (inputTokens !== DEFAULTS.in) params.set("in", String(inputTokens));
     if (outputTokens !== DEFAULTS.out) params.set("out", String(outputTokens));
     if (apiCalls !== DEFAULTS.calls) params.set("calls", String(apiCalls));
-    if (cachePercent !== DEFAULTS.cache) params.set("cache", String(cachePercent));
+    if (cachePercent !== DEFAULTS.cache)
+      params.set("cache", String(cachePercent));
     if (sortBy !== DEFAULTS.sort) params.set("sort", sortBy);
     const qs = params.toString();
     const url = window.location.pathname + (qs ? `?${qs}` : "");
@@ -122,6 +268,10 @@ export function LlmPriceCalculator() {
   const showBulk = apiCalls > 1;
   const showCache = cachePercent > 0;
   const cacheCol = `cache-col ${showCache ? "cache-visible" : "cache-hidden"}`;
+  const controlLabelClass =
+    "mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-fd-foreground/70";
+  const headerCellClass =
+    "px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.16em] text-fd-foreground/65";
 
   const calculated = useMemo(() => {
     return models.map((model) => {
@@ -204,49 +354,41 @@ export function LlmPriceCalculator() {
       `}</style>
 
       {/* Input Controls */}
-      <div className="bg-fd-card border border-fd-border rounded-lg p-6 mb-5">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
+      <div className="mb-5 rounded-xl border border-fd-border bg-fd-card p-5 shadow-sm sm:p-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
           <div>
-            <label className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-2">
-              Input tokens
-            </label>
+            <label className={controlLabelClass}>Input tokens</label>
             <input
               type="number"
               value={inputTokens}
               onChange={(e) => setInputTokens(Number(e.target.value))}
               min={0}
-              className="w-full bg-fd-background border border-fd-border rounded-md px-3.5 py-3 font-mono focus:outline-none focus:border-fd-primary"
+              className="w-full rounded-lg border border-fd-border bg-fd-background px-3.5 py-3 font-mono text-base text-fd-foreground shadow-sm transition-colors focus:border-fd-primary focus:outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-2">
-              Output tokens
-            </label>
+            <label className={controlLabelClass}>Output tokens</label>
             <input
               type="number"
               value={outputTokens}
               onChange={(e) => setOutputTokens(Number(e.target.value))}
               min={0}
-              className="w-full bg-fd-background border border-fd-border rounded-md px-3.5 py-3 font-mono focus:outline-none focus:border-fd-primary"
+              className="w-full rounded-lg border border-fd-border bg-fd-background px-3.5 py-3 font-mono text-base text-fd-foreground shadow-sm transition-colors focus:border-fd-primary focus:outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-2">
-              API calls
-            </label>
+            <label className={controlLabelClass}>API calls</label>
             <input
               type="number"
               value={apiCalls}
               onChange={(e) => setApiCalls(Math.max(1, Number(e.target.value)))}
               min={1}
-              className="w-full bg-fd-background border border-fd-border rounded-md px-3.5 py-3 font-mono focus:outline-none focus:border-fd-primary"
+              className="w-full rounded-lg border border-fd-border bg-fd-background px-3.5 py-3 font-mono text-base text-fd-foreground shadow-sm transition-colors focus:border-fd-primary focus:outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-2">
-              Cache hit rate
-            </label>
-            <div className="flex items-center gap-3 mt-1">
+            <label className={controlLabelClass}>Cache hit rate</label>
+            <div className="mt-1 flex items-center gap-3 rounded-lg border border-fd-border bg-fd-background px-3.5 py-3 shadow-sm">
               <input
                 type="range"
                 min={0}
@@ -256,7 +398,7 @@ export function LlmPriceCalculator() {
                 onChange={(e) => setCachePercent(Number(e.target.value))}
                 className="flex-1 accent-fd-primary"
               />
-              <span className="font-mono text-sm w-10 text-right">
+              <span className="w-10 text-right font-mono text-sm font-semibold text-fd-foreground">
                 {cachePercent}%
               </span>
             </div>
@@ -265,31 +407,31 @@ export function LlmPriceCalculator() {
       </div>
 
       {/* Results Table */}
-      <div className="bg-fd-card border border-fd-border rounded-lg overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-fd-border">
-          <span className="text-sm text-fd-muted-foreground">
+      <div className="overflow-hidden rounded-xl border border-fd-border bg-fd-card shadow-sm">
+        <div className="flex flex-col gap-3 border-b border-fd-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-sm leading-6 text-fd-foreground/75">
             {inputTokens.toLocaleString()} in + {outputTokens.toLocaleString()}{" "}
             out
             {showBulk && ` \u00d7 ${apiCalls.toLocaleString()} calls`}
             {showCache && ` \u00b7 ${cachePercent}% cached`}
           </span>
-          <div className="flex gap-1">
+          <div className="inline-flex w-fit rounded-lg border border-fd-border bg-fd-background/80 p-1">
             <button
               onClick={() => setSortBy("provider")}
-              className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
                 sortBy === "provider"
-                  ? "bg-fd-primary/10 text-fd-primary"
-                  : "text-fd-muted-foreground hover:text-fd-foreground"
+                  ? "bg-fd-primary/10 text-fd-primary shadow-sm"
+                  : "text-fd-foreground/70 hover:bg-fd-muted/60 hover:text-fd-foreground"
               }`}
             >
               By provider
             </button>
             <button
               onClick={() => setSortBy("price")}
-              className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
                 sortBy === "price"
-                  ? "bg-fd-primary/10 text-fd-primary"
-                  : "text-fd-muted-foreground hover:text-fd-foreground"
+                  ? "bg-fd-primary/10 text-fd-primary shadow-sm"
+                  : "text-fd-foreground/70 hover:bg-fd-muted/60 hover:text-fd-foreground"
               }`}
             >
               By price
@@ -298,25 +440,33 @@ export function LlmPriceCalculator() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="min-w-[760px] w-full">
             <thead>
-              <tr className="border-b border-fd-border text-fd-muted-foreground text-xs uppercase tracking-wider">
-                <th className="text-left px-5 py-3 font-medium">Model</th>
-                <th className="text-right px-5 py-3 font-medium">Context</th>
-                <th className="text-right px-5 py-3 font-medium">In/M</th>
-                <th className="text-right px-5 py-3 font-medium">Out/M</th>
-                <th className="text-right px-5 py-3 font-medium">
+              <tr className="border-b border-fd-border bg-fd-muted/15">
+                <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-fd-foreground/65">
+                  Model
+                </th>
+                <th className={headerCellClass}>Context</th>
+                <th className={headerCellClass}>In/M</th>
+                <th className={headerCellClass}>Out/M</th>
+                <th className={`${headerCellClass} text-fd-foreground/80`}>
                   {showCache ? "1st call" : "Per call"}
                 </th>
-                <th className={`text-right py-3 font-medium ${cacheCol}`}>
+                <th
+                  className={`${headerCellClass} text-fd-primary ${cacheCol}`}
+                >
                   Next calls
                 </th>
                 {showBulk && (
-                  <th className="text-right px-5 py-3 font-medium">
+                  <th
+                    className={`${headerCellClass} border-l border-fd-border/60 bg-fd-muted/20 text-fd-foreground/80`}
+                  >
                     {apiCalls.toLocaleString()} calls
                   </th>
                 )}
-                <th className={`text-right py-3 font-medium ${cacheCol}`}>
+                <th
+                  className={`${headerCellClass} border-l border-fd-border/60 text-fd-foreground/75 ${cacheCol}`}
+                >
                   Savings
                 </th>
               </tr>
@@ -339,7 +489,7 @@ export function LlmPriceCalculator() {
           </table>
         </div>
 
-        <div className="px-5 py-3 border-t border-fd-border text-xs text-fd-muted-foreground">
+        <div className="border-t border-fd-border px-5 py-3 text-[11px] leading-5 text-fd-foreground/60">
           Prices per million tokens. Last updated March 2026.
           {showCache &&
             " Only input tokens are cached. 1st call pays full price, subsequent calls use cache read rates."}
@@ -380,11 +530,11 @@ function ProviderGroup({
     <>
       {provider && (
         <tr
-          className={`bg-fd-muted/50 ${!isFirst ? "border-t border-fd-border" : ""}`}
+          className={`bg-fd-muted/60 ${!isFirst ? "border-t border-fd-border" : ""}`}
         >
           <td
             colSpan={colCount}
-            className="px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-fd-muted-foreground"
+            className="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-fd-foreground/65"
           >
             {providerLabels[provider]}
           </td>
@@ -393,37 +543,44 @@ function ProviderGroup({
       {models.map((model, i) => (
         <tr
           key={model.name}
-          className={`border-b border-fd-border/50 hover:bg-fd-muted/30 transition-colors ${i % 2 === 1 ? "bg-fd-muted/20" : ""}`}
+          className={`border-b border-fd-border/70 transition-colors hover:bg-fd-muted/45 ${i % 2 === 1 ? "bg-fd-muted/25" : ""}`}
         >
-          <td className="px-5 py-3.5 font-medium whitespace-nowrap">
+          <td className="whitespace-nowrap px-5 py-3.5 font-semibold text-fd-foreground">
             {model.name}
             {sortBy === "price" && (
-              <span className="ml-2 text-xs text-fd-muted-foreground">
+              <span className="ml-2 text-xs text-fd-foreground/55">
                 {providerLabels[model.provider]}
               </span>
             )}
           </td>
-          <td className="px-5 py-3.5 text-right font-mono text-fd-muted-foreground">
-            {formatTokenCount(model.context)}/{formatTokenCount(model.maxOutput)}
+          <td className="px-5 py-3.5 text-right font-mono tabular-nums text-fd-foreground/60">
+            {formatTokenCount(model.context)}/
+            {formatTokenCount(model.maxOutput)}
           </td>
-          <td className="px-5 py-3.5 text-right font-mono">
-            <span className="text-fd-muted-foreground">$</span>{model.input}
+          <td className="px-5 py-3.5 text-right font-mono tabular-nums text-fd-foreground/80">
+            <span className="text-fd-foreground/45">$</span>
+            {model.input}
           </td>
-          <td className="px-5 py-3.5 text-right font-mono">
-            <span className="text-fd-muted-foreground">$</span>{model.output}
+          <td className="px-5 py-3.5 text-right font-mono tabular-nums text-fd-foreground/80">
+            <span className="text-fd-foreground/45">$</span>
+            {model.output}
           </td>
-          <td className="px-5 py-3.5 text-right font-mono font-semibold">
+          <td className="px-5 py-3.5 text-right font-mono tabular-nums font-semibold text-fd-foreground">
             {formatCost(model.perCall)}
           </td>
-          <td className={`py-3.5 text-right font-mono font-semibold text-fd-primary ${cacheCol}`}>
+          <td
+            className={`py-3.5 text-right font-mono tabular-nums font-semibold text-fd-primary ${cacheCol}`}
+          >
             {formatCost(model.cachedPerCall)}
           </td>
           {showBulk && (
-            <td className="px-5 py-3.5 text-right font-mono font-semibold">
+            <td className="border-l border-fd-border/60 bg-fd-muted/15 px-5 py-3.5 text-right font-mono tabular-nums font-semibold text-fd-foreground">
               {formatCost(showCache ? model.cachedTotal : model.total)}
             </td>
           )}
-          <td className={`py-3.5 text-right font-mono font-medium text-green-600 dark:text-green-400 ${cacheCol}`}>
+          <td
+            className={`border-l border-fd-border/60 py-3.5 text-right font-mono tabular-nums font-medium text-green-600 dark:text-green-400 ${cacheCol}`}
+          >
             -{model.savings.toFixed(0)}%
           </td>
         </tr>

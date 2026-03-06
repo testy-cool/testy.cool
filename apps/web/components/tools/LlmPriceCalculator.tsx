@@ -220,11 +220,17 @@ function formatCost(cost: number): string {
   return currency2Formatter.format(cost);
 }
 
+function formatRate(rate: number): string {
+  return `$${rate}`;
+}
+
 const DEFAULTS = {
   in: 1000,
   out: 500,
   calls: 1000,
   cache: 0,
+  provider: "all",
+  details: false,
   sort: "provider",
 };
 
@@ -233,6 +239,8 @@ function readParams(): {
   outputTokens: number;
   apiCalls: number;
   cachePercent: number;
+  providerFilter: Provider | "all";
+  showAdvanced: boolean;
   sortBy: "provider" | "price";
 } {
   if (typeof window === "undefined") {
@@ -241,10 +249,13 @@ function readParams(): {
       outputTokens: DEFAULTS.out,
       apiCalls: DEFAULTS.calls,
       cachePercent: DEFAULTS.cache,
+      providerFilter: DEFAULTS.provider as Provider | "all",
+      showAdvanced: DEFAULTS.details,
       sortBy: DEFAULTS.sort as "provider" | "price",
     };
   }
   const p = new URLSearchParams(window.location.search);
+  const provider = p.get("provider");
   return {
     inputTokens: Number(p.get("in")) || DEFAULTS.in,
     outputTokens: Number(p.get("out")) || DEFAULTS.out,
@@ -253,6 +264,11 @@ function readParams(): {
       100,
       Math.max(0, Number(p.get("cache")) || DEFAULTS.cache),
     ),
+    providerFilter:
+      provider && providerOrder.includes(provider as Provider)
+        ? (provider as Provider)
+        : "all",
+    showAdvanced: p.get("details") === "1",
     sortBy: p.get("sort") === "price" ? "price" : "provider",
   };
 }
@@ -263,6 +279,10 @@ export function LlmPriceCalculator() {
   const [outputTokens, setOutputTokens] = useState(initial.outputTokens);
   const [apiCalls, setApiCalls] = useState(initial.apiCalls);
   const [cachePercent, setCachePercent] = useState(initial.cachePercent);
+  const [providerFilter, setProviderFilter] = useState<Provider | "all">(
+    initial.providerFilter,
+  );
+  const [showAdvanced, setShowAdvanced] = useState(initial.showAdvanced);
   const [sortBy, setSortBy] = useState<"provider" | "price">(initial.sortBy);
 
   const syncUrl = useCallback(() => {
@@ -272,11 +292,22 @@ export function LlmPriceCalculator() {
     if (apiCalls !== DEFAULTS.calls) params.set("calls", String(apiCalls));
     if (cachePercent !== DEFAULTS.cache)
       params.set("cache", String(cachePercent));
+    if (providerFilter !== DEFAULTS.provider)
+      params.set("provider", providerFilter);
+    if (showAdvanced !== DEFAULTS.details) params.set("details", "1");
     if (sortBy !== DEFAULTS.sort) params.set("sort", sortBy);
     const qs = params.toString();
     const url = window.location.pathname + (qs ? `?${qs}` : "");
     window.history.replaceState(null, "", url);
-  }, [inputTokens, outputTokens, apiCalls, cachePercent, sortBy]);
+  }, [
+    inputTokens,
+    outputTokens,
+    apiCalls,
+    cachePercent,
+    providerFilter,
+    showAdvanced,
+    sortBy,
+  ]);
 
   useEffect(() => {
     syncUrl();
@@ -285,7 +316,6 @@ export function LlmPriceCalculator() {
   const cacheRatio = cachePercent / 100;
   const showBulk = apiCalls > 1;
   const showCache = cachePercent > 0;
-  const cacheCol = `cache-col ${showCache ? "cache-visible" : "cache-hidden"}`;
   const controlLabelClass =
     "mb-2 block text-sm font-medium text-fd-foreground/72";
   const headerCellClass =
@@ -294,6 +324,8 @@ export function LlmPriceCalculator() {
     "w-full rounded-lg border border-fd-border bg-fd-background px-3.5 py-2.5 text-sm font-medium tabular-nums text-fd-foreground shadow-sm transition-[border-color,box-shadow] focus-visible:border-fd-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20";
   const sortButtonClass =
     "rounded-md px-3 py-1.5 text-sm font-medium transition-[background-color,color,box-shadow]";
+  const chipButtonClass =
+    "rounded-md border px-3 py-1.5 text-sm font-medium transition-[background-color,color,border-color,box-shadow]";
 
   const calculated = useMemo(() => {
     return models.map((model) => {
@@ -325,27 +357,24 @@ export function LlmPriceCalculator() {
     });
   }, [inputTokens, outputTokens, apiCalls, cacheRatio]);
 
-  const sorted = useMemo(() => {
+  const visibleModels = useMemo(() => {
+    const filtered =
+      providerFilter === "all"
+        ? calculated
+        : calculated.filter((model) => model.provider === providerFilter);
+
     if (sortBy === "price") {
       const key = showCache ? "cachedTotal" : "total";
-      return [...calculated].sort((a, b) => a[key] - b[key]);
+      return [...filtered].sort((a, b) => a[key] - b[key]);
     }
-    return calculated;
-  }, [calculated, sortBy, showCache]);
+    return filtered;
+  }, [calculated, providerFilter, sortBy, showCache]);
 
-  const grouped = useMemo(() => {
-    if (sortBy === "provider") {
-      return providerOrder.map((p) => ({
-        provider: p as Provider | null,
-        models: sorted.filter((m) => m.provider === p),
-      }));
-    }
-    return [{ provider: null as Provider | null, models: sorted }];
-  }, [sorted, sortBy]);
-
-  // cache cols always in DOM for animation
-  let colCount = 7; // model + context + in/M + out/M + per call + next calls + savings
-  if (showBulk) colCount++;
+  const tableMinWidthClass = showAdvanced
+    ? showCache
+      ? "min-w-[1080px]"
+      : "min-w-[920px]"
+    : "min-w-[720px]";
 
   return (
     <div className="not-prose">
@@ -357,23 +386,6 @@ export function LlmPriceCalculator() {
         }
         input[type="number"] {
           -moz-appearance: textfield;
-        }
-        .cache-col {
-          overflow: hidden;
-          white-space: nowrap;
-          transition: opacity 0.3s ease;
-        }
-        .cache-hidden {
-          opacity: 0;
-          max-width: 0;
-          padding-left: 0 !important;
-          padding-right: 0 !important;
-        }
-        .cache-visible {
-          opacity: 1;
-          max-width: 10rem;
-          padding-left: 1.25rem;
-          padding-right: 1.25rem;
         }
       `}</style>
 
@@ -454,86 +466,177 @@ export function LlmPriceCalculator() {
 
       {/* Results Table */}
       <div className="overflow-hidden rounded-xl border border-fd-border bg-fd-card shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-fd-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <span className="text-sm leading-6 text-fd-foreground/75">
-            {integerFormatter.format(inputTokens)} in +{" "}
-            {integerFormatter.format(outputTokens)} out
-            {showBulk && ` \u00d7 ${integerFormatter.format(apiCalls)} calls`}
-            {showCache && ` \u00b7 ${cachePercent}% cached`}
-          </span>
-          <div className="inline-flex w-fit rounded-lg border border-fd-border bg-fd-background/80 p-1">
-            <button
-              onClick={() => setSortBy("provider")}
-              aria-pressed={sortBy === "provider"}
-              className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                sortBy === "provider"
-                  ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
-                  : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
-              }`}
-            >
-              By provider
-            </button>
-            <button
-              onClick={() => setSortBy("price")}
-              aria-pressed={sortBy === "price"}
-              className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                sortBy === "price"
-                  ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
-                  : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
-              }`}
-            >
-              By price
-            </button>
+        <div className="border-b border-fd-border px-5 py-4">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-sm leading-6 text-fd-foreground/75">
+              {integerFormatter.format(inputTokens)} in +{" "}
+              {integerFormatter.format(outputTokens)} out
+              {showBulk && ` \u00d7 ${integerFormatter.format(apiCalls)} calls`}
+              {showCache && ` \u00b7 ${cachePercent}% cached`}
+            </span>
+            <span className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+              {integerFormatter.format(visibleModels.length)} models
+            </span>
+          </div>
+
+          <div className="mt-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                Provider
+              </span>
+              <button
+                onClick={() => setProviderFilter("all")}
+                aria-pressed={providerFilter === "all"}
+                className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                  providerFilter === "all"
+                    ? "border-fd-border bg-fd-muted/60 text-fd-foreground"
+                    : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
+                }`}
+              >
+                All
+              </button>
+              {providerOrder.map((provider) => (
+                <button
+                  key={provider}
+                  onClick={() => setProviderFilter(provider)}
+                  aria-pressed={providerFilter === provider}
+                  className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                    providerFilter === provider
+                      ? "border-fd-border bg-fd-muted/60 text-fd-foreground"
+                      : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
+                  }`}
+                >
+                  {providerLabels[provider]}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex w-fit rounded-lg border border-fd-border bg-fd-background/80 p-1">
+                <button
+                  onClick={() => setSortBy("provider")}
+                  aria-pressed={sortBy === "provider"}
+                  className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                    sortBy === "provider"
+                      ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
+                      : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
+                  }`}
+                >
+                  By provider
+                </button>
+                <button
+                  onClick={() => setSortBy("price")}
+                  aria-pressed={sortBy === "price"}
+                  className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                    sortBy === "price"
+                      ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
+                      : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
+                  }`}
+                >
+                  By cost
+                </button>
+              </div>
+
+              <button
+                onClick={() => setShowAdvanced((current) => !current)}
+                aria-pressed={showAdvanced}
+                className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                  showAdvanced
+                    ? "border-fd-border bg-fd-muted/60 text-fd-foreground"
+                    : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
+                }`}
+              >
+                Advanced columns
+              </button>
+            </div>
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-[760px] w-full">
+          <table className={`${tableMinWidthClass} w-full`}>
             <thead>
               <tr className="border-b border-fd-border bg-fd-muted/15">
+                <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
+                  Provider
+                </th>
                 <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
                   Model
                 </th>
                 <th className={headerCellClass}>Context</th>
-                <th className={headerCellClass}>In/M</th>
-                <th className={headerCellClass}>Out/M</th>
-                <th
-                  className={`${headerCellClass} border-l border-fd-border/50 text-fd-foreground/84`}
-                >
+                {showAdvanced && <th className={headerCellClass}>In/M</th>}
+                {showAdvanced && <th className={headerCellClass}>Out/M</th>}
+                <th className={`${headerCellClass} text-fd-foreground/84`}>
                   {showCache ? "1st call" : "Per call"}
                 </th>
-                <th
-                  className={`${headerCellClass} border-l border-fd-border/40 text-fd-primary ${cacheCol}`}
-                >
-                  Next calls
-                </th>
-                {showBulk && (
+                {showAdvanced && showCache && (
                   <th
-                    className={`${headerCellClass} border-l border-fd-border/60 bg-fd-muted/12 text-fd-foreground/88`}
+                    className={`${headerCellClass} border-l border-fd-border/50 text-fd-foreground/72`}
                   >
-                    {integerFormatter.format(apiCalls)} calls
+                    Next call
                   </th>
                 )}
                 <th
-                  className={`${headerCellClass} border-l border-fd-border/60 text-fd-foreground/75 ${cacheCol}`}
+                  className={`${headerCellClass} border-l border-fd-border/60 bg-fd-muted/12 text-fd-foreground/88`}
                 >
-                  Savings
+                  Total
                 </th>
+                {showAdvanced && showCache && (
+                  <th
+                    className={`${headerCellClass} border-l border-fd-border/50 text-fd-foreground/72`}
+                  >
+                    Savings
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
-              {grouped.map((group, gi) => (
-                <ProviderGroup
-                  key={group.provider ?? "all"}
-                  provider={group.provider}
-                  models={group.models}
-                  colCount={colCount}
-                  showCache={showCache}
-                  cacheCol={cacheCol}
-                  showBulk={showBulk}
-                  sortBy={sortBy}
-                  isFirst={gi === 0}
-                />
+              {visibleModels.map((model, index) => (
+                <tr
+                  key={model.name}
+                  className={`border-b border-fd-border/70 transition-colors hover:bg-fd-muted/45 ${index % 2 === 1 ? "bg-fd-muted/25" : ""}`}
+                >
+                  <td className="px-4 py-3 text-sm font-medium text-fd-foreground/72">
+                    {providerLabels[model.provider]}
+                  </td>
+                  <td className="px-4 py-3 text-left">
+                    <div className="text-sm font-medium text-fd-foreground">
+                      {model.name}
+                    </div>
+                    <div className="mt-1 text-xs text-fd-foreground/54">
+                      max output {formatTokenCount(model.maxOutput)}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/62">
+                    {formatTokenCount(model.context)}/
+                    {formatTokenCount(model.maxOutput)}
+                  </td>
+                  {showAdvanced && (
+                    <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/74">
+                      {formatRate(model.input)}
+                    </td>
+                  )}
+                  {showAdvanced && (
+                    <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/74">
+                      {formatRate(model.output)}
+                    </td>
+                  )}
+                  <td className="border-l border-fd-border/40 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground">
+                    {formatCost(model.perCall)}
+                  </td>
+                  {showAdvanced && showCache && (
+                    <td className="border-l border-fd-border/40 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground/78">
+                      {formatCost(model.cachedPerCall)}
+                    </td>
+                  )}
+                  <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3 text-right text-sm font-semibold tabular-nums text-fd-foreground">
+                    {formatCost(showCache ? model.cachedTotal : model.total)}
+                  </td>
+                  {showAdvanced && showCache && (
+                    <td className="border-l border-fd-border/50 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground/72">
+                      {model.savings.toFixed(0)}%
+                    </td>
+                  )}
+                </tr>
               ))}
             </tbody>
           </table>
@@ -542,7 +645,7 @@ export function LlmPriceCalculator() {
         <div className="border-t border-fd-border px-5 py-3 text-[11px] leading-5 text-fd-foreground/60">
           Prices per million tokens. Last updated March 2026.
           {showCache &&
-            " Only input tokens are cached. 1st call pays full price, subsequent calls use cache read rates."}
+            " Totals reflect cache hits. Turn on Advanced columns to see next-call pricing and savings."}
         </div>
       </div>
     </div>
@@ -555,86 +658,4 @@ interface CalculatedModel extends Model {
   cachedPerCall: number;
   cachedTotal: number;
   savings: number;
-}
-
-function ProviderGroup({
-  provider,
-  models,
-  colCount,
-  showCache,
-  cacheCol,
-  showBulk,
-  sortBy,
-  isFirst,
-}: {
-  provider: Provider | null;
-  models: CalculatedModel[];
-  colCount: number;
-  showCache: boolean;
-  cacheCol: string;
-  showBulk: boolean;
-  sortBy: string;
-  isFirst: boolean;
-}) {
-  return (
-    <>
-      {provider && (
-        <tr
-          className={`bg-fd-muted/60 ${!isFirst ? "border-t border-fd-border" : ""}`}
-        >
-          <td
-            colSpan={colCount}
-            className="px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/64"
-          >
-            {providerLabels[provider]}
-          </td>
-        </tr>
-      )}
-      {models.map((model, i) => (
-        <tr
-          key={model.name}
-          className={`border-b border-fd-border/70 transition-colors hover:bg-fd-muted/45 ${i % 2 === 1 ? "bg-fd-muted/25" : ""}`}
-        >
-          <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-fd-foreground">
-            {model.name}
-            {sortBy === "price" && (
-              <span className="ml-2 text-xs text-fd-foreground/55">
-                {providerLabels[model.provider]}
-              </span>
-            )}
-          </td>
-          <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/60">
-            {formatTokenCount(model.context)}/
-            {formatTokenCount(model.maxOutput)}
-          </td>
-          <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/78">
-            <span className="text-fd-foreground/45">$</span>
-            {model.input}
-          </td>
-          <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/78">
-            <span className="text-fd-foreground/45">$</span>
-            {model.output}
-          </td>
-          <td className="border-l border-fd-border/40 px-4 py-3 text-right text-sm font-semibold tabular-nums text-fd-foreground">
-            {formatCost(model.perCall)}
-          </td>
-          <td
-            className={`border-l border-fd-border/30 py-3 text-right text-sm font-semibold tabular-nums text-fd-primary ${cacheCol}`}
-          >
-            {formatCost(model.cachedPerCall)}
-          </td>
-          {showBulk && (
-            <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3 text-right text-sm font-semibold tabular-nums text-fd-foreground">
-              {formatCost(showCache ? model.cachedTotal : model.total)}
-            </td>
-          )}
-          <td
-            className={`border-l border-fd-border/60 py-3 text-right text-sm font-medium tabular-nums text-green-600 dark:text-green-400 ${cacheCol}`}
-          >
-            -{model.savings.toFixed(0)}%
-          </td>
-        </tr>
-      ))}
-    </>
-  );
 }

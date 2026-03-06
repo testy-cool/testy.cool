@@ -12,7 +12,9 @@ export function createMetadata(override: Metadata): Metadata {
     creator: "testy.cool",
     openGraph: {
       title: override.title ?? "testy.cool — Mostly LLMs, mostly.",
-      description: override.description ?? "Notes on LLMs, agents, automation and development. Tools too. Primarily written for myself.",
+      description:
+        override.description ??
+        "Notes on LLMs, agents, automation and development. Mostly written for myself. There are a few tools here too.",
       url: "https://testy.cool",
       siteName: "testy.cool",
       type: "website",

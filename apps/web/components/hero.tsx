@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Button } from "@repo/shadverse/components/button";
-import { SocialIcons } from "@repo/ui/components/social-icons";
 import { MoveRight } from "lucide-react";
 
 export default function Hero() {
@@ -14,21 +13,45 @@ export default function Hero() {
           <p className="text-lg md:text-xl leading-relaxed text-muted-foreground max-w-xl text-center">
             Notes and ramblings about LLMs, automation and dev.
           </p>
-          <div className="flex flex-row gap-3">
-            <Link href="/blog">
-              <Button size="lg" className="gap-2">
-                Read Posts <MoveRight className="w-4 h-4" />
-              </Button>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Button asChild size="lg" className="gap-2">
+              <Link href="/blog/tutorial">
+                Tutorials <MoveRight className="w-4 h-4" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="gap-2">
+              <Link href="/blog/troubleshooting">
+                Troubleshooting <MoveRight className="w-4 h-4" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="secondary" className="gap-2">
+              <Link href="/tools">
+                Tools <MoveRight className="w-4 h-4" />
+              </Link>
+            </Button>
+          </div>
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            All Posts <MoveRight className="w-4 h-4" />
+          </Link>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
+            <Link
+              href="https://github.com/testy-cool"
+              target="_blank"
+              rel="noreferrer"
+              className="transition-colors hover:text-foreground"
+            >
+              GitHub
             </Link>
-            <Link href="https://x.com/testy_cool" target="_blank">
-              <Button size="lg" variant="outline" className="gap-2">
-                <SocialIcons.x className="w-4 h-4" />
-              </Button>
-            </Link>
-            <Link href="https://github.com/testy-cool" target="_blank">
-              <Button size="lg" variant="outline" className="gap-2">
-                <SocialIcons.github className="w-4 h-4" />
-              </Button>
+            <Link
+              href="https://x.com/testy_cool"
+              target="_blank"
+              rel="noreferrer"
+              className="transition-colors hover:text-foreground"
+            >
+              X
             </Link>
           </div>
         </div>

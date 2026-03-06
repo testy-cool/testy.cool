@@ -5,10 +5,12 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Tools",
-  description: "Dev tools, calculators, and browser extensions for developers.",
+  description:
+    "Tools, a few tool-backed tutorials, and some browser extensions.",
   openGraph: {
     title: "Tools | testy.cool",
-    description: "Dev tools, calculators, and browser extensions for developers.",
+    description:
+      "Tools, a few tool-backed tutorials, and some browser extensions.",
   },
 };
 import {
@@ -35,13 +37,17 @@ const tools: Tool[] = [
     slug: "llm-price-calculator",
     title: "LLM Price Calculator",
     description:
-      "Compare API pricing across Claude, GPT, and Gemini models. Supports prompt caching calculations.",
+      "Calculator for checking API costs across Claude, GPT, and Gemini, including prompt caching.",
     tags: ["LLM", "API", "Pricing"],
   },
+];
+
+const toolTutorials: Tool[] = [
   {
     slug: "clamp-calculator",
     title: "CSS Clamp Calculator",
-    description: "Generate fluid responsive CSS clamp() values from your Figma designs. Includes full tutorial explaining the math.",
+    description:
+      "Clamp() calculator plus the tutorial explaining the math behind it.",
     screenshot: "/images/tools/clamp-calculator.png",
     tags: ["CSS", "Responsive", "Tutorial"],
     // This tool is embedded in a blog post
@@ -53,7 +59,8 @@ const extensions: Tool[] = [
   {
     slug: "chatgpt-conversation-exporter",
     title: "ChatGPT Conversation Exporter",
-    description: "Export a single ChatGPT conversation to clean Markdown or HTML.",
+    description:
+      "Browser extension for exporting one ChatGPT conversation to Markdown or HTML.",
     screenshot:
       "/images/tools/chatgpt-conversation-exporter/export-chatgpt-conversation-markdown-html.webp",
     tags: ["Chrome", "Export"],
@@ -61,7 +68,8 @@ const extensions: Tool[] = [
   {
     slug: "hnes",
     title: "Hacker News Enhancement Suite",
-    description: "Maintained Manifest V3 fork of HNES. Collapsible comments, keyboard shortcuts, user tagging, and more.",
+    description:
+      "Manifest V3 fork of HNES with collapsible comments, keyboard shortcuts, and user tags.",
     screenshot: "/images/tools/hnes/hnes-screenshot.webp",
     tags: ["Chrome", "Hacker News"],
   },
@@ -99,13 +107,14 @@ function ListingSection({
                 <div className="sm:col-span-5">
                   <div className="mb-4 md:mb-6">
                     <div className="flex flex-wrap gap-3 text-xs uppercase tracking-wider text-muted-foreground md:gap-5 lg:gap-6">
-                      {tool.tags?.map((tag) => (
-                        <span key={tag}>{tag}</span>
-                      ))}
+                      {tool.tags?.map((tag) => <span key={tag}>{tag}</span>)}
                     </div>
                   </div>
                   <h3 className="text-xl font-semibold md:text-2xl lg:text-3xl text-left">
-                    <Link href={toolUrl} className="hover:underline cursor-pointer">
+                    <Link
+                      href={toolUrl}
+                      className="hover:underline cursor-pointer"
+                    >
                       {tool.title}
                     </Link>
                   </h3>
@@ -166,21 +175,29 @@ export default function ToolsIndex() {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <DocsTitle className="dark:text-white capitalize">{pageTitle}</DocsTitle>
+          <DocsTitle className="dark:text-white capitalize">
+            {pageTitle}
+          </DocsTitle>
           <DocsDescription className="mt-3 dark:text-gray-300 mb-0">
-            Dev tools, calculators, and a few browser extensions.
+            Tools, a few tool-backed tutorials, and some browser extensions.
           </DocsDescription>
         </div>
       </section>
       <ListingSection
-        title="Tools"
-        description="Hands-on tools and tutorials focused on frontend work."
+        title="Standalone Tools"
+        description="Tools that have their own pages."
         items={tools}
         ctaLabel="Open tool"
       />
       <ListingSection
+        title="Tool Tutorials"
+        description="Small tools that live inside longer posts."
+        items={toolTutorials}
+        ctaLabel="Read tutorial"
+      />
+      <ListingSection
         title="Extensions"
-        description="Small browser add-ons and utilities."
+        description="Browser extensions and related utilities."
         items={extensions}
         ctaLabel="View extension"
       />

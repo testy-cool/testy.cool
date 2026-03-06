@@ -12,10 +12,12 @@ import {
 
 export const metadata: Metadata = {
   title: "ChatGPT Conversation Exporter",
-  description: "Chrome extension to export ChatGPT conversations to clean Markdown or HTML. No data leaves your browser.",
+  description:
+    "Browser extension for exporting one ChatGPT conversation to Markdown or HTML. Everything stays in the browser.",
   openGraph: {
     title: "ChatGPT Conversation Exporter | testy.cool",
-    description: "Chrome extension to export ChatGPT conversations to clean Markdown or HTML. No data leaves your browser.",
+    description:
+      "Browser extension for exporting one ChatGPT conversation to Markdown or HTML. Everything stays in the browser.",
   },
 };
 
@@ -53,7 +55,8 @@ export default function ChatGPTConversationExporterPage() {
             {toolTitle}
           </DocsTitle>
           <DocsDescription className="mt-3 dark:text-gray-300 mb-0">
-            Export a single ChatGPT conversation to clean Markdown or HTML.
+            Browser extension for exporting one ChatGPT conversation to Markdown
+            or HTML.
           </DocsDescription>
         </div>
       </section>
@@ -71,13 +74,13 @@ export default function ChatGPTConversationExporterPage() {
           </div>
           <div className="sm:col-span-5">
             <p className="text-muted-foreground">
-              A Chrome extension for exporting ChatGPT conversations to Markdown or HTML.
-              Runs locally in your browser with no tracking.
+              Built to export a single ChatGPT conversation to Markdown or HTML.
+              Everything stays in the browser.
             </p>
             <ul className="mt-4 list-disc pl-5 text-muted-foreground space-y-1">
-              <li>One-click export to Markdown or HTML</li>
-              <li>Preserves code blocks, tables, and links</li>
-              <li>No data leaves your browser</li>
+              <li>Export to Markdown or HTML</li>
+              <li>Keeps code blocks, tables, and links intact</li>
+              <li>No data leaves the browser</li>
             </ul>
             <div className="mt-6 flex flex-col gap-2">
               <a

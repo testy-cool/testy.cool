@@ -19,7 +19,8 @@ export function websiteSchema() {
     "@type": "WebSite",
     name: "testy.cool",
     url: "https://testy.cool",
-    description: "Notes on LLMs, agents, automation and development. Tools too.",
+    description:
+      "Notes on LLMs, agents, automation and development. Mostly written for myself. There are a few tools here too.",
   };
 }
 

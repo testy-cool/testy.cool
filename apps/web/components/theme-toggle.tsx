@@ -3,7 +3,7 @@
 import { cn } from "@repo/shadverse/lib/utils";
 import { cva } from "class-variance-authority";
 import { Airplay, Moon, Sun } from "lucide-react";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { type HTMLAttributes, useLayoutEffect, useState } from "react";
 
@@ -34,7 +34,7 @@ const itemVariants = cva(
         false: "text-fd-muted-foreground",
       },
     },
-  }
+  },
 );
 
 type Theme = "light" | "dark" | "system";
@@ -51,7 +51,7 @@ export function ThemeToggle({
 
   const container = cn(
     "relative inline-flex items-center rounded-full p-1 ring-1 ring-border",
-    className
+    className,
   );
 
   useLayoutEffect(() => {
@@ -74,11 +74,11 @@ export function ThemeToggle({
         // Set the mask position for the ripple effect
         document.documentElement.style.setProperty(
           "--theme-toggle-x",
-          `${x}px`
+          `${x}px`,
         );
         document.documentElement.style.setProperty(
           "--theme-toggle-y",
-          `${y}px`
+          `${y}px`,
         );
 
         // Add a class to identify this is a theme toggle transition

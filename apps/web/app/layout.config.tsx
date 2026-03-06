@@ -1,10 +1,9 @@
 import { Icons } from "@/components/icons";
 import type { BaseLayoutProps, LinkItemType } from "fumadocs-ui/layouts/shared";
-import Image from "next/image";
 
 export const title = "testy.cool — Mostly LLMs, mostly.";
 export const description =
-  "Notes on LLMs, agents, automation and development. Tools too. Primarily written for myself.";
+  "Notes on LLMs, agents, automation and development. Mostly written for myself. There are a few tools here too.";
 export const owner = "testy.cool";
 /**
  * Shared layout configurations
@@ -38,27 +37,27 @@ export const baseOptions: BaseLayoutProps = {
 
 export const linkItems: LinkItemType[] = [
   {
-    icon: <Icons.info />,
-    text: "Blog",
-    url: "/blog",
-    active: "url",
+    icon: <Icons.post />,
+    text: "Tutorials",
+    url: "/blog/tutorial",
+    active: "nested-url",
   },
   {
-    icon: <Icons.info />,
+    icon: <Icons.warning />,
+    text: "Troubleshooting",
+    url: "/blog/troubleshooting",
+    active: "nested-url",
+  },
+  {
+    icon: <Icons.settings />,
     text: "Tools",
     url: "/tools",
     active: "nested-url",
   },
   {
-    icon: <Icons.info />,
+    icon: <Icons.user />,
     text: "About",
     url: "/about",
-    active: "url",
-  },
-  {
-    icon: <Icons.info />,
-    text: "Privacy",
-    url: "/privacy",
     active: "url",
   },
   // {

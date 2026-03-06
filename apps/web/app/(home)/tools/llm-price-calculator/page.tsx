@@ -14,11 +14,11 @@ import { LlmPriceCalculator } from "@/components/tools/LlmPriceCalculator";
 export const metadata: Metadata = {
   title: "LLM Price Calculator",
   description:
-    "Compare API pricing across Claude, GPT, and Gemini models. Calculate costs with prompt caching support.",
+    "Calculator for checking API costs across Claude, GPT, and Gemini, including prompt caching.",
   openGraph: {
     title: "LLM Price Calculator | testy.cool",
     description:
-      "Compare API pricing across Claude, GPT, and Gemini models. Calculate costs with prompt caching support.",
+      "Calculator for checking API costs across Claude, GPT, and Gemini, including prompt caching.",
   },
 };
 
@@ -50,8 +50,8 @@ export default function LlmPriceCalculatorPage() {
             LLM Price Calculator
           </DocsTitle>
           <DocsDescription className="mt-3 dark:text-gray-300 mb-0">
-            Compare API pricing across Claude, GPT, and Gemini models with
-            prompt caching support.
+            Calculator for checking API costs across Claude, GPT, and Gemini,
+            including prompt caching.
           </DocsDescription>
         </div>
       </section>

@@ -12,10 +12,12 @@ import {
 
 export const metadata: Metadata = {
   title: "Hacker News Enhancement Suite",
-  description: "Maintained Manifest V3 fork of HNES with collapsible comments, keyboard shortcuts, user tagging, and more.",
+  description:
+    "Manifest V3 fork of HNES with collapsible comments, keyboard shortcuts, and user tags.",
   openGraph: {
     title: "Hacker News Enhancement Suite | testy.cool",
-    description: "Maintained Manifest V3 fork of HNES with collapsible comments, keyboard shortcuts, user tagging, and more.",
+    description:
+      "Manifest V3 fork of HNES with collapsible comments, keyboard shortcuts, and user tags.",
   },
 };
 
@@ -53,7 +55,7 @@ export default function HNESPage() {
             {toolTitle}
           </DocsTitle>
           <DocsDescription className="mt-3 dark:text-gray-300 mb-0">
-            A maintained Manifest V3 fork that makes Hacker News better.
+            Manifest V3 fork of HNES for Chrome.
           </DocsDescription>
         </div>
       </section>
@@ -72,14 +74,15 @@ export default function HNESPage() {
           <div className="sm:col-span-5">
             <p className="text-muted-foreground">
               The original HNES stopped working after Chrome deprecated Manifest
-              V2. This fork updates it to Manifest V3 and keeps it running.
+              V2. This fork updates it to Manifest V3 and keeps the core
+              features working.
             </p>
             <ul className="mt-4 list-disc pl-5 text-muted-foreground space-y-1">
               <li>Collapsible comments and inline replies</li>
               <li>Highlight new comments since last visit</li>
               <li>Keyboard shortcuts (j/k/o/l/p/c/b)</li>
               <li>User tagging and upvote tracking</li>
-              <li>Cleaner visual style</li>
+              <li>Small UI cleanup</li>
             </ul>
             <div className="mt-6 flex flex-col gap-2">
               <a

@@ -37,15 +37,9 @@ export const baseOptions: BaseLayoutProps = {
 
 export const linkItems: LinkItemType[] = [
   {
-    icon: <Icons.post />,
-    text: "Tutorials",
-    url: "/blog/tutorial",
-    active: "nested-url",
-  },
-  {
-    icon: <Icons.warning />,
-    text: "Troubleshooting",
-    url: "/blog/troubleshooting",
+    icon: <Icons.posts />,
+    text: "Posts",
+    url: "/blog",
     active: "nested-url",
   },
   {

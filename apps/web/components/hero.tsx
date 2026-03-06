@@ -15,6 +15,11 @@ export default function Hero() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Button asChild size="lg" className="gap-2">
+              <Link href="/blog">
+                All Posts <MoveRight className="w-4 h-4" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="gap-2">
               <Link href="/blog/tutorial">
                 Tutorials <MoveRight className="w-4 h-4" />
               </Link>
@@ -30,12 +35,10 @@ export default function Hero() {
               </Link>
             </Button>
           </div>
-          <Link
-            href="/blog"
-            className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            All Posts <MoveRight className="w-4 h-4" />
-          </Link>
+          <p className="max-w-2xl text-center text-sm text-muted-foreground">
+            Most writing lives in the posts archive. Standalone tools and
+            extensions live under Tools.
+          </p>
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
             <Link
               href="https://github.com/testy-cool"

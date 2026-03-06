@@ -106,39 +106,33 @@ function SectionHeading({
   );
 }
 
-function ToolListItem({
+function CompactListItem({
   title,
   description,
   href,
   type,
-  cta,
 }: {
   title: string;
   description: string;
   href: string;
   type: string;
-  cta: string;
 }) {
   return (
-    <article className="min-w-0 border-b border-border/60 py-5 last:border-b-0">
+    <article className="min-w-0 border-b border-border/60 py-4 last:border-b-0">
       <div className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
         {type}
       </div>
-      <h3 className="text-lg font-semibold tracking-tight text-balance md:text-xl">
-        <Link href={href} className="hover:underline">
+      <h3 className="text-base font-semibold tracking-tight text-balance md:text-lg">
+        <Link
+          href={href}
+          className="transition-colors hover:text-muted-foreground"
+        >
           {title}
         </Link>
       </h3>
-      <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+      <p className="mt-1 text-sm leading-6 text-muted-foreground">
         {description}
       </p>
-      <Link
-        href={href}
-        className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-muted-foreground"
-      >
-        {cta}
-        <ArrowRight className="size-4" />
-      </Link>
     </article>
   );
 }
@@ -147,34 +141,94 @@ function PostListItem({ post }: { post: SitePost }) {
   const category = getCategorySlug(post);
 
   return (
-    <article className="min-w-0 border-b border-border/60 py-5 last:border-b-0">
+    <article className="min-w-0 border-b border-border/60 py-4 last:border-b-0">
       <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
         <span>{getCategoryLabel(category)}</span>
         <span className="text-border">/</span>
         <span>{dateFormatter.format(post.data.date)}</span>
       </div>
-      <h3 className="text-lg font-semibold tracking-tight text-balance md:text-xl">
-        <Link href={post.url} className="hover:underline">
+      <h3 className="text-base font-semibold tracking-tight text-balance md:text-lg">
+        <Link
+          href={post.url}
+          className="transition-colors hover:text-muted-foreground"
+        >
           {post.data.title}
         </Link>
       </h3>
-      <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+      <p className="mt-1 text-sm leading-6 text-muted-foreground">
         {post.data.description}
       </p>
-      <Link
-        href={post.url}
-        className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-muted-foreground"
-      >
-        Read Post
-        <ArrowRight className="size-4" />
-      </Link>
     </article>
+  );
+}
+
+function BrowseListItem({
+  title,
+  href,
+  meta,
+}: {
+  title: string;
+  href: string;
+  meta: string;
+}) {
+  return (
+    <li className="border-b border-border/60 last:border-b-0">
+      <Link
+        href={href}
+        className="flex items-center justify-between gap-4 py-3 text-sm transition-colors hover:text-muted-foreground"
+      >
+        <span className="font-medium text-foreground">{title}</span>
+        <span className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+          {meta}
+        </span>
+      </Link>
+    </li>
   );
 }
 
 export default function HomePage() {
   const posts = sortPosts(getBlogPosts());
-  const recentPosts = posts.slice(0, 6);
+  const recentPosts = posts.slice(0, 4);
+  const tutorialCount = posts.filter(
+    (post) => getCategorySlug(post) === "tutorial",
+  ).length;
+  const troubleshootingCount = posts.filter(
+    (post) => getCategorySlug(post) === "troubleshooting",
+  ).length;
+  const labNotesCount = posts.filter(
+    (post) => getCategorySlug(post) === "lab-notes",
+  ).length;
+  const browseItems = [
+    {
+      title: "Blog Archive",
+      href: "/blog",
+      meta: `${posts.length} posts`,
+    },
+    {
+      title: "Tutorials",
+      href: "/blog/tutorial",
+      meta: `${tutorialCount} posts`,
+    },
+    {
+      title: "Troubleshooting",
+      href: "/blog/troubleshooting",
+      meta: `${troubleshootingCount} posts`,
+    },
+    ...(labNotesCount > 0
+      ? [
+          {
+            title: "Lab Notes",
+            href: "/blog/lab-notes",
+            meta: `${labNotesCount} posts`,
+          },
+        ]
+      : []),
+    {
+      title: "About",
+      href: "/about",
+      meta: "context",
+    },
+  ];
 
   return (
     <div className="flex flex-1 flex-col justify-center">
@@ -194,37 +248,58 @@ export default function HomePage() {
         </div>
       </div>
 
-      <Section className="relative px-4 py-8 lg:px-6 lg:py-12">
-        <SectionHeading
-          eyebrow="Blog"
-          title="Recent Posts"
-          description="Most of the site lives in the blog archive."
-          href="/blog"
-          hrefLabel="Browse Blog"
-        />
-        {recentPosts.length > 0 ? (
-          <div className="mt-8 rounded-3xl border border-border/70 bg-background/70 px-6">
-            {recentPosts.map((post) => (
-              <PostListItem key={post.url} post={post} />
-            ))}
+      <Section className="relative px-4 pb-8 lg:px-6 lg:pb-12">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,0.9fr)]">
+          <div className="rounded-3xl border border-border/70 bg-background/70 p-6">
+            <SectionHeading
+              eyebrow="Blog"
+              title="Latest Posts"
+              description="Most of the site lives in the blog archive."
+              href="/blog"
+              hrefLabel="Browse Blog"
+            />
+            {recentPosts.length > 0 ? (
+              <div className="mt-6">
+                {recentPosts.map((post) => (
+                  <PostListItem key={post.url} post={post} />
+                ))}
+              </div>
+            ) : (
+              <p className="mt-6 text-sm text-muted-foreground">
+                No posts yet.
+              </p>
+            )}
           </div>
-        ) : (
-          <p className="mt-8 text-sm text-muted-foreground">No posts yet.</p>
-        )}
-      </Section>
 
-      <Section className="relative px-4 py-8 lg:px-6 lg:py-12">
-        <SectionHeading
-          eyebrow="Tools"
-          title="Tools"
-          description="A few standalone tools, tool-backed posts, and extensions."
-          href="/tools"
-          hrefLabel="All Tools"
-        />
-        <div className="mt-8 rounded-3xl border border-border/70 bg-background/70 px-6">
-          {featuredTools.map((tool) => (
-            <ToolListItem key={tool.title} {...tool} />
-          ))}
+          <div className="grid gap-6">
+            <div className="rounded-3xl border border-border/70 bg-background/70 p-6">
+              <SectionHeading
+                eyebrow="Start Here"
+                title="Browse"
+                description="If you want the overall picture, start with the archive."
+              />
+              <ul className="mt-6">
+                {browseItems.map((item) => (
+                  <BrowseListItem key={item.title} {...item} />
+                ))}
+              </ul>
+            </div>
+
+            <div className="rounded-3xl border border-border/70 bg-background/70 p-6">
+              <SectionHeading
+                eyebrow="Tools"
+                title="A Few Tools"
+                description="Small utilities and extensions."
+                href="/tools"
+                hrefLabel="All Tools"
+              />
+              <div className="mt-6">
+                {featuredTools.map((tool) => (
+                  <CompactListItem key={tool.title} {...tool} />
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </Section>
     </div>

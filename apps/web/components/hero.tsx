@@ -6,7 +6,7 @@ export default function Hero() {
   return (
     <div className="w-full">
       <div className="container mx-auto">
-        <div className="flex gap-6 py-16 lg:py-24 items-center justify-center flex-col">
+        <div className="flex flex-col items-center justify-center gap-5 py-12 lg:py-16">
           <h1 className="text-4xl md:text-6xl tracking-tight text-center font-bold">
             Mostly LLMs, mostly.
           </h1>
@@ -26,20 +26,8 @@ export default function Hero() {
             </Button>
           </div>
           <p className="max-w-2xl text-center text-sm text-muted-foreground">
-            <Link
-              href="/blog/tutorial"
-              className="font-medium text-foreground transition-colors hover:text-muted-foreground"
-            >
-              Tutorials
-            </Link>
-            {" and "}
-            <Link
-              href="/blog/troubleshooting"
-              className="font-medium text-foreground transition-colors hover:text-muted-foreground"
-            >
-              Troubleshooting
-            </Link>
-            {" are the main buckets right now."}
+            Most of the site is blog posts. Tutorials and troubleshooting are
+            the main buckets right now.
           </p>
         </div>
       </div>

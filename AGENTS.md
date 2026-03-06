@@ -256,8 +256,12 @@ Lab notes are not mini tutorials and not diary entries. They are short public su
 ### Quality bar
 
 - If the user asks for a lab note and the topic is too thin, too early, or not useful enough, push back
+- Do not stop at rejection by default. Ask short, concrete follow-up questions to elicit the missing context, experiment details, result, or takeaway
+- Try to pull the topic toward something that would be useful to other people, not just a private reminder
 - Prefer saying "this is not ready for a post yet" over padding it out
+- If the topic can be salvaged, propose the specific missing pieces needed to make it publishable
 - If possible, redirect toward a narrower question, one more experiment, or a different post type
+- If it still does not clear the bar after clarification, suggest a tweet, private note, or waiting for one more round of testing instead of forcing a post
 
 ## Branding
 

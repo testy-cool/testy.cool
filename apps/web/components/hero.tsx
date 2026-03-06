@@ -19,16 +19,6 @@ export default function Hero() {
                 All Posts <MoveRight className="w-4 h-4" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="gap-2">
-              <Link href="/blog/tutorial">
-                Tutorials <MoveRight className="w-4 h-4" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="gap-2">
-              <Link href="/blog/troubleshooting">
-                Troubleshooting <MoveRight className="w-4 h-4" />
-              </Link>
-            </Button>
             <Button asChild size="lg" variant="secondary" className="gap-2">
               <Link href="/tools">
                 Tools <MoveRight className="w-4 h-4" />
@@ -36,27 +26,21 @@ export default function Hero() {
             </Button>
           </div>
           <p className="max-w-2xl text-center text-sm text-muted-foreground">
-            Most writing lives in the posts archive. Standalone tools and
-            extensions live under Tools.
+            <Link
+              href="/blog/tutorial"
+              className="font-medium text-foreground transition-colors hover:text-muted-foreground"
+            >
+              Tutorials
+            </Link>
+            {" and "}
+            <Link
+              href="/blog/troubleshooting"
+              className="font-medium text-foreground transition-colors hover:text-muted-foreground"
+            >
+              Troubleshooting
+            </Link>
+            {" are the main buckets right now."}
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
-            <Link
-              href="https://github.com/testy-cool"
-              target="_blank"
-              rel="noreferrer"
-              className="transition-colors hover:text-foreground"
-            >
-              GitHub
-            </Link>
-            <Link
-              href="https://x.com/testy_cool"
-              target="_blank"
-              rel="noreferrer"
-              className="transition-colors hover:text-foreground"
-            >
-              X
-            </Link>
-          </div>
         </div>
       </div>
     </div>

@@ -62,14 +62,6 @@ function getCategoryLabel(slug: string): string {
       return "Troubleshooting";
     case "lab-notes":
       return "Lab Note";
-    case "tools-tech":
-      return "Tools & Tech";
-    case "conceptual":
-      return "Concept";
-    case "solution":
-      return "Solution";
-    case "tech":
-      return "Tech Note";
     default:
       return "Note";
   }
@@ -114,7 +106,7 @@ function SectionHeading({
   );
 }
 
-function ToolCard({
+function ToolListItem({
   title,
   description,
   href,
@@ -128,48 +120,50 @@ function ToolCard({
   cta: string;
 }) {
   return (
-    <Link
-      href={href}
-      className="group flex h-full min-w-0 flex-col justify-between rounded-2xl border border-border/70 bg-background/80 p-6 transition-colors hover:bg-muted/40"
-    >
-      <div className="space-y-3">
-        <span className="inline-flex rounded-full border border-border px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-          {type}
-        </span>
-        <h3 className="text-xl font-semibold tracking-tight text-balance">
-          {title}
-        </h3>
-        <p className="text-sm leading-6 text-muted-foreground">{description}</p>
+    <article className="min-w-0 border-b border-border/60 py-5 last:border-b-0">
+      <div className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        {type}
       </div>
-      <span className="mt-6 inline-flex items-center gap-2 text-sm font-medium">
+      <h3 className="text-lg font-semibold tracking-tight text-balance md:text-xl">
+        <Link href={href} className="hover:underline">
+          {title}
+        </Link>
+      </h3>
+      <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+        {description}
+      </p>
+      <Link
+        href={href}
+        className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-muted-foreground"
+      >
         {cta}
-        <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-      </span>
-    </Link>
+        <ArrowRight className="size-4" />
+      </Link>
+    </article>
   );
 }
 
-function PostCard({ post }: { post: SitePost }) {
+function PostListItem({ post }: { post: SitePost }) {
   const category = getCategorySlug(post);
 
   return (
-    <article className="min-w-0 rounded-2xl border border-border/70 bg-background/80 p-5">
-      <div className="mb-3 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+    <article className="min-w-0 border-b border-border/60 py-5 last:border-b-0">
+      <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
         <span>{getCategoryLabel(category)}</span>
         <span className="text-border">/</span>
         <span>{dateFormatter.format(post.data.date)}</span>
       </div>
-      <h3 className="text-lg font-semibold tracking-tight text-balance">
+      <h3 className="text-lg font-semibold tracking-tight text-balance md:text-xl">
         <Link href={post.url} className="hover:underline">
           {post.data.title}
         </Link>
       </h3>
-      <p className="mt-3 text-sm leading-6 text-muted-foreground">
+      <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
         {post.data.description}
       </p>
       <Link
         href={post.url}
-        className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-muted-foreground"
+        className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-muted-foreground"
       >
         Read Post
         <ArrowRight className="size-4" />
@@ -178,57 +172,9 @@ function PostCard({ post }: { post: SitePost }) {
   );
 }
 
-function BrowseLink({
-  title,
-  href,
-  count,
-}: {
-  title: string;
-  href: string;
-  count: number;
-}) {
-  return (
-    <Link
-      href={href}
-      className="inline-flex items-center gap-3 rounded-full border border-border/70 bg-background/80 px-4 py-2 text-sm font-medium transition-colors hover:bg-muted/40"
-    >
-      <span>{title}</span>
-      <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-        {count}
-      </span>
-    </Link>
-  );
-}
-
 export default function HomePage() {
   const posts = sortPosts(getBlogPosts());
-  const recentPosts = posts.slice(0, 5);
-  const tutorialCount = posts.filter(
-    (post) => getCategorySlug(post) === "tutorial",
-  ).length;
-  const troubleshootingCount = posts.filter(
-    (post) => getCategorySlug(post) === "troubleshooting",
-  ).length;
-  const labNotesCount = posts.filter(
-    (post) => getCategorySlug(post) === "lab-notes",
-  ).length;
-  const browseLinks = [
-    { title: "Tutorials", href: "/blog/tutorial", count: tutorialCount },
-    {
-      title: "Troubleshooting",
-      href: "/blog/troubleshooting",
-      count: troubleshootingCount,
-    },
-    ...(labNotesCount > 0
-      ? [
-          {
-            title: "Lab Notes",
-            href: "/blog/lab-notes",
-            count: labNotesCount,
-          },
-        ]
-      : []),
-  ];
+  const recentPosts = posts.slice(0, 6);
 
   return (
     <div className="flex flex-1 flex-col justify-center">
@@ -250,21 +196,16 @@ export default function HomePage() {
 
       <Section className="relative px-4 py-8 lg:px-6 lg:py-12">
         <SectionHeading
-          eyebrow="Posts"
+          eyebrow="Blog"
           title="Recent Posts"
-          description="Latest posts across the site. Tutorials and troubleshooting are the main buckets right now."
+          description="Most of the site lives in the blog archive."
           href="/blog"
-          hrefLabel="All Posts"
+          hrefLabel="Browse Blog"
         />
-        <div className="mt-6 flex flex-wrap gap-3">
-          {browseLinks.map((link) => (
-            <BrowseLink key={link.title} {...link} />
-          ))}
-        </div>
         {recentPosts.length > 0 ? (
-          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-8 rounded-3xl border border-border/70 bg-background/70 px-6">
             {recentPosts.map((post) => (
-              <PostCard key={post.url} post={post} />
+              <PostListItem key={post.url} post={post} />
             ))}
           </div>
         ) : (
@@ -275,14 +216,14 @@ export default function HomePage() {
       <Section className="relative px-4 py-8 lg:px-6 lg:py-12">
         <SectionHeading
           eyebrow="Tools"
-          title="A Few Tools"
-          description="Standalone tools, tool-backed tutorials, and browser extensions."
+          title="Tools"
+          description="A few standalone tools, tool-backed posts, and extensions."
           href="/tools"
           hrefLabel="All Tools"
         />
-        <div className="mt-8 grid gap-4 lg:grid-cols-3">
+        <div className="mt-8 rounded-3xl border border-border/70 bg-background/70 px-6">
           {featuredTools.map((tool) => (
-            <ToolCard key={tool.title} {...tool} />
+            <ToolListItem key={tool.title} {...tool} />
           ))}
         </div>
       </Section>

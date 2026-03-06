@@ -269,9 +269,9 @@ export function LlmPriceCalculator() {
   const showCache = cachePercent > 0;
   const cacheCol = `cache-col ${showCache ? "cache-visible" : "cache-hidden"}`;
   const controlLabelClass =
-    "mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-fd-foreground/70";
+    "mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-fd-foreground/72";
   const headerCellClass =
-    "px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.16em] text-fd-foreground/65";
+    "px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.14em] text-fd-foreground/72";
 
   const calculated = useMemo(() => {
     return models.map((model) => {
@@ -318,6 +318,29 @@ export function LlmPriceCalculator() {
     }
     return [{ provider: null as Provider | null, models: sorted }];
   }, [sorted, sortBy]);
+
+  const bestForScenario = useMemo<CalculatedModel | null>(() => {
+    if (calculated.length === 0) return null;
+    const metric = (model: CalculatedModel) =>
+      showBulk ? (showCache ? model.cachedTotal : model.total) : model.perCall;
+    return calculated.reduce((best, model) =>
+      metric(model) < metric(best) ? model : best,
+    );
+  }, [calculated, showBulk, showCache]);
+
+  const bestPerCall = useMemo<CalculatedModel | null>(() => {
+    if (calculated.length === 0) return null;
+    return calculated.reduce((best, model) =>
+      model.perCall < best.perCall ? model : best,
+    );
+  }, [calculated]);
+
+  const bestCachedCall = useMemo<CalculatedModel | null>(() => {
+    if (!showCache || calculated.length === 0) return null;
+    return calculated.reduce((best, model) =>
+      model.cachedPerCall < best.cachedPerCall ? model : best,
+    );
+  }, [calculated, showCache]);
 
   // cache cols always in DOM for animation
   let colCount = 7; // model + context + in/M + out/M + per call + next calls + savings
@@ -439,27 +462,100 @@ export function LlmPriceCalculator() {
           </div>
         </div>
 
+        <div className="grid gap-3 border-b border-fd-border px-5 py-4 sm:grid-cols-2 xl:grid-cols-3">
+          {bestForScenario && (
+            <div className="rounded-lg border border-fd-border bg-fd-background/70 px-4 py-3">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fd-foreground/58">
+                {showBulk ? "Lowest total" : "Lowest per call"}
+              </div>
+              <div className="mt-2 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-semibold text-fd-foreground">
+                    {bestForScenario.name}
+                  </div>
+                  <div className="mt-1 text-xs text-fd-foreground/60">
+                    {providerLabels[bestForScenario.provider]}
+                  </div>
+                </div>
+                <div className="shrink-0 font-mono text-sm font-semibold text-fd-foreground">
+                  {formatCost(
+                    showBulk
+                      ? showCache
+                        ? bestForScenario.cachedTotal
+                        : bestForScenario.total
+                      : bestForScenario.perCall,
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showBulk && bestPerCall && (
+            <div className="rounded-lg border border-fd-border bg-fd-background/70 px-4 py-3">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fd-foreground/58">
+                Lowest per call
+              </div>
+              <div className="mt-2 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-semibold text-fd-foreground">
+                    {bestPerCall.name}
+                  </div>
+                  <div className="mt-1 text-xs text-fd-foreground/60">
+                    {providerLabels[bestPerCall.provider]}
+                  </div>
+                </div>
+                <div className="shrink-0 font-mono text-sm font-semibold text-fd-foreground">
+                  {formatCost(bestPerCall.perCall)}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showBulk && showCache && bestCachedCall && (
+            <div className="rounded-lg border border-fd-border bg-fd-primary/[0.045] px-4 py-3">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fd-foreground/58">
+                Lowest next call
+              </div>
+              <div className="mt-2 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-semibold text-fd-foreground">
+                    {bestCachedCall.name}
+                  </div>
+                  <div className="mt-1 text-xs text-fd-foreground/60">
+                    {providerLabels[bestCachedCall.provider]}
+                  </div>
+                </div>
+                <div className="shrink-0 font-mono text-sm font-semibold text-fd-primary">
+                  {formatCost(bestCachedCall.cachedPerCall)}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="overflow-x-auto">
           <table className="min-w-[760px] w-full">
             <thead>
               <tr className="border-b border-fd-border bg-fd-muted/15">
-                <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-fd-foreground/65">
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.14em] text-fd-foreground/72">
                   Model
                 </th>
                 <th className={headerCellClass}>Context</th>
                 <th className={headerCellClass}>In/M</th>
                 <th className={headerCellClass}>Out/M</th>
-                <th className={`${headerCellClass} text-fd-foreground/80`}>
+                <th
+                  className={`${headerCellClass} border-l border-fd-border/50 bg-fd-primary/[0.05] text-fd-foreground/85`}
+                >
                   {showCache ? "1st call" : "Per call"}
                 </th>
                 <th
-                  className={`${headerCellClass} text-fd-primary ${cacheCol}`}
+                  className={`${headerCellClass} border-l border-fd-border/40 bg-fd-primary/[0.04] text-fd-primary ${cacheCol}`}
                 >
                   Next calls
                 </th>
                 {showBulk && (
                   <th
-                    className={`${headerCellClass} border-l border-fd-border/60 bg-fd-muted/20 text-fd-foreground/80`}
+                    className={`${headerCellClass} border-l border-fd-border/60 bg-fd-primary/[0.09] text-fd-foreground/90`}
                   >
                     {apiCalls.toLocaleString()} calls
                   </th>
@@ -534,7 +630,7 @@ function ProviderGroup({
         >
           <td
             colSpan={colCount}
-            className="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-fd-foreground/65"
+            className="px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-fd-foreground/68"
           >
             {providerLabels[provider]}
           </td>
@@ -565,16 +661,16 @@ function ProviderGroup({
             <span className="text-fd-foreground/45">$</span>
             {model.output}
           </td>
-          <td className="px-5 py-3.5 text-right font-mono tabular-nums font-semibold text-fd-foreground">
+          <td className="border-l border-fd-border/40 bg-fd-primary/[0.035] px-5 py-3.5 text-right font-mono tabular-nums font-semibold text-fd-foreground">
             {formatCost(model.perCall)}
           </td>
           <td
-            className={`py-3.5 text-right font-mono tabular-nums font-semibold text-fd-primary ${cacheCol}`}
+            className={`border-l border-fd-border/30 bg-fd-primary/[0.035] py-3.5 text-right font-mono tabular-nums font-semibold text-fd-primary ${cacheCol}`}
           >
             {formatCost(model.cachedPerCall)}
           </td>
           {showBulk && (
-            <td className="border-l border-fd-border/60 bg-fd-muted/15 px-5 py-3.5 text-right font-mono tabular-nums font-semibold text-fd-foreground">
+            <td className="border-l border-fd-border/60 bg-fd-primary/[0.08] px-5 py-3.5 text-right font-mono tabular-nums font-semibold text-fd-foreground">
               {formatCost(showCache ? model.cachedTotal : model.total)}
             </td>
           )}

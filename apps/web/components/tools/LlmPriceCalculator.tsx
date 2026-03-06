@@ -230,7 +230,6 @@ const DEFAULTS = {
   calls: 1000,
   cache: 0,
   provider: "all",
-  details: false,
   sort: "provider",
 };
 
@@ -240,7 +239,6 @@ function readParams(): {
   apiCalls: number;
   cachePercent: number;
   providerFilter: Provider | "all";
-  showAdvanced: boolean;
   sortBy: "provider" | "price";
 } {
   if (typeof window === "undefined") {
@@ -250,7 +248,6 @@ function readParams(): {
       apiCalls: DEFAULTS.calls,
       cachePercent: DEFAULTS.cache,
       providerFilter: DEFAULTS.provider as Provider | "all",
-      showAdvanced: DEFAULTS.details,
       sortBy: DEFAULTS.sort as "provider" | "price",
     };
   }
@@ -268,7 +265,6 @@ function readParams(): {
       provider && providerOrder.includes(provider as Provider)
         ? (provider as Provider)
         : "all",
-    showAdvanced: p.get("details") === "1",
     sortBy: p.get("sort") === "price" ? "price" : "provider",
   };
 }
@@ -282,7 +278,6 @@ export function LlmPriceCalculator() {
   const [providerFilter, setProviderFilter] = useState<Provider | "all">(
     initial.providerFilter,
   );
-  const [showAdvanced, setShowAdvanced] = useState(initial.showAdvanced);
   const [sortBy, setSortBy] = useState<"provider" | "price">(initial.sortBy);
 
   const syncUrl = useCallback(() => {
@@ -294,7 +289,6 @@ export function LlmPriceCalculator() {
       params.set("cache", String(cachePercent));
     if (providerFilter !== DEFAULTS.provider)
       params.set("provider", providerFilter);
-    if (showAdvanced !== DEFAULTS.details) params.set("details", "1");
     if (sortBy !== DEFAULTS.sort) params.set("sort", sortBy);
     const qs = params.toString();
     const url = window.location.pathname + (qs ? `?${qs}` : "");
@@ -305,7 +299,6 @@ export function LlmPriceCalculator() {
     apiCalls,
     cachePercent,
     providerFilter,
-    showAdvanced,
     sortBy,
   ]);
 
@@ -316,6 +309,7 @@ export function LlmPriceCalculator() {
   const cacheRatio = cachePercent / 100;
   const showBulk = apiCalls > 1;
   const showCache = cachePercent > 0;
+  const showAdvanced = true;
   const controlLabelClass =
     "mb-2 block text-sm font-medium text-fd-foreground/72";
   const headerCellClass =
@@ -370,11 +364,7 @@ export function LlmPriceCalculator() {
     return filtered;
   }, [calculated, providerFilter, sortBy, showCache]);
 
-  const tableMinWidthClass = showAdvanced
-    ? showCache
-      ? "min-w-[1080px]"
-      : "min-w-[920px]"
-    : "min-w-[720px]";
+  const tableMinWidthClass = showCache ? "min-w-[1080px]" : "min-w-[920px]";
 
   return (
     <div className="not-prose">
@@ -536,18 +526,6 @@ export function LlmPriceCalculator() {
                   By cost
                 </button>
               </div>
-
-              <button
-                onClick={() => setShowAdvanced((current) => !current)}
-                aria-pressed={showAdvanced}
-                className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                  showAdvanced
-                    ? "border-fd-border bg-fd-muted/60 text-fd-foreground"
-                    : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
-                }`}
-              >
-                Advanced columns
-              </button>
             </div>
           </div>
         </div>
@@ -645,7 +623,7 @@ export function LlmPriceCalculator() {
         <div className="border-t border-fd-border px-5 py-3 text-[11px] leading-5 text-fd-foreground/60">
           Prices per million tokens. Last updated March 2026.
           {showCache &&
-            " Totals reflect cache hits. Turn on Advanced columns to see next-call pricing and savings."}
+            " Totals reflect cache hits at the selected cache rate."}
         </div>
       </div>
     </div>

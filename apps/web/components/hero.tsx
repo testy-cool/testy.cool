@@ -10,7 +10,7 @@ export default function Hero() {
           <h1 className="text-4xl md:text-6xl tracking-tight text-center font-bold">
             Mostly LLMs, mostly.
           </h1>
-          <p className="text-lg md:text-xl leading-relaxed text-muted-foreground max-w-xl text-center">
+          <p className="max-w-xl text-center text-lg leading-relaxed text-fd-foreground/72 md:text-xl">
             Notes and ramblings about LLMs, automation and dev.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
@@ -25,7 +25,7 @@ export default function Hero() {
               </Link>
             </Button>
           </div>
-          <p className="max-w-2xl text-center text-sm text-muted-foreground">
+          <p className="max-w-2xl text-center text-sm text-fd-foreground/62">
             Most of the site is blog posts. Tutorials and troubleshooting are
             the main buckets right now.
           </p>

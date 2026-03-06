@@ -73,30 +73,36 @@ function SectionHeading({
   description,
   href,
   hrefLabel,
+  eyebrowClassName,
+  linkClassName,
 }: {
   eyebrow: string;
   title: string;
   description: string;
   href?: string;
   hrefLabel?: string;
+  eyebrowClassName?: string;
+  linkClassName?: string;
 }) {
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div className="max-w-2xl space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+        <p
+          className={`text-xs font-semibold uppercase tracking-[0.24em] text-fd-muted-foreground ${eyebrowClassName ?? ""}`}
+        >
           {eyebrow}
         </p>
         <h2 className="text-2xl font-semibold tracking-tight text-balance md:text-3xl">
           {title}
         </h2>
-        <p className="text-sm text-muted-foreground md:text-base">
+        <p className="text-sm text-fd-foreground/66 md:text-base">
           {description}
         </p>
       </div>
       {href && hrefLabel ? (
         <Link
           href={href}
-          className="inline-flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-muted-foreground"
+          className={`inline-flex items-center gap-2 text-sm font-medium text-fd-foreground transition-colors hover:text-fd-muted-foreground ${linkClassName ?? ""}`}
         >
           {hrefLabel}
           <ArrowRight className="size-4" />
@@ -118,19 +124,18 @@ function CompactListItem({
   type: string;
 }) {
   return (
-    <article className="min-w-0 border-b border-border/60 py-4 last:border-b-0">
-      <div className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-        {type}
+    <article className="-mx-3 min-w-0 rounded-2xl border-b border-fd-border/80 px-3 py-4 transition-colors hover:bg-fd-background/75 last:border-b-0">
+      <div className="mb-2">
+        <span className="inline-flex rounded-full border border-fd-border bg-fd-background/85 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-fd-foreground/72">
+          {type}
+        </span>
       </div>
       <h3 className="text-base font-semibold tracking-tight text-balance md:text-lg">
-        <Link
-          href={href}
-          className="transition-colors hover:text-muted-foreground"
-        >
+        <Link href={href} className="transition-colors hover:text-fd-primary">
           {title}
         </Link>
       </h3>
-      <p className="mt-1 text-sm leading-6 text-muted-foreground">
+      <p className="mt-1 text-sm leading-6 text-fd-foreground/66">
         {description}
       </p>
     </article>
@@ -141,21 +146,24 @@ function PostListItem({ post }: { post: SitePost }) {
   const category = getCategorySlug(post);
 
   return (
-    <article className="min-w-0 border-b border-border/60 py-4 last:border-b-0">
-      <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-        <span>{getCategoryLabel(category)}</span>
-        <span className="text-border">/</span>
-        <span>{dateFormatter.format(post.data.date)}</span>
+    <article className="-mx-3 min-w-0 rounded-2xl border-b border-fd-border/80 px-3 py-4 transition-colors hover:bg-fd-primary/[0.03] last:border-b-0">
+      <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-medium uppercase tracking-[0.16em]">
+        <span className="inline-flex rounded-full border border-fd-primary/15 bg-fd-primary/8 px-2.5 py-1 text-fd-primary">
+          {getCategoryLabel(category)}
+        </span>
+        <span className="text-fd-muted-foreground">
+          {dateFormatter.format(post.data.date)}
+        </span>
       </div>
       <h3 className="text-base font-semibold tracking-tight text-balance md:text-lg">
         <Link
           href={post.url}
-          className="transition-colors hover:text-muted-foreground"
+          className="transition-colors hover:text-fd-primary"
         >
           {post.data.title}
         </Link>
       </h3>
-      <p className="mt-1 text-sm leading-6 text-muted-foreground">
+      <p className="mt-1 text-sm leading-6 text-fd-foreground/66">
         {post.data.description}
       </p>
     </article>
@@ -172,13 +180,13 @@ function BrowseListItem({
   meta: string;
 }) {
   return (
-    <li className="border-b border-border/60 last:border-b-0">
+    <li className="border-b border-fd-border/80 last:border-b-0">
       <Link
         href={href}
-        className="flex items-center justify-between gap-4 py-3 text-sm transition-colors hover:text-muted-foreground"
+        className="-mx-3 flex items-center justify-between gap-4 rounded-xl px-3 py-3 text-sm transition-colors hover:bg-fd-background/85 hover:text-fd-primary"
       >
-        <span className="font-medium text-foreground">{title}</span>
-        <span className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+        <span className="font-medium text-fd-foreground">{title}</span>
+        <span className="text-xs uppercase tracking-[0.14em] text-fd-foreground/55">
           {meta}
         </span>
       </Link>
@@ -250,13 +258,15 @@ export default function HomePage() {
 
       <Section className="relative px-4 pb-8 lg:px-6 lg:pb-12">
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,0.9fr)]">
-          <div className="rounded-3xl border border-border/70 bg-background/70 p-6">
+          <div className="rounded-3xl border border-fd-border bg-fd-card p-6 shadow-sm">
             <SectionHeading
               eyebrow="Blog"
               title="Latest Posts"
               description="Most of the site lives in the blog archive."
               href="/blog"
               hrefLabel="Browse Blog"
+              eyebrowClassName="text-fd-primary"
+              linkClassName="text-fd-primary hover:text-fd-primary/80"
             />
             {recentPosts.length > 0 ? (
               <div className="mt-6">
@@ -272,11 +282,12 @@ export default function HomePage() {
           </div>
 
           <div className="grid gap-6">
-            <div className="rounded-3xl border border-border/70 bg-background/70 p-6">
+            <div className="rounded-3xl border border-fd-border bg-fd-muted/45 p-6">
               <SectionHeading
                 eyebrow="Start Here"
                 title="Browse"
                 description="If you want the overall picture, start with the archive."
+                eyebrowClassName="text-fd-foreground/62"
               />
               <ul className="mt-6">
                 {browseItems.map((item) => (
@@ -285,13 +296,14 @@ export default function HomePage() {
               </ul>
             </div>
 
-            <div className="rounded-3xl border border-border/70 bg-background/70 p-6">
+            <div className="rounded-3xl border border-fd-border bg-fd-muted/45 p-6">
               <SectionHeading
                 eyebrow="Tools"
                 title="A Few Tools"
                 description="Small utilities and extensions."
                 href="/tools"
                 hrefLabel="All Tools"
+                eyebrowClassName="text-fd-foreground/62"
               />
               <div className="mt-6">
                 {featuredTools.map((tool) => (

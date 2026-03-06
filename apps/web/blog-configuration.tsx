@@ -20,6 +20,7 @@ import {
   Book as LucideBook,
   Code,
   Cog,
+  FlaskConical,
   Rocket,
   Wrench,
 } from "lucide-react";
@@ -140,6 +141,12 @@ export const getCategoryBySlug = (slug: string) => {
       label: "Troubleshooting",
       icon: Wrench,
       description: "Notes on specific problems and the fixes that worked.",
+    },
+    "lab-notes": {
+      label: "Lab Notes",
+      icon: FlaskConical,
+      description:
+        "Short notes on what I tried, what happened, and what seems true so far.",
     },
     "tools-tech": {
       label: "Tools & Tech",

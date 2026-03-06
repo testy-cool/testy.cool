@@ -80,6 +80,8 @@ function getCategoryLabel(slug: string): string {
       return "Tutorial";
     case "troubleshooting":
       return "Fix";
+    case "lab-notes":
+      return "Lab Note";
     default:
       return "Note";
   }
@@ -230,8 +232,8 @@ function PostStack({
   title: string;
   description: string;
   posts: SitePost[];
-  href: string;
-  hrefLabel: string;
+  href?: string;
+  hrefLabel?: string;
   emptyMessage: string;
 }) {
   return (
@@ -264,10 +266,15 @@ export default function HomePage() {
   const troubleshooting = posts
     .filter((post) => getCategorySlug(post) === "troubleshooting")
     .slice(0, 2);
+  const labNotes = posts
+    .filter((post) => getCategorySlug(post) === "lab-notes")
+    .slice(0, 3);
   const notes = posts
     .filter(
       (post) =>
-        !["tutorial", "troubleshooting"].includes(getCategorySlug(post)),
+        !["tutorial", "troubleshooting", "lab-notes"].includes(
+          getCategorySlug(post),
+        ),
     )
     .slice(0, 3);
 
@@ -293,7 +300,7 @@ export default function HomePage() {
         <SectionHeading
           eyebrow="Browse"
           title="How to browse"
-          description="This site is a mix of tutorials, troubleshooting notes, and tools."
+          description="This site is a mix of tutorials, troubleshooting notes, lab notes, and tools."
         />
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {pathCards.map((card) => (
@@ -339,10 +346,21 @@ export default function HomePage() {
       </Section>
 
       <Section className="relative px-4 py-8 lg:px-6 lg:py-12">
+        <PostStack
+          title="Recent Lab Notes"
+          description="Short summaries of what I tried, what happened, and what I think so far."
+          posts={labNotes}
+          href={labNotes.length > 0 ? "/blog/lab-notes" : undefined}
+          hrefLabel={labNotes.length > 0 ? "All Lab Notes" : undefined}
+          emptyMessage="No lab notes yet."
+        />
+      </Section>
+
+      <Section className="relative px-4 py-8 lg:px-6 lg:py-12">
         <SectionHeading
           eyebrow="Recent Notes"
           title="Other recent posts"
-          description="Posts that do not fit the tutorial or troubleshooting buckets."
+          description="Posts that do not fit the tutorial, troubleshooting, or lab notes buckets."
           href="/blog"
           hrefLabel="All Posts"
         />

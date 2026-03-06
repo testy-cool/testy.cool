@@ -1,110 +1,272 @@
-# Agent Guidelines
+# CLAUDE.md
 
-This repository is a monorepo using **TurboRepo**, **PNPM**, and **Next.js** (App Router).
-It follows a strict structure separating the web application (`apps/web`) from shared packages (`packages/`).
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Structure
+## Project
 
-- `apps/web/`: Main Next.js application.
-  - `app/`: App Router pages, layouts, and API routes.
-  - `components/`: Application-specific UI components.
-  - `content/`: MDX content (blog posts).
-  - `lib/`: Helper functions and configuration.
-- `packages/`: Shared workspace packages.
-  - `ui/`: Shared UI components.
-  - `shadverse/`: Shared utilities, Shadcn configuration, and component library.
-  - `fumadocs-blog/`: Blog-specific logic.
-  - `eslint-config/`, `typescript-config/`: Shared configs.
+testy.cool - A fumadocs-based blog using the documentation aesthetic instead of typical blog templates.
 
-## Build, Lint, & Test Commands
+## Commands
 
-Run these commands from the project root.
+```bash
+# Development
+pnpm dev              # Run all apps in dev mode
+pnpm web:dev          # Run only the web app (faster)
 
-| Command            | Description                                                |
-| :----------------- | :--------------------------------------------------------- |
-| `pnpm install`     | Install dependencies across the workspace.                 |
-| `pnpm dev`         | Start development servers (Turbo).                         |
-| `pnpm web:dev`     | Start only the web app dev server (http://localhost:3000). |
-| `pnpm build`       | Build all apps and packages.                               |
-| `pnpm web:build`   | Build only the web app (Static Export).                    |
-| `pnpm lint`        | Run ESLint across the workspace.                           |
-| `pnpm check-types` | Run TypeScript type checking (`tsc --noEmit`).             |
-| `pnpm format`      | Format code with Prettier.                                 |
+# Build & Check
+pnpm build            # Build all packages
+pnpm web:build        # Build only web app
+pnpm lint             # Run linting
+pnpm check-types      # Type checking
+pnpm format           # Format with Prettier
 
-### Testing Protocol
+# Serve static build
+pnpm web:serve        # Serve the static output
+```
 
-- **No automated test runner** (Jest/Vitest) is currently configured.
-- **Do NOT** run `npm test` or `pnpm test`.
-- Verify changes by running:
-  1. `pnpm lint`
-  2. `pnpm check-types`
-  3. `pnpm web:build` (to ensure the static export succeeds).
+## Architecture
 
-## Code Style & Conventions
+pnpm monorepo using Turborepo:
 
-### 1. General Formatting
+- **apps/web**: Next.js 15 blog site using Fumadocs for MDX content
+- **packages/fumadocs-blog**: Blog components (post cards, pagination, series support)
+- **packages/shadverse**: shadcn/ui component library
+- **packages/ui**: Shared UI components (social icons, grid background, OG image templates)
 
-- **Indentation:** 2 spaces.
-- **Quotes:** Double quotes (enforced by Prettier).
-- **Semicolons:** Always use semicolons.
-- **File Naming:**
-  - Use `kebab-case.tsx` for components and utilities (e.g., `code-display.tsx`).
-  - Next.js special files use default naming (`page.tsx`, `layout.tsx`).
+## Content
 
-### 2. Imports
+Blog posts go in `apps/web/content/blog/[category]/post-name.mdx`:
 
-- **Grouping:** Group imports in this order:
-  1. External libraries (React, Next.js, etc.)
-  2. Internal/Workspace packages (`@repo/ui`, `@repo/shadverse`)
-  3. Local absolute imports (`@/lib/...`, `@/components/...`)
-  4. Relative imports (`./styles.css`)
-- **Type Imports:** Use `import type { ... }` for type-only imports.
-- **Aliases:** Always use aliases (`@/` or `@repo/`) instead of long relative paths (`../../`).
+```mdx
+---
+title: Post Title
+description: Short description
+date: 2026-01-06
+author: testy.cool
+tags: [tag1, tag2]
+image: /images/blog/optional-custom-image.png # optional, falls back to auto-generated OG
+---
 
-### 3. React Components
+Content here.
+```
 
-- **Definition:**
-  - Use `export const ComponentName = (...) =>` for reusable/shared components.
-  - Use `export default function Page(...)` for App Router pages and layouts.
-- **Props:**
+Current categories in active use:
 
-  - Define props using `interface` or `type`.
-  - Always destructure props in the function signature.
-  - Support an optional `className` prop and merge it using `cn`.
+- `tutorial` - longer build-from-zero posts
+- `troubleshooting` - concrete problems and fixes
+- `lab-notes` - short summaries of experiments and attempts
+- `tools-tech`, `tech`, `conceptual`, `solution` - everything else
 
-  ```tsx
-  import { cn } from "@repo/shadverse/lib/utils";
+## Key Files
 
-  interface MyProps {
-    className?: string;
-    children: React.ReactNode;
-  }
+- `apps/web/app/layout.config.tsx` - Site title, description, nav config
+- `apps/web/blog-configuration.tsx` - Blog constants, categories, series definitions
+- `apps/web/lib/metadata.ts` - SEO metadata, OpenGraph config
+- `apps/web/components/hero.tsx` - Homepage hero section
+- `apps/web/app/(home)/layout.tsx` - Footer social links
+- `packages/ui/src/components/social-icons.tsx` - Social icon components
+- `packages/fumadocs-blog/src/components/post-card.tsx` - Blog post card display
 
-  export const MyComponent = ({ className, children }: MyProps) => (
-    <div className={cn("default-classes", className)}>{children}</div>
-  );
-  ```
+## Styling
 
-### 4. TypeScript
+- Interactive components use fumadocs CSS tokens: `fd-card`, `fd-border`, `fd-background`, `fd-muted-foreground`, `fd-primary`, `fd-muted` — not raw Tailwind colors
+- Use `<style jsx global>` for component CSS that Tailwind can't express (custom animations, input spinner removal)
+- For animated table columns, always render in DOM and toggle with CSS transitions — conditional rendering (`{show && <td>}`) prevents smooth transitions
 
-- **Strict Mode:** TypeScript is strictly configured. Avoid `any`.
-- **Children:** Use `React.ReactNode` for children props.
-- **Async:** Server Components should be `async function`.
+## Deployment
 
-### 5. Styling (Tailwind CSS)
+Cloudflare Pages with static export:
 
-- Use Tailwind utility classes.
-- Use the `cn()` utility from `@repo/shadverse/lib/utils` for conditional class merging.
-- Avoid inline styles; use Tailwind classes or CSS modules (if necessary).
+- Build command: `pnpm build`
+- Output directory: `apps/web/out`
+- Node version: 20 (via `.nvmrc`)
+- Config: `wrangler.toml`
+- Cloudflare uses `--frozen-lockfile` — if `pnpm-lock.yaml` is out of sync, deploy fails silently. Fix with `pnpm install --no-frozen-lockfile` (do NOT delete and regenerate lockfile — version changes can break the build). Always check Cloudflare build logs when deploy appears to fail.
 
-### 6. MDX Content
+## Tools
 
-- Blog posts are located in `apps/web/content/blog/`.
-- Filenames must be `kebab-case` and serve as the URL slug.
-- Organize posts into category folders if applicable.
+The `/tools` page is a curated directory that lists both standalone tools and tutorial-embedded tools.
 
-## Workflow Guidelines
+### Two types of tools, one index
 
-- **Commits:** Use imperative mood, present tense (e.g., "Add feature", "Fix bug").
-- **Verification:** Always run `pnpm check-types` and `pnpm lint` before considering a task complete.
-- **Clean Code:** Remove unused imports and variables. Ensure no console logs remain in production code.
+```
+/tools                           <- Index listing ALL tools
+/tools/[slug]                    <- Complex standalone tools (dedicated pages)
+/blog/[category]/[slug]          <- Simple tools embedded in tutorials
+```
+
+**Rule of thumb:**
+
+- **Tool is the point** -> `/tools/[slug]` (standalone page)
+- **Learning is the point, tool helps** -> blog post with `tool` tag
+
+Users browse `/tools`, click what they need. They don't care where it lives.
+
+### File structure
+
+```
+apps/web/app/(home)/tools/
+├── page.tsx                     # Index page listing all tools
+├── layout.tsx                   # Shared tools layout
+└── [tool-name]/                 # Only for standalone tools
+    └── page.tsx
+```
+
+### Adding a standalone tool
+
+1. Create `apps/web/app/(home)/tools/[tool-name]/page.tsx`
+2. Add entry to the `tools` array in `apps/web/app/(home)/tools/page.tsx`:
+   ```tsx
+   {
+     slug: "tool-name",
+     title: "Tool Name",
+     description: "Short description of what it does.",
+     screenshot: "/images/tools/tool-name.png",
+     tags: ["CSS", "Responsive"],
+   }
+   ```
+3. Add screenshot to `apps/web/public/images/tools/tool-name.png` (aspect ratio 16:9)
+
+### Adding a tutorial-embedded tool
+
+1. Create blog post in `apps/web/content/blog/[category]/tool-name.mdx`
+2. Add `tool` to the tags array in frontmatter
+3. Create interactive components in `apps/web/components/tools/`
+4. Register components in `apps/web/mdx-components.tsx`
+5. Add entry to the `tools` array with `blogPath`:
+   ```tsx
+   {
+     slug: "tool-name",
+     title: "Tool Name",
+     description: "Short description.",
+     screenshot: "/images/tools/tool-name.png",
+     tags: ["CSS", "Tutorial"],
+     blogPath: "/blog/category/tool-name",
+   }
+   ```
+
+## Tutorial Writing Guidelines
+
+When creating tutorial content (especially for tools):
+
+### Build from zero
+
+- Don't assume prior knowledge
+- Explain WHY things work, not just HOW
+- Start with the simplest concept and layer complexity
+
+### Use progressive disclosure
+
+1. Show the tool first (immediate value)
+2. Brief explanation of what it does
+3. Deep dive into the mechanics
+4. Edge cases and advanced usage
+
+### Include interactive elements
+
+- Mini-calculators throughout to reinforce concepts
+- Live previews showing cause and effect
+- Comparison widgets (e.g., breakpoints vs fluid)
+
+### Personal, conversational tone
+
+- First person: "I used to do X until I learned Y"
+- Casual but grammatically correct
+- Address the reader directly
+- Acknowledge pain points ("ever notice how...")
+
+### Example structure for a tool tutorial
+
+```mdx
+---
+title: Tool Name and Tutorial
+description: One-line hook about the problem it solves.
+tags: [category, topic, tool]
+---
+
+Brief intro (2-3 sentences on why this matters).
+
+## The Tool
+
+<ToolComponent />
+
+---
+
+## Why This Matters
+
+Personal anecdote or common pain point.
+
+<ComparisonWidget />
+
+## Building Up From Zero
+
+### Step 1: Foundation concept
+
+Explanation with interactive mini-tool.
+
+<MiniTool1 />
+
+### Step 2: Next concept
+
+Build on step 1...
+
+<MiniTool2 />
+
+## Common Pitfalls
+
+Real problems people encounter.
+
+## Quick Reference
+
+Cheat sheet for practical use.
+```
+
+## Lab Notes Writing Guidelines
+
+Lab notes are not mini tutorials and not diary entries. They are short public summaries of trying something.
+
+### Use lab notes for
+
+- Tight summaries of an experiment, implementation attempt, or comparison
+- Partial conclusions that are useful even if the topic is not fully resolved
+- Failed attempts when the failure changes what to try next
+
+### Do not use lab notes for
+
+- Bare hunches with no actual attempt
+- Topics with no concrete takeaway yet
+- Generic status updates
+- Posts that should obviously be a tutorial or troubleshooting writeup instead
+
+### Required structure
+
+1. Context
+2. What I tried
+3. What happened
+4. Current takeaway
+5. Next thing to try
+
+### Writing rules
+
+- Keep them short and high-signal
+- Say what is still uncertain
+- Include dead ends only if they help future decisions
+- Do not inflate a small result into a full article
+
+### Quality bar
+
+- If the user asks for a lab note and the topic is too thin, too early, or not useful enough, push back
+- Prefer saying "this is not ready for a post yet" over padding it out
+- If possible, redirect toward a narrower question, one more experiment, or a different post type
+
+## Branding
+
+- Site: testy.cool
+- Tagline: "Mostly LLMs, mostly."
+- Description: "Notes on LLMs, agents, automation and development. Mostly written for myself. There are a few tools here too."
+- Social: X (@testy_cool), GitHub (testy-cool), Bluesky (testycool.bsky.social)
+
+## Writing Style
+
+- Use hyphens (-), not em dashes (—)
+- Be straightforward. No rhetorical questions followed by answers like "The fix? A properly configured Bulk Redirect." Just state things directly.

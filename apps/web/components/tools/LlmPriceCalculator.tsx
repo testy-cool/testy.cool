@@ -90,7 +90,16 @@ const models: Model[] = [
     output: 2,
     cachedInput: 0.025,
     context: 400_000,
-    maxOutput: 16_000,
+    maxOutput: 128_000,
+  },
+  {
+    name: "GPT-5-nano",
+    provider: "openai",
+    input: 0.05,
+    output: 0.4,
+    cachedInput: 0.005,
+    context: 400_000,
+    maxOutput: 128_000,
   },
   {
     name: "GPT-4.1",
@@ -184,6 +193,15 @@ const models: Model[] = [
     maxOutput: 65_000,
   },
   {
+    name: "Gemini 3 Flash",
+    provider: "google",
+    input: 0.5,
+    output: 3,
+    cachedInput: 0.05,
+    context: 1_000_000,
+    maxOutput: 65_000,
+  },
+  {
     name: "Gemini 2.5 Pro",
     provider: "google",
     input: 1.25,
@@ -217,7 +235,7 @@ const models: Model[] = [
     output: 0.4,
     cachedInput: 0.025,
     context: 1_000_000,
-    maxOutput: 65_000,
+    maxOutput: 8_192,
   },
 ];
 

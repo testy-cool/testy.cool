@@ -57,12 +57,30 @@ const models: Model[] = [
   },
   // OpenAI
   {
+    name: "GPT-5.4",
+    provider: "openai",
+    input: 2.5,
+    output: 15,
+    cachedInput: 0.25,
+    context: 1_050_000,
+    maxOutput: 128_000,
+  },
+  {
     name: "GPT-5.3",
     provider: "openai",
     input: 1.75,
     output: 14,
     cachedInput: 0.175,
     context: 128_000,
+    maxOutput: 128_000,
+  },
+  {
+    name: "GPT-5.2",
+    provider: "openai",
+    input: 1.75,
+    output: 14,
+    cachedInput: 0.175,
+    context: 400_000,
     maxOutput: 128_000,
   },
   {

@@ -19,11 +19,11 @@ export default function VideoStrip({ videos, isLoading }: Props) {
   const doneCount = videos.filter(v => v.status === 'done' || v.status === 'skipped').length;
 
   return (
-    <div className="mt-12">
-      {/* Header — clickable to expand */}
+    <div className="mt-10 md:mt-14">
+      {/* Header */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-2 text-sm text-fd-muted-foreground hover:text-fd-foreground transition-colors mb-3 group"
+        className="flex items-center gap-2 text-sm text-fd-muted-foreground hover:text-fd-foreground transition-colors mb-4 group"
       >
         <svg
           className={`w-3.5 h-3.5 transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
@@ -32,79 +32,84 @@ export default function VideoStrip({ videos, isLoading }: Props) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
         </svg>
         <span>
-          {isLoading ? `${doneCount}/${videos.length} videos scanned` : `${videos.length} videos`}
+          {isLoading ? `${doneCount}/${videos.length} videos scanned` : `${videos.length} videos analyzed`}
         </span>
         {isLoading && (
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-fd-primary animate-pulse" />
         )}
       </button>
 
-      {/* Thumbnail strip — always visible */}
-      <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-hide">
-        {videos.map((video) => {
-          const processing = isProcessing(video.status);
-          const done = video.status === 'done';
-          const skipped = video.status === 'skipped';
-          const pending = video.status === 'pending';
+      {/* Compact thumbnail row — always visible */}
+      {!expanded && (
+        <div className="flex gap-1 overflow-x-auto pb-2 -mx-1 px-1">
+          {videos.map((video) => {
+            const processing = isProcessing(video.status);
+            const done = video.status === 'done';
+            const skipped = video.status === 'skipped';
+            const pending = video.status === 'pending';
 
-          return (
-            <div
-              key={video.videoId}
-              className="relative shrink-0 rounded-lg overflow-hidden group/thumb"
-              style={{ width: 96, height: 54 }}
-              title={video.title}
-            >
-              <img
-                src={`https://i.ytimg.com/vi/${video.videoId}/mqdefault.jpg`}
-                alt=""
-                className={`w-full h-full object-cover transition-opacity duration-300 ${pending ? 'opacity-40' : 'opacity-100'}`}
-                loading="lazy"
-              />
-              {/* Status overlay */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                {processing && (
-                  <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                )}
-                {done && (
-                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-green-500/90 text-white text-[9px]">
-                    ✓
-                  </span>
-                )}
-                {skipped && (
-                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-gray-500/80 text-white text-[9px]">
-                    –
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            return (
+              <a
+                key={video.videoId}
+                href={`https://www.youtube.com/watch?v=${video.videoId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative shrink-0 rounded-md overflow-hidden group/thumb"
+                style={{ width: 80, height: 45 }}
+                title={video.title}
+              >
+                <img
+                  src={`https://i.ytimg.com/vi/${video.videoId}/mqdefault.jpg`}
+                  alt=""
+                  className={`w-full h-full object-cover transition-opacity duration-300 group-hover/thumb:opacity-80 ${pending ? 'opacity-30' : ''}`}
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  {processing && (
+                    <span className="h-3.5 w-3.5 rounded-full border-2 border-white/80 border-t-transparent animate-spin" />
+                  )}
+                  {done && (
+                    <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-green-500/80 text-white text-[8px]">✓</span>
+                  )}
+                  {skipped && (
+                    <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-gray-500/70 text-white text-[8px]">–</span>
+                  )}
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      )}
 
-      {/* Expanded detail list */}
+      {/* Expanded list with titles, ingredient counts, and links */}
       {expanded && (
-        <div className="mt-3 space-y-2 animate-fade-slide-in">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 animate-fade-slide-in">
           {videos.map((video) => (
-            <div
+            <a
               key={video.videoId}
-              className="flex items-center gap-3 py-1.5"
+              href={`https://www.youtube.com/watch?v=${video.videoId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 p-2 rounded-lg hover:bg-fd-muted/20 transition-colors group/vid"
             >
               <img
                 src={`https://i.ytimg.com/vi/${video.videoId}/mqdefault.jpg`}
                 alt=""
-                className="w-16 h-9 rounded object-cover shrink-0"
+                className="w-20 h-11 rounded-md object-cover shrink-0"
                 loading="lazy"
               />
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] text-fd-foreground truncate">{video.title}</p>
-                <p className="text-[11px] text-fd-muted-foreground">
+                <p className="text-[13px] text-fd-foreground leading-tight line-clamp-2 group-hover/vid:underline">
+                  {video.title}
+                </p>
+                <p className="text-[11px] text-fd-muted-foreground mt-0.5">
                   {video.status === 'done' && `${video.ingredients.length} ingredients`}
-                  {video.status === 'skipped' && 'skipped'}
+                  {video.status === 'skipped' && 'no ingredients found'}
                   {isProcessing(video.status) && 'scanning...'}
                   {video.status === 'pending' && 'waiting'}
                 </p>
               </div>
-            </div>
+            </a>
           ))}
         </div>
       )}

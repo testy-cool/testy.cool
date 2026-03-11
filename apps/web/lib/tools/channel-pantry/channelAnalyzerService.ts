@@ -22,10 +22,9 @@ Rules:
 - Merge: "olive oil" + "extra virgin olive oil" → "olive oil"
 - Keep distinct items separate: "green onion" vs "onion"
 - Categories must be one of: Proteins, Dairy & Eggs, Vegetables, Fruits, Grains & Starches, Spices & Seasonings, Oils & Fats, Sauces & Condiments, Other
-- When merging, combine all quantities arrays
 
-Input is a JSON array of { name, category, count, videoIds, quantities }.
-Return the same structure with duplicates merged (combine counts, videoIds, and quantities).`;
+Input is a JSON array of { name, category, count, videoIds }.
+Return the same structure with duplicates merged (combine counts and videoIds).`;
 
 type ProgressCallback = (progress: VideoProgress) => void;
 
@@ -121,14 +120,16 @@ function aggregate(
       if (existing) {
         existing.count++;
         existing.videoIds.push(videoId);
-        if (ing.quantity) existing.quantities = [...(existing.quantities || []), ing.quantity];
+        if (ing.quantity) {
+          existing.videoQuantities = { ...existing.videoQuantities, [videoId]: ing.quantity };
+        }
       } else {
         freq.set(key, {
           name: ing.name,
           category: ing.category,
           count: 1,
           videoIds: [videoId],
-          quantities: ing.quantity ? [ing.quantity] : [],
+          videoQuantities: ing.quantity ? { [videoId]: ing.quantity } : {},
         });
       }
     }
@@ -144,15 +145,40 @@ async function dedup(
 ): Promise<IngredientFrequency[]> {
   if (ingredients.length === 0) return [];
 
+  // Build a quantity lookup: lowercase ingredient name → videoQuantities
+  // so we can re-attach after LLM dedup (LLMs are unreliable with nested objects)
+  const qtyLookup = new Map<string, Record<string, string>>();
+  for (const ing of ingredients) {
+    const key = ing.name.toLowerCase();
+    const existing = qtyLookup.get(key) || {};
+    qtyLookup.set(key, { ...existing, ...ing.videoQuantities });
+  }
+
   try {
+    // Strip videoQuantities before sending to LLM
+    const stripped = ingredients.map(({ videoQuantities, ...rest }) => rest);
     const data = await callGemini(
-      `${DEDUP_PROMPT}\n\n${JSON.stringify(ingredients)}`,
+      `${DEDUP_PROMPT}\n\n${JSON.stringify(stripped)}`,
       costTracker,
       'application/json'
     );
     const parsed = JSON.parse(data.text);
-    return (Array.isArray(parsed) ? parsed : parsed.ingredients || ingredients)
+    const deduped: IngredientFrequency[] = (Array.isArray(parsed) ? parsed : parsed.ingredients || ingredients)
       .sort((a: IngredientFrequency, b: IngredientFrequency) => b.count - a.count);
+
+    // Re-attach videoQuantities from the original data based on videoIds
+    for (const ing of deduped) {
+      const merged: Record<string, string> = {};
+      for (const vid of ing.videoIds) {
+        // Search all original ingredients for this videoId's quantity
+        for (const [, qtys] of qtyLookup) {
+          if (qtys[vid]) { merged[vid] = qtys[vid]; break; }
+        }
+      }
+      if (Object.keys(merged).length > 0) ing.videoQuantities = merged;
+    }
+
+    return deduped;
   } catch {
     return ingredients;
   }

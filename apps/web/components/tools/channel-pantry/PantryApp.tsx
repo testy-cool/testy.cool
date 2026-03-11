@@ -61,7 +61,7 @@ export default function PantryApp() {
             existing.videoIds.push(vp.videoId);
           }
           if (ing.quantity) {
-            existing.quantities = [...(existing.quantities || []), ing.quantity];
+            existing.videoQuantities = { ...existing.videoQuantities, [vp.videoId]: ing.quantity };
           }
         } else {
           freq.set(key, {
@@ -69,7 +69,7 @@ export default function PantryApp() {
             category: ing.category,
             count: 1,
             videoIds: [vp.videoId],
-            quantities: ing.quantity ? [ing.quantity] : [],
+            videoQuantities: ing.quantity ? { [vp.videoId]: ing.quantity } : {},
           });
         }
       }
@@ -161,7 +161,8 @@ export default function PantryApp() {
     const ings = result ? result.ingredients : liveIngredients;
     const count = result ? result.videosAnalyzed : videoProgress.length;
     const text = ings.map(i => {
-      const qty = i.quantities?.length ? ` (${i.quantities[0]})` : '';
+      const qtys = Object.values(i.videoQuantities || {});
+      const qty = qtys.length > 0 ? ` (${qtys[0]})` : '';
       return `${i.name}${qty} — ${i.count}/${count} videos`;
     }).join('\n');
     navigator.clipboard.writeText(text);
@@ -216,6 +217,7 @@ export default function PantryApp() {
           isComplete={isComplete}
           onCopyList={handleCopyList}
           onReset={handleReset}
+          videoProgress={videoProgress}
         />
       )}
 

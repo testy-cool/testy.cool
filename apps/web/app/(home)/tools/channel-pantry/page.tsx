@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function ChannelPantryPage() {
   return (
     <div className="min-h-screen">
-      <section className="max-w-2xl mx-auto px-5 pt-16 pb-4">
+      <section className="max-w-3xl lg:max-w-4xl mx-auto px-5 sm:px-8 pt-12 sm:pt-16 pb-16">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-[13px] text-fd-muted-foreground/60 mb-8">
           <Link href="/" className="hover:text-fd-foreground transition-colors">Home</Link>
@@ -27,15 +27,15 @@ export default function ChannelPantryPage() {
         </nav>
 
         {/* Hero */}
-        <h1 className="text-4xl md:text-5xl font-bold text-fd-foreground tracking-tight">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-fd-foreground tracking-tight">
           Channel Pantry
         </h1>
-        <p className="mt-3 text-lg text-fd-muted-foreground">
+        <p className="mt-3 text-base sm:text-lg text-fd-muted-foreground max-w-lg">
           See what ingredients a YouTube cooking channel actually uses.
         </p>
 
         {/* App */}
-        <div className="mt-10">
+        <div className="mt-8 sm:mt-10">
           <PantryApp />
         </div>
       </section>

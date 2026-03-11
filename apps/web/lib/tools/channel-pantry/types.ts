@@ -57,7 +57,8 @@ export interface IngredientFrequency {
   category: FoodCategory;
   count: number;
   videoIds: string[];
-  quantities?: string[];
+  /** videoId → quantity string, only for videos where a quantity was found */
+  videoQuantities?: Record<string, string>;
 }
 
 export interface ChannelAnalysisResult {

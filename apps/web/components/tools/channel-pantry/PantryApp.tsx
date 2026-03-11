@@ -5,8 +5,8 @@ import type { ChannelAnalysisResult, VideoProgress, CostAccumulator, IngredientF
 import { parseChannelInput, getChannelInfo, getRecentVideos, getChannelFromVideo } from '@/lib/tools/channel-pantry/youtubeService';
 import { analyzeChannel } from '@/lib/tools/channel-pantry/channelAnalyzerService';
 import ChannelInput from './ChannelInput';
-import VideoGrid from './VideoGrid';
-import LiveSummary from './LiveSummary';
+import IngredientStream from './IngredientStream';
+import VideoStrip from './VideoStrip';
 
 const CACHE_KEY = 'pantry_cache';
 
@@ -29,7 +29,7 @@ export default function PantryApp() {
   const [videoProgress, setVideoProgress] = useState<VideoProgress[]>([]);
   const [cost, setCost] = useState<CostAccumulator>({ promptTokens: 0, outputTokens: 0, totalCost: 0 });
   const [cachedChannels, setCachedChannels] = useState<ChannelAnalysisResult[]>([]);
-  const startTimeRef = useRef(0);
+  const startTimeRef = useRef<number>(0);
   const [elapsedMs, setElapsedMs] = useState(0);
   const timerRef = useRef<number>(0);
 
@@ -48,6 +48,7 @@ export default function PantryApp() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [isLoading]);
 
+  // Live ingredient aggregation from video progress
   const liveIngredients = useMemo((): IngredientFrequency[] => {
     const freq = new Map<string, IngredientFrequency>();
     for (const vp of videoProgress) {
@@ -59,12 +60,16 @@ export default function PantryApp() {
           if (!existing.videoIds.includes(vp.videoId)) {
             existing.videoIds.push(vp.videoId);
           }
+          if (ing.quantity) {
+            existing.quantities = [...(existing.quantities || []), ing.quantity];
+          }
         } else {
           freq.set(key, {
             name: ing.name,
             category: ing.category,
             count: 1,
             videoIds: [vp.videoId],
+            quantities: ing.quantity ? [ing.quantity] : [],
           });
         }
       }
@@ -76,6 +81,7 @@ export default function PantryApp() {
   const videosAnalyzed = result ? result.videosAnalyzed : videoProgress.length;
   const doneCount = videoProgress.filter(v => v.status === 'done' || v.status === 'skipped').length;
   const progressPct = videoProgress.length > 0 ? Math.round((doneCount / videoProgress.length) * 100) : 0;
+  const isComplete = !!result;
 
   const handleSubmit = useCallback(async (channelInput: string, videoCount: number) => {
     setResult(null);
@@ -154,14 +160,18 @@ export default function PantryApp() {
   const handleCopyList = useCallback(() => {
     const ings = result ? result.ingredients : liveIngredients;
     const count = result ? result.videosAnalyzed : videoProgress.length;
-    const text = ings.map(i => `${i.name} (${i.count}/${count})`).join('\n');
+    const text = ings.map(i => {
+      const qty = i.quantities?.length ? ` (${i.quantities[0]})` : '';
+      return `${i.name}${qty} — ${i.count}/${count} videos`;
+    }).join('\n');
     navigator.clipboard.writeText(text);
   }, [result, liveIngredients, videoProgress.length]);
 
-  const showGrid = videoProgress.length > 0 || result;
+  const showResults = videoProgress.length > 0 || result;
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <>
+      {/* Input */}
       <ChannelInput
         onSubmit={handleSubmit}
         isLoading={isLoading}
@@ -169,22 +179,26 @@ export default function PantryApp() {
         onLoadCached={handleLoadCached}
       />
 
+      {/* Error */}
       {error && (
-        <div className="mt-6 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-300 text-sm">
+        <div className="mt-8 p-4 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-red-600 dark:text-red-400 text-sm">
           {error}
-          <button onClick={handleReset} className="ml-3 underline">Try again</button>
+          <button onClick={handleReset} className="ml-3 underline hover:no-underline">Try again</button>
         </div>
       )}
 
+      {/* Progress strip */}
       {isLoading && videoProgress.length > 0 && (
-        <div className="mt-6">
+        <div className="mt-8">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-fd-foreground">{doneCount}/{videoProgress.length} videos</span>
-            <span className="text-sm text-fd-muted-foreground">
+            <span className="text-[13px] text-fd-muted-foreground">
+              {doneCount}/{videoProgress.length} videos
+            </span>
+            <span className="text-[13px] text-fd-muted-foreground tabular-nums">
               ${cost.totalCost.toFixed(4)} · {Math.round(elapsedMs / 1000)}s
             </span>
           </div>
-          <div className="w-full h-1 bg-fd-muted rounded-full overflow-hidden">
+          <div className="w-full h-0.5 bg-fd-muted/30 rounded-full overflow-hidden">
             <div
               className="h-full bg-fd-primary rounded-full transition-all duration-300 ease-out"
               style={{ width: `${progressPct}%` }}
@@ -193,23 +207,25 @@ export default function PantryApp() {
         </div>
       )}
 
-      {showGrid && (
-        <div className="mt-8">
-          <VideoGrid videos={videoProgress} />
-        </div>
+      {/* Ingredients — the hero */}
+      {showResults && (
+        <IngredientStream
+          ingredients={displayIngredients}
+          videosAnalyzed={videosAnalyzed}
+          isLoading={isLoading}
+          isComplete={isComplete}
+          onCopyList={handleCopyList}
+          onReset={handleReset}
+        />
       )}
 
-      {(displayIngredients.length > 0 || isLoading) && (
-        <div className="mt-8">
-          <LiveSummary
-            ingredients={displayIngredients}
-            videosAnalyzed={videosAnalyzed}
-            isLoading={isLoading}
-            onCopyList={handleCopyList}
-            onReset={handleReset}
-          />
-        </div>
+      {/* Videos — secondary */}
+      {showResults && (
+        <VideoStrip
+          videos={videoProgress}
+          isLoading={isLoading}
+        />
       )}
-    </div>
+    </>
   );
 }

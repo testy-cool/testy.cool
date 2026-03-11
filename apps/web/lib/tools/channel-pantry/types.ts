@@ -8,6 +8,7 @@ export interface VideoInfo {
 export interface ExtractedIngredient {
   name: string;
   category: FoodCategory;
+  quantity?: string;
 }
 
 export type FoodCategory =
@@ -56,6 +57,7 @@ export interface IngredientFrequency {
   category: FoodCategory;
   count: number;
   videoIds: string[];
+  quantities?: string[];
 }
 
 export interface ChannelAnalysisResult {

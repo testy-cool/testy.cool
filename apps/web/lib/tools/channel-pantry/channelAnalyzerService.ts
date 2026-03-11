@@ -7,11 +7,11 @@ import { createCostTracker, trackGeminiResponse } from './costTracker';
 
 const EXTRACTION_PROMPT = `You are analyzing a cooking video. Extract ALL ingredients mentioned.
 
-Return JSON: { "ingredients": [{ "name": "canonical ingredient name", "category": "one of: Proteins, Dairy & Eggs, Vegetables, Fruits, Grains & Starches, Spices & Seasonings, Oils & Fats, Sauces & Condiments, Other" }] }
+Return JSON: { "ingredients": [{ "name": "canonical ingredient name", "category": "one of: Proteins, Dairy & Eggs, Vegetables, Fruits, Grains & Starches, Spices & Seasonings, Oils & Fats, Sauces & Condiments, Other", "quantity": "amount if mentioned, or null" }] }
 
 Rules:
-- Return canonical names only: "garlic" not "4 cloves minced garlic"
-- No quantities, preparations, or brands
+- Canonical names: "garlic" not "minced garlic", "chicken breast" not "boneless skinless chicken breast"
+- quantity is the amount as written: "2 cups", "1 lb", "3 cloves", "1 medium". null if not mentioned.
 - If no ingredients found, return { "ingredients": [] }
 - Include ALL ingredients, even basic ones like salt, water, oil`;
 
@@ -22,9 +22,10 @@ Rules:
 - Merge: "olive oil" + "extra virgin olive oil" → "olive oil"
 - Keep distinct items separate: "green onion" vs "onion"
 - Categories must be one of: Proteins, Dairy & Eggs, Vegetables, Fruits, Grains & Starches, Spices & Seasonings, Oils & Fats, Sauces & Condiments, Other
+- When merging, combine all quantities arrays
 
-Input is a JSON array of { name, category, count, videoIds }.
-Return the same structure with duplicates merged (combine counts and videoIds).`;
+Input is a JSON array of { name, category, count, videoIds, quantities }.
+Return the same structure with duplicates merged (combine counts, videoIds, and quantities).`;
 
 type ProgressCallback = (progress: VideoProgress) => void;
 
@@ -120,12 +121,14 @@ function aggregate(
       if (existing) {
         existing.count++;
         existing.videoIds.push(videoId);
+        if (ing.quantity) existing.quantities = [...(existing.quantities || []), ing.quantity];
       } else {
         freq.set(key, {
           name: ing.name,
           category: ing.category,
           count: 1,
           videoIds: [videoId],
+          quantities: ing.quantity ? [ing.quantity] : [],
         });
       }
     }

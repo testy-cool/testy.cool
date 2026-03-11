@@ -8,17 +8,42 @@ import ChannelInput from './ChannelInput';
 import IngredientStream from './IngredientStream';
 import VideoStrip from './VideoStrip';
 
-const CACHE_KEY = 'pantry_cache';
+interface GlobalChannel {
+  channelId: string;
+  channelTitle: string;
+  videoCount: number;
+  ingredientCount: number;
+  timestamp: number;
+}
 
-function loadCache(): ChannelAnalysisResult[] {
+/** Fetch recently analyzed channels from global KV */
+async function fetchGlobalRecent(): Promise<GlobalChannel[]> {
   try {
-    return JSON.parse(localStorage.getItem(CACHE_KEY) || '[]');
+    const res = await fetch('/api/pantry/channels?action=recent');
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.channels || [];
   } catch { return []; }
 }
 
-function saveCache(results: ChannelAnalysisResult[]) {
+/** Fetch a cached analysis result from global KV */
+async function fetchGlobalResult(channelId: string): Promise<ChannelAnalysisResult | null> {
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(results.slice(0, 10)));
+    const res = await fetch(`/api/pantry/channels?channelId=${encodeURIComponent(channelId)}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.result || null;
+  } catch { return null; }
+}
+
+/** Save analysis result to global KV */
+async function saveGlobalResult(result: ChannelAnalysisResult): Promise<void> {
+  try {
+    await fetch('/api/pantry/channels', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channelId: result.channelId, result }),
+    });
   } catch {}
 }
 
@@ -28,13 +53,15 @@ export default function PantryApp() {
   const [error, setError] = useState<string | null>(null);
   const [videoProgress, setVideoProgress] = useState<VideoProgress[]>([]);
   const [cost, setCost] = useState<CostAccumulator>({ promptTokens: 0, outputTokens: 0, totalCost: 0 });
-  const [cachedChannels, setCachedChannels] = useState<ChannelAnalysisResult[]>([]);
+  const [globalChannels, setGlobalChannels] = useState<GlobalChannel[]>([]);
   const startTimeRef = useRef<number>(0);
   const [elapsedMs, setElapsedMs] = useState(0);
   const timerRef = useRef<number>(0);
 
-  // SSR-safe: load cache after mount
-  useEffect(() => { setCachedChannels(loadCache()); }, []);
+  // Fetch global recent channels on mount
+  useEffect(() => {
+    fetchGlobalRecent().then(setGlobalChannels);
+  }, []);
 
   useEffect(() => {
     if (isLoading) {
@@ -52,7 +79,6 @@ export default function PantryApp() {
   const liveIngredients = useMemo((): IngredientFrequency[] => {
     const freq = new Map<string, IngredientFrequency>();
     for (const vp of videoProgress) {
-      // Deduplicate within a single video
       const seen = new Set<string>();
       for (const ing of vp.ingredients) {
         const key = ing.name.toLowerCase();
@@ -137,10 +163,10 @@ export default function PantryApp() {
       };
 
       setResult(analysisResult);
-      setCachedChannels(prev => {
-        const updated = [analysisResult, ...prev.filter(c => c.channelId !== channelId)];
-        saveCache(updated);
-        return updated;
+
+      // Save to global KV + refresh recent list
+      saveGlobalResult(analysisResult).then(() => {
+        fetchGlobalRecent().then(setGlobalChannels);
       });
     } catch (e: any) {
       setError(e.message || 'Unknown error');
@@ -149,10 +175,23 @@ export default function PantryApp() {
     }
   }, []);
 
-  const handleLoadCached = useCallback((cached: ChannelAnalysisResult) => {
-    setResult(cached);
+  const handleLoadGlobal = useCallback(async (channel: GlobalChannel) => {
     setError(null);
     setVideoProgress([]);
+    setIsLoading(true);
+
+    try {
+      const cached = await fetchGlobalResult(channel.channelId);
+      if (cached) {
+        setResult(cached);
+      } else {
+        setError('Cached result expired. Try analyzing again.');
+      }
+    } catch {
+      setError('Failed to load cached result.');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const handleReset = useCallback(() => {
@@ -181,8 +220,8 @@ export default function PantryApp() {
       <ChannelInput
         onSubmit={handleSubmit}
         isLoading={isLoading}
-        cachedChannels={cachedChannels}
-        onLoadCached={handleLoadCached}
+        globalChannels={globalChannels}
+        onLoadGlobal={handleLoadGlobal}
       />
 
       {/* Error */}

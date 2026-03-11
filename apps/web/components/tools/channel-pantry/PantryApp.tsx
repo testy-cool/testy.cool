@@ -52,12 +52,17 @@ export default function PantryApp() {
   const liveIngredients = useMemo((): IngredientFrequency[] => {
     const freq = new Map<string, IngredientFrequency>();
     for (const vp of videoProgress) {
+      // Deduplicate within a single video
+      const seen = new Set<string>();
       for (const ing of vp.ingredients) {
         const key = ing.name.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+
         const existing = freq.get(key);
         if (existing) {
-          existing.count++;
           if (!existing.videoIds.includes(vp.videoId)) {
+            existing.count++;
             existing.videoIds.push(vp.videoId);
           }
           if (ing.quantity) {

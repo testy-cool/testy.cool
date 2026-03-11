@@ -114,12 +114,19 @@ function aggregate(
   const freq = new Map<string, IngredientFrequency>();
 
   for (const [videoId, ingredients] of videoResults) {
+    // Deduplicate ingredients within a single video (LLM may extract the same one twice)
+    const seen = new Set<string>();
     for (const ing of ingredients) {
       const key = ing.name.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+
       const existing = freq.get(key);
       if (existing) {
-        existing.count++;
-        existing.videoIds.push(videoId);
+        if (!existing.videoIds.includes(videoId)) {
+          existing.count++;
+          existing.videoIds.push(videoId);
+        }
         if (ing.quantity) {
           existing.videoQuantities = { ...existing.videoQuantities, [videoId]: ing.quantity };
         }

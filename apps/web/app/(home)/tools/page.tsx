@@ -40,6 +40,13 @@ const tools: Tool[] = [
       "Calculator for checking API costs across Claude, GPT, and Gemini, including prompt caching.",
     tags: ["LLM", "API", "Pricing"],
   },
+  {
+    slug: "channel-pantry",
+    title: "Channel Pantry",
+    description:
+      "Analyze a YouTube cooking channel to see what ingredients they use most.",
+    tags: ["YouTube", "AI", "Cooking"],
+  },
 ];
 
 const toolTutorials: Tool[] = [

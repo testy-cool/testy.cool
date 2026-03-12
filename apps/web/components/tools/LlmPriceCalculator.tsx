@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 
 type Provider = "anthropic" | "openai" | "google" | "zhipu";
+type Modality = "text" | "image" | "audio" | "video" | "pdf";
 
 interface Model {
   name: string;
@@ -12,6 +13,7 @@ interface Model {
   cachedInput: number; // $ per 1M tokens (cache read/hit price)
   context: number; // max input context window in tokens
   maxOutput: number; // max output tokens
+  modalities: Modality[];
 }
 
 function formatTokenCount(n: number): string {
@@ -36,6 +38,7 @@ const models: Model[] = [
     cachedInput: 0.5,
     context: 200_000,
     maxOutput: 128_000,
+    modalities: ["text", "image", "pdf"],
   },
   {
     name: "Claude Sonnet 4.6",
@@ -45,6 +48,7 @@ const models: Model[] = [
     cachedInput: 0.3,
     context: 200_000,
     maxOutput: 64_000,
+    modalities: ["text", "image", "pdf"],
   },
   {
     name: "Claude Haiku 4.5",
@@ -54,6 +58,7 @@ const models: Model[] = [
     cachedInput: 0.1,
     context: 200_000,
     maxOutput: 64_000,
+    modalities: ["text", "image", "pdf"],
   },
   // OpenAI
   {
@@ -64,6 +69,7 @@ const models: Model[] = [
     cachedInput: 0.25,
     context: 1_050_000,
     maxOutput: 128_000,
+    modalities: ["text", "image"],
   },
   {
     name: "GPT-5.2",
@@ -73,6 +79,7 @@ const models: Model[] = [
     cachedInput: 0.175,
     context: 400_000,
     maxOutput: 128_000,
+    modalities: ["text", "image"],
   },
   {
     name: "GPT-5.1",
@@ -82,6 +89,7 @@ const models: Model[] = [
     cachedInput: 0.125,
     context: 400_000,
     maxOutput: 128_000,
+    modalities: ["text", "image"],
   },
   {
     name: "GPT-5-mini",
@@ -91,6 +99,7 @@ const models: Model[] = [
     cachedInput: 0.025,
     context: 400_000,
     maxOutput: 128_000,
+    modalities: ["text", "image"],
   },
   {
     name: "GPT-5-nano",
@@ -100,6 +109,7 @@ const models: Model[] = [
     cachedInput: 0.005,
     context: 400_000,
     maxOutput: 128_000,
+    modalities: ["text", "image"],
   },
   {
     name: "GPT-4.1",
@@ -109,6 +119,7 @@ const models: Model[] = [
     cachedInput: 0.5,
     context: 1_000_000,
     maxOutput: 32_000,
+    modalities: ["text", "image"],
   },
   {
     name: "GPT-4.1-mini",
@@ -118,6 +129,7 @@ const models: Model[] = [
     cachedInput: 0.1,
     context: 1_000_000,
     maxOutput: 32_000,
+    modalities: ["text", "image"],
   },
   {
     name: "GPT-4.1-nano",
@@ -127,6 +139,7 @@ const models: Model[] = [
     cachedInput: 0.025,
     context: 1_000_000,
     maxOutput: 32_000,
+    modalities: ["text", "image"],
   },
   {
     name: "GPT-4o",
@@ -136,6 +149,7 @@ const models: Model[] = [
     cachedInput: 1.25,
     context: 128_000,
     maxOutput: 16_000,
+    modalities: ["text", "image"],
   },
   {
     name: "GPT-4o-mini",
@@ -145,6 +159,7 @@ const models: Model[] = [
     cachedInput: 0.075,
     context: 128_000,
     maxOutput: 16_000,
+    modalities: ["text", "image"],
   },
   {
     name: "o3-pro",
@@ -154,6 +169,7 @@ const models: Model[] = [
     cachedInput: 20,
     context: 200_000,
     maxOutput: 100_000,
+    modalities: ["text", "image"],
   },
   {
     name: "o3",
@@ -163,6 +179,7 @@ const models: Model[] = [
     cachedInput: 0.5,
     context: 200_000,
     maxOutput: 100_000,
+    modalities: ["text", "image"],
   },
   {
     name: "o4-mini",
@@ -172,6 +189,7 @@ const models: Model[] = [
     cachedInput: 0.275,
     context: 200_000,
     maxOutput: 100_000,
+    modalities: ["text", "image"],
   },
   // Google
   {
@@ -182,6 +200,7 @@ const models: Model[] = [
     cachedInput: 0.2,
     context: 1_000_000,
     maxOutput: 65_000,
+    modalities: ["text", "image", "audio", "video", "pdf"],
   },
   {
     name: "Gemini 3.1 Flash-Lite",
@@ -191,6 +210,7 @@ const models: Model[] = [
     cachedInput: 0.025,
     context: 1_000_000,
     maxOutput: 65_000,
+    modalities: ["text", "image", "audio", "video", "pdf"],
   },
   {
     name: "Gemini 3 Flash",
@@ -200,6 +220,7 @@ const models: Model[] = [
     cachedInput: 0.05,
     context: 1_000_000,
     maxOutput: 65_000,
+    modalities: ["text", "image", "audio", "video", "pdf"],
   },
   {
     name: "Gemini 2.5 Pro",
@@ -209,6 +230,7 @@ const models: Model[] = [
     cachedInput: 0.125,
     context: 1_000_000,
     maxOutput: 65_000,
+    modalities: ["text", "image", "audio", "video", "pdf"],
   },
   {
     name: "Gemini 2.5 Flash",
@@ -218,6 +240,7 @@ const models: Model[] = [
     cachedInput: 0.03,
     context: 1_000_000,
     maxOutput: 65_000,
+    modalities: ["text", "image", "audio", "video", "pdf"],
   },
   {
     name: "Gemini 2.5 Flash-Lite",
@@ -227,6 +250,7 @@ const models: Model[] = [
     cachedInput: 0.01,
     context: 1_000_000,
     maxOutput: 65_000,
+    modalities: ["text", "image", "audio", "video", "pdf"],
   },
   {
     name: "Gemini 2.0 Flash",
@@ -236,6 +260,7 @@ const models: Model[] = [
     cachedInput: 0.025,
     context: 1_000_000,
     maxOutput: 8_192,
+    modalities: ["text", "image", "audio", "video", "pdf"],
   },
   // Zhipu AI (GLM)
   {
@@ -246,6 +271,7 @@ const models: Model[] = [
     cachedInput: 0.2,
     context: 200_000,
     maxOutput: 128_000,
+    modalities: ["text"],
   },
   {
     name: "GLM-5-Code",
@@ -255,6 +281,7 @@ const models: Model[] = [
     cachedInput: 0.3,
     context: 200_000,
     maxOutput: 128_000,
+    modalities: ["text"],
   },
   {
     name: "GLM-4.7",
@@ -264,6 +291,7 @@ const models: Model[] = [
     cachedInput: 0.11,
     context: 200_000,
     maxOutput: 128_000,
+    modalities: ["text"],
   },
   {
     name: "GLM-4.7-FlashX",
@@ -273,6 +301,7 @@ const models: Model[] = [
     cachedInput: 0.01,
     context: 200_000,
     maxOutput: 128_000,
+    modalities: ["text"],
   },
   {
     name: "GLM-4.5",
@@ -282,6 +311,7 @@ const models: Model[] = [
     cachedInput: 0.11,
     context: 128_000,
     maxOutput: 128_000,
+    modalities: ["text"],
   },
   {
     name: "GLM-4.5-X",
@@ -291,6 +321,7 @@ const models: Model[] = [
     cachedInput: 0.45,
     context: 128_000,
     maxOutput: 128_000,
+    modalities: ["text"],
   },
 ];
 
@@ -302,6 +333,23 @@ const providerLabels: Record<Provider, string> = {
 };
 
 const providerOrder: Provider[] = ["anthropic", "openai", "google", "zhipu"];
+const allProviders = new Set<Provider>(providerOrder);
+
+const modalityOrder: Modality[] = ["text", "image", "audio", "video", "pdf"];
+const modalityLabels: Record<Modality, string> = {
+  text: "T",
+  image: "I",
+  audio: "A",
+  video: "V",
+  pdf: "P",
+};
+const modalityFullLabels: Record<Modality, string> = {
+  text: "Text",
+  image: "Image",
+  audio: "Audio",
+  video: "Video",
+  pdf: "PDF",
+};
 
 const integerFormatter = new Intl.NumberFormat("en-US");
 const currency2Formatter = new Intl.NumberFormat("en-US", {
@@ -339,7 +387,6 @@ const DEFAULTS = {
   out: 500,
   calls: 1000,
   cache: 0,
-  provider: "all",
   sort: "provider",
 };
 
@@ -348,7 +395,8 @@ function readParams(): {
   outputTokens: number;
   apiCalls: number;
   cachePercent: number;
-  providerFilter: Provider | "all";
+  providerFilter: Set<Provider>;
+  modalityFilter: Set<Modality>;
   sortBy: "provider" | "price";
 } {
   if (typeof window === "undefined") {
@@ -357,12 +405,32 @@ function readParams(): {
       outputTokens: DEFAULTS.out,
       apiCalls: DEFAULTS.calls,
       cachePercent: DEFAULTS.cache,
-      providerFilter: DEFAULTS.provider as Provider | "all",
+      providerFilter: new Set(allProviders),
+      modalityFilter: new Set<Modality>(),
       sortBy: DEFAULTS.sort as "provider" | "price",
     };
   }
   const p = new URLSearchParams(window.location.search);
-  const provider = p.get("provider");
+  const providerParam = p.get("provider");
+  let providerFilter: Set<Provider>;
+  if (providerParam) {
+    const parsed = providerParam
+      .split(",")
+      .filter((v) => providerOrder.includes(v as Provider)) as Provider[];
+    providerFilter = parsed.length > 0 ? new Set(parsed) : new Set(allProviders);
+  } else {
+    providerFilter = new Set(allProviders);
+  }
+  const modalityParam = p.get("modality");
+  let modalityFilter: Set<Modality>;
+  if (modalityParam) {
+    const parsed = modalityParam
+      .split(",")
+      .filter((v) => modalityOrder.includes(v as Modality)) as Modality[];
+    modalityFilter = new Set(parsed);
+  } else {
+    modalityFilter = new Set<Modality>();
+  }
   return {
     inputTokens: Number(p.get("in")) || DEFAULTS.in,
     outputTokens: Number(p.get("out")) || DEFAULTS.out,
@@ -371,10 +439,8 @@ function readParams(): {
       100,
       Math.max(0, Number(p.get("cache")) || DEFAULTS.cache),
     ),
-    providerFilter:
-      provider && providerOrder.includes(provider as Provider)
-        ? (provider as Provider)
-        : "all",
+    providerFilter,
+    modalityFilter,
     sortBy: p.get("sort") === "price" ? "price" : "provider",
   };
 }
@@ -385,10 +451,50 @@ export function LlmPriceCalculator() {
   const [outputTokens, setOutputTokens] = useState(initial.outputTokens);
   const [apiCalls, setApiCalls] = useState(initial.apiCalls);
   const [cachePercent, setCachePercent] = useState(initial.cachePercent);
-  const [providerFilter, setProviderFilter] = useState<Provider | "all">(
+  const [providerFilter, setProviderFilter] = useState<Set<Provider>>(
     initial.providerFilter,
   );
+  const [modalityFilter, setModalityFilter] = useState<Set<Modality>>(
+    initial.modalityFilter,
+  );
   const [sortBy, setSortBy] = useState<"provider" | "price">(initial.sortBy);
+
+  const allSelected = providerFilter.size === allProviders.size;
+
+  const toggleProvider = useCallback((provider: Provider) => {
+    setProviderFilter((prev) => {
+      const next = new Set(prev);
+      if (next.has(provider)) {
+        next.delete(provider);
+        if (next.size === 0) return new Set(allProviders);
+      } else {
+        next.add(provider);
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleAllProviders = useCallback(() => {
+    setProviderFilter((prev) =>
+      prev.size === allProviders.size ? new Set<Provider>([providerOrder[0]]) : new Set(allProviders),
+    );
+  }, []);
+
+  const toggleModality = useCallback((modality: Modality) => {
+    setModalityFilter((prev) => {
+      const next = new Set(prev);
+      if (next.has(modality)) {
+        next.delete(modality);
+      } else {
+        next.add(modality);
+      }
+      return next;
+    });
+  }, []);
+
+  // Serialize Set to stable string for useCallback deps
+  const providerKey = [...providerFilter].sort().join(",");
+  const modalityKey = [...modalityFilter].sort().join(",");
 
   const syncUrl = useCallback(() => {
     const params = new URLSearchParams();
@@ -397,8 +503,8 @@ export function LlmPriceCalculator() {
     if (apiCalls !== DEFAULTS.calls) params.set("calls", String(apiCalls));
     if (cachePercent !== DEFAULTS.cache)
       params.set("cache", String(cachePercent));
-    if (providerFilter !== DEFAULTS.provider)
-      params.set("provider", providerFilter);
+    if (!allSelected) params.set("provider", providerKey);
+    if (modalityKey) params.set("modality", modalityKey);
     if (sortBy !== DEFAULTS.sort) params.set("sort", sortBy);
     const qs = params.toString();
     const url = window.location.pathname + (qs ? `?${qs}` : "");
@@ -408,7 +514,9 @@ export function LlmPriceCalculator() {
     outputTokens,
     apiCalls,
     cachePercent,
-    providerFilter,
+    providerKey,
+    allSelected,
+    modalityKey,
     sortBy,
   ]);
 
@@ -462,19 +570,25 @@ export function LlmPriceCalculator() {
   }, [inputTokens, outputTokens, apiCalls, cacheRatio]);
 
   const visibleModels = useMemo(() => {
-    const filtered =
-      providerFilter === "all"
-        ? calculated
-        : calculated.filter((model) => model.provider === providerFilter);
+    let filtered = allSelected
+      ? calculated
+      : calculated.filter((model) => providerFilter.has(model.provider));
+
+    if (modalityFilter.size > 0) {
+      filtered = filtered.filter((model) =>
+        [...modalityFilter].every((m) => model.modalities.includes(m)),
+      );
+    }
 
     if (sortBy === "price") {
       const key = showCache ? "cachedTotal" : "total";
       return [...filtered].sort((a, b) => a[key] - b[key]);
     }
     return filtered;
-  }, [calculated, providerFilter, sortBy, showCache]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [calculated, providerKey, allSelected, modalityKey, sortBy, showCache]);
 
-  const tableMinWidthClass = showCache ? "min-w-[1080px]" : "min-w-[920px]";
+  const tableMinWidthClass = showCache ? "min-w-[1140px]" : "min-w-[980px]";
 
   return (
     <div className="not-prose">
@@ -579,63 +693,85 @@ export function LlmPriceCalculator() {
             </span>
           </div>
 
-          <div className="mt-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
-                Provider
-              </span>
-              <button
-                onClick={() => setProviderFilter("all")}
-                aria-pressed={providerFilter === "all"}
-                className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                  providerFilter === "all"
-                    ? "border-fd-border bg-fd-muted/60 text-fd-foreground"
-                    : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
-                }`}
-              >
-                All
-              </button>
-              {providerOrder.map((provider) => (
+          <div className="mt-4 flex flex-col gap-3">
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                  Provider
+                </span>
                 <button
-                  key={provider}
-                  onClick={() => setProviderFilter(provider)}
-                  aria-pressed={providerFilter === provider}
+                  onClick={toggleAllProviders}
+                  aria-pressed={allSelected}
                   className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                    providerFilter === provider
+                    allSelected
                       ? "border-fd-border bg-fd-muted/60 text-fd-foreground"
                       : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
                   }`}
                 >
-                  {providerLabels[provider]}
+                  All
                 </button>
-              ))}
+                {providerOrder.map((provider) => (
+                  <button
+                    key={provider}
+                    onClick={() => toggleProvider(provider)}
+                    aria-pressed={providerFilter.has(provider)}
+                    className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                      !allSelected && providerFilter.has(provider)
+                        ? "border-fd-border bg-fd-muted/60 text-fd-foreground"
+                        : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
+                    }`}
+                  >
+                    {providerLabels[provider]}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex w-fit rounded-lg border border-fd-border bg-fd-background/80 p-1">
+                  <button
+                    onClick={() => setSortBy("provider")}
+                    aria-pressed={sortBy === "provider"}
+                    className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                      sortBy === "provider"
+                        ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
+                        : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
+                    }`}
+                  >
+                    By provider
+                  </button>
+                  <button
+                    onClick={() => setSortBy("price")}
+                    aria-pressed={sortBy === "price"}
+                    className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                      sortBy === "price"
+                        ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
+                        : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
+                    }`}
+                  >
+                    By cost
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex w-fit rounded-lg border border-fd-border bg-fd-background/80 p-1">
+              <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                Input
+              </span>
+              {modalityOrder.map((modality) => (
                 <button
-                  onClick={() => setSortBy("provider")}
-                  aria-pressed={sortBy === "provider"}
-                  className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                    sortBy === "provider"
-                      ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
-                      : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
+                  key={modality}
+                  onClick={() => toggleModality(modality)}
+                  aria-pressed={modalityFilter.has(modality)}
+                  className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                    modalityFilter.has(modality)
+                      ? "border-fd-border bg-fd-muted/60 text-fd-foreground"
+                      : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
                   }`}
                 >
-                  By provider
+                  {modalityFullLabels[modality]}
                 </button>
-                <button
-                  onClick={() => setSortBy("price")}
-                  aria-pressed={sortBy === "price"}
-                  className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                    sortBy === "price"
-                      ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
-                      : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
-                  }`}
-                >
-                  By cost
-                </button>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -649,6 +785,9 @@ export function LlmPriceCalculator() {
                 </th>
                 <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
                   Model
+                </th>
+                <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
+                  Input
                 </th>
                 <th className={headerCellClass}>Context</th>
                 {showAdvanced && <th className={headerCellClass}>In/M</th>}
@@ -692,6 +831,19 @@ export function LlmPriceCalculator() {
                     </div>
                     <div className="mt-1 text-xs text-fd-foreground/54">
                       max output {formatTokenCount(model.maxOutput)}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex gap-1">
+                      {model.modalities.map((m) => (
+                        <span
+                          key={m}
+                          title={modalityFullLabels[m]}
+                          className="inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-semibold leading-none bg-fd-muted/60 text-fd-foreground/72"
+                        >
+                          {modalityLabels[m]}
+                        </span>
+                      ))}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/62">
@@ -740,10 +892,3 @@ export function LlmPriceCalculator() {
   );
 }
 
-interface CalculatedModel extends Model {
-  perCall: number;
-  total: number;
-  cachedPerCall: number;
-  cachedTotal: number;
-  savings: number;
-}

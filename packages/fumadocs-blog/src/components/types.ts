@@ -20,6 +20,16 @@ export interface BlogConfig {
    * Number of posts to display per page
    */
   pageSize: number;
+
+  /**
+   * Full site URL (e.g., "https://testy.cool") for structured data
+   */
+  siteUrl?: string;
+
+  /**
+   * Default author name for structured data
+   */
+  defaultAuthorName?: string;
 }
 
 // Define a type for blog posts that matches the structure used in the app

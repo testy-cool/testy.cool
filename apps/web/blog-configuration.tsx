@@ -123,6 +123,8 @@ export function getBlogConfiguration(): BlogConfiguration {
       blogBase: blogConstants.blogBase,
       blogOgImageBase: blogConstants.blogOgImageBase,
       pageSize: 5,
+      siteUrl: `https://${blogConstants.siteName}`,
+      defaultAuthorName: blogConstants.defaultAuthorName,
     },
   };
 }

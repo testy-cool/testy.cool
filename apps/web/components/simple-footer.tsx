@@ -13,7 +13,7 @@ export default function SimpleFooter({
 }) {
   return (
     <footer>
-      <div className="relative isolate mx-auto container px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
+      <div className="relative isolate mx-auto container px-4 py-12 md:flex md:items-center md:justify-between lg:px-6">
         <GridBackground maxWidthClass="container" />
 
         <div className="flex justify-center gap-x-6 md:order-2">

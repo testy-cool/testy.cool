@@ -17,7 +17,7 @@ export function PostCard({ post, configuration = {} }: PostCardProps) {
   const cardContent = (
     <div className="grid gap-y-6 sm:grid-cols-10 sm:gap-x-5 sm:gap-y-0 md:items-center md:gap-x-8 lg:gap-x-12">
       <div className="sm:col-span-5">
-        <div className="mb-4 md:mb-6">
+        <div className="mb-3 md:mb-4">
           <div className="flex flex-wrap gap-2">
             {post.data.tags?.map((tag) => (
               <span
@@ -37,7 +37,7 @@ export function PostCard({ post, configuration = {} }: PostCardProps) {
         <p className="mt-4 text-muted-foreground md:mt-5 text-left line-clamp-3">
           {post.data.description}
         </p>
-        <div className="mt-6 flex items-center space-x-4 text-sm md:mt-8">
+        <div className="mt-4 flex items-center space-x-4 text-sm md:mt-6">
           <span className="text-muted-foreground capitalize">
             {post.data.author || "Anonymous"}
           </span>
@@ -55,7 +55,7 @@ export function PostCard({ post, configuration = {} }: PostCardProps) {
             {readingTime} min read
           </span>
         </div>
-        <div className="mt-6 flex items-center space-x-2 md:mt-8">
+        <div className="mt-4 flex items-center space-x-2 md:mt-6">
           <Link
             href={post.url}
             className="inline-flex items-center font-semibold hover:underline underline-offset-2 md:text-base"

@@ -101,7 +101,7 @@ function ListingSection({
     <section className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left">
       <div className="mb-8">
         <h2 className="text-2xl font-semibold md:text-3xl">{title}</h2>
-        <p className="mt-2 text-muted-foreground">{description}</p>
+        <p className="mt-2 text-fd-muted-foreground">{description}</p>
       </div>
       <div className="grid gap-y-10 sm:grid-cols-12 sm:gap-y-12 md:gap-y-16 lg:gap-y-20">
         {items.map((tool) => {
@@ -114,9 +114,16 @@ function ListingSection({
             >
               <div className="grid gap-y-6 sm:grid-cols-10 sm:gap-x-5 sm:gap-y-0 md:items-center md:gap-x-8 lg:gap-x-12">
                 <div className="sm:col-span-5">
-                  <div className="mb-4 md:mb-6">
-                    <div className="flex flex-wrap gap-3 text-xs uppercase tracking-wider text-muted-foreground md:gap-5 lg:gap-6">
-                      {tool.tags?.map((tag) => <span key={tag}>{tag}</span>)}
+                  <div className="mb-3 md:mb-4">
+                    <div className="flex flex-wrap gap-2">
+                      {tool.tags?.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2.5 py-0.5 bg-fd-muted text-fd-foreground rounded-full text-xs font-medium"
+                        >
+                          {tag}
+                        </span>
+                      ))}
                     </div>
                   </div>
                   <h3 className="text-xl font-semibold md:text-2xl lg:text-3xl text-left">
@@ -127,7 +134,7 @@ function ListingSection({
                       {tool.title}
                     </Link>
                   </h3>
-                  <p className="mt-4 text-muted-foreground md:mt-5 text-left">
+                  <p className="mt-4 text-fd-muted-foreground md:mt-5 text-left">
                     {tool.description}
                   </p>
                   <div className="mt-6 flex items-center space-x-2 md:mt-8">
@@ -147,7 +154,7 @@ function ListingSection({
                         <img
                           src={tool.screenshot}
                           alt={tool.title}
-                          className="h-full w-full object-cover transition-opacity duration-200 fade-in hover:opacity-70"
+                          className="h-full w-full object-cover transition-all duration-300 fade-in hover:opacity-70 hover:scale-105"
                         />
                       ) : (
                         <div className="h-full w-full bg-muted flex items-center justify-center text-muted-foreground">
@@ -169,7 +176,7 @@ function ListingSection({
 export default function ToolsIndex() {
   return (
     <>
-      <section className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left bg-zinc-50/50 dark:bg-zinc-900/50">
+      <section className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left bg-fd-muted/50">
         <div className="text-center">
           <Breadcrumb className="mb-4 flex justify-center">
             <BreadcrumbList className="justify-center">

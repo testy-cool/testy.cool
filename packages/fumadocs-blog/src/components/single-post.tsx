@@ -103,7 +103,7 @@ export function SinglePost({
         </Breadcrumb>
 
         {categoryInfo && categoryUrl && (
-          <div className="mb-4 text-gray-600 dark:text-gray-400 text-sm font-medium">
+          <div className="mb-4 text-fd-muted-foreground text-sm font-medium">
             <div className="flex flex-wrap gap-3">
               <span className="inline-flex items-center gap-1.5 capitalize">
                 {categoryInfo.icon &&
@@ -211,7 +211,7 @@ export function SinglePost({
             }}
             article={{
               className: classNames(
-                "!m-[unset] max-w-none bg-zinc-50/50 dark:bg-zinc-900/50 py-8 md:py-12"
+                "!m-[unset] max-w-none bg-fd-muted/50 py-8 md:py-12"
               ),
             }}
           >

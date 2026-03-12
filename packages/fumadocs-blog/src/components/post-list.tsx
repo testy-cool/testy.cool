@@ -45,7 +45,7 @@ export function PostList({
 
   return (
     <>
-      <section className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left bg-zinc-50/50 dark:bg-zinc-900/50">
+      <section className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left bg-fd-muted/50">
         {slot(configuration?.backgroundPattern, null)}
 
         <div className="text-center">
@@ -72,7 +72,7 @@ export function PostList({
           <DocsTitle className="dark:text-white capitalize">
             {heading}
           </DocsTitle>
-          <DocsDescription className="mt-3 dark:text-gray-300 mb-0">
+          <DocsDescription className="mt-3 mb-0">
             {description}
           </DocsDescription>
         </div>
@@ -80,7 +80,7 @@ export function PostList({
 
       <section className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left">
         {slot(configuration?.backgroundPattern, null)}
-        <div className="grid gap-y-10 sm:grid-cols-12 sm:gap-y-12 md:gap-y-16 lg:gap-y-20">
+        <div className="grid gap-y-8 sm:grid-cols-12 sm:gap-y-10 md:gap-y-12 lg:gap-y-14">
           {posts
             .filter(
               (post): post is NonNullable<typeof post> => post !== undefined

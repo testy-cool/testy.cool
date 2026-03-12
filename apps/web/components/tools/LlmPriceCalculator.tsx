@@ -776,7 +776,7 @@ export function LlmPriceCalculator() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="hidden overflow-x-auto md:block">
           <table className={`${tableMinWidthClass} w-full`}>
             <thead>
               <tr className="border-b border-fd-border bg-fd-muted/15">
@@ -880,6 +880,91 @@ export function LlmPriceCalculator() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile card view */}
+        <div className="flex flex-col gap-3 p-3 md:hidden">
+          {visibleModels.map((model) => (
+            <div
+              key={model.name}
+              className="rounded-xl border border-fd-border bg-fd-background p-4 transition-colors hover:bg-fd-muted/45"
+            >
+              <div className="mb-3 flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-fd-foreground">
+                    {model.name}
+                  </div>
+                  <div className="mt-0.5 text-xs text-fd-muted-foreground">
+                    {providerLabels[model.provider]}
+                  </div>
+                </div>
+                <div className="flex shrink-0 gap-1">
+                  {model.modalities.map((m) => (
+                    <span
+                      key={m}
+                      title={modalityFullLabels[m]}
+                      className="inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-semibold leading-none bg-fd-muted/60 text-fd-foreground/72"
+                    >
+                      {modalityLabels[m]}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-3 flex items-center gap-3 text-xs text-fd-muted-foreground">
+                <span>
+                  {formatTokenCount(model.context)} /{" "}
+                  {formatTokenCount(model.maxOutput)}
+                </span>
+                <span className="text-fd-border">|</span>
+                <span>
+                  In: {formatRate(model.input)}/M &middot; Out:{" "}
+                  {formatRate(model.output)}/M
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                <div>
+                  <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                    {showCache ? "1st call" : "Per call"}
+                  </div>
+                  <div className="text-sm font-medium tabular-nums text-fd-foreground">
+                    {formatCost(model.perCall)}
+                  </div>
+                </div>
+                {showCache && (
+                  <div>
+                    <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                      Next call
+                    </div>
+                    <div className="text-sm font-medium tabular-nums text-fd-foreground/78">
+                      {formatCost(model.cachedPerCall)}
+                    </div>
+                  </div>
+                )}
+                {showBulk && (
+                  <div>
+                    <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                      Total
+                    </div>
+                    <div className="text-sm font-semibold tabular-nums text-fd-foreground">
+                      {formatCost(showCache ? model.cachedTotal : model.total)}
+                    </div>
+                  </div>
+                )}
+                {showCache && (
+                  <div>
+                    <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                      Savings
+                    </div>
+                    <div className="text-sm font-medium tabular-nums text-fd-foreground/72">
+                      {model.savings.toFixed(0)}%
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="border-t border-fd-border px-5 py-3 text-[11px] leading-5 text-fd-foreground/60">

@@ -1,26 +1,62 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@repo/shadverse/components/button";
 import { MoveRight } from "lucide-react";
 
 const topics = ["LLMs", "agents", "automation", "tools"];
+const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
+const SCRAMBLE_SPEED = 30; // ms per tick
+const SETTLE_DELAY = 3; // ticks before each char locks in
 
 export default function Hero({ postCount }: { postCount?: number }) {
-  const [topicIndex, setTopicIndex] = useState(0);
-  const [visible, setVisible] = useState(true);
+  const [display, setDisplay] = useState(topics[0]);
+  const indexRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+
+  const scrambleTo = useCallback((target: string) => {
+    let tick = 0;
+    const maxLen = Math.max(display.length, target.length);
+
+    const step = () => {
+      tick++;
+      let result = "";
+      let allSettled = true;
+
+      for (let i = 0; i < maxLen; i++) {
+        if (i < target.length) {
+          // char locks in after enough ticks
+          if (tick >= (i + 1) * SETTLE_DELAY) {
+            result += target[i];
+          } else {
+            result += chars[Math.floor(Math.random() * chars.length)];
+            allSettled = false;
+          }
+        }
+      }
+
+      setDisplay(result);
+
+      if (!allSettled) {
+        rafRef.current = window.setTimeout(step, SCRAMBLE_SPEED);
+      }
+    };
+
+    step();
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setVisible(false);
-      setTimeout(() => {
-        setTopicIndex((prev) => (prev + 1) % topics.length);
-        setVisible(true);
-      }, 300);
+      indexRef.current = (indexRef.current + 1) % topics.length;
+      scrambleTo(topics[indexRef.current]);
     }, 2500);
-    return () => clearInterval(interval);
-  }, []);
+
+    return () => {
+      clearInterval(interval);
+      if (rafRef.current) clearTimeout(rafRef.current);
+    };
+  }, [scrambleTo]);
 
   return (
     <div className="w-full">
@@ -31,17 +67,8 @@ export default function Hero({ postCount }: { postCount?: number }) {
           </h1>
           <p className="max-w-xl text-center text-lg leading-relaxed text-fd-foreground/72 md:text-xl">
             Notes on{" "}
-            <span
-              className="inline-block min-w-[7ch] text-fd-primary font-medium transition-all duration-300"
-              style={{
-                opacity: visible ? 1 : 0,
-                transform: visible
-                  ? "translateY(0) scale(1)"
-                  : "translateY(4px) scale(0.98)",
-                transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
-              }}
-            >
-              {topics[topicIndex]}
+            <span className="inline-block min-w-[7ch] text-fd-primary font-medium font-mono">
+              {display}
             </span>
             , mostly ramblings.
           </p>

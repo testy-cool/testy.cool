@@ -1,7 +1,16 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { DocsTitle, DocsDescription } from "fumadocs-ui/page";
 import type { Metadata } from "next";
+import { allTools, getToolUrl } from "@/lib/tools";
+import type { Tool } from "@/lib/tools";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@repo/shadverse/components/breadcrumb";
 
 export const metadata: Metadata = {
   title: "Tools",
@@ -13,163 +22,51 @@ export const metadata: Metadata = {
       "Tools, a few tool-backed tutorials, and some browser extensions.",
   },
 };
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@repo/shadverse/components/breadcrumb";
-
-interface Tool {
-  slug: string;
-  title: string;
-  description: string;
-  screenshot?: string;
-  tags?: string[];
-  // If tool is embedded in a blog post, link there instead of /tools/[slug]
-  blogPath?: string;
-}
-
-const tools: Tool[] = [
-  {
-    slug: "llm-price-calculator",
-    title: "LLM Price Calculator",
-    description:
-      "Calculator for checking API costs across Claude, GPT, and Gemini, including prompt caching.",
-    screenshot: "/images/tools/llm-price-calculator.png",
-    tags: ["LLM", "API", "Pricing"],
-  },
-  {
-    slug: "channel-pantry",
-    title: "Channel Pantry",
-    description:
-      "Analyze a YouTube cooking channel to see what ingredients they use most.",
-    screenshot: "/images/tools/channel-pantry.png",
-    tags: ["YouTube", "AI", "Cooking"],
-  },
-];
-
-const toolTutorials: Tool[] = [
-  {
-    slug: "clamp-calculator",
-    title: "CSS Clamp Calculator",
-    description:
-      "Clamp() calculator plus the tutorial explaining the math behind it.",
-    screenshot: "/images/tools/clamp-calculator.png",
-    tags: ["CSS", "Responsive", "Tutorial"],
-    // This tool is embedded in a blog post
-    blogPath: "/blog/tutorial/css-clamp-fluid-responsive-design",
-  },
-];
-
-const extensions: Tool[] = [
-  {
-    slug: "chatgpt-conversation-exporter",
-    title: "ChatGPT Conversation Exporter",
-    description:
-      "Browser extension for exporting one ChatGPT conversation to Markdown or HTML.",
-    screenshot:
-      "/images/tools/chatgpt-conversation-exporter/export-chatgpt-conversation-markdown-html.webp",
-    tags: ["Chrome", "Export"],
-  },
-  {
-    slug: "hnes",
-    title: "Hacker News Enhancement Suite",
-    description:
-      "Manifest V3 fork of HNES with collapsible comments, keyboard shortcuts, and user tags.",
-    screenshot: "/images/tools/hnes/hnes-screenshot.webp",
-    tags: ["Chrome", "Hacker News"],
-  },
-];
 
 const pageTitle = "Tools";
 
-function ListingSection({
-  title,
-  description,
-  items,
-  ctaLabel,
-}: {
-  title: string;
-  description: string;
-  items: Tool[];
-  ctaLabel: string;
-}) {
+function ToolCard({ tool }: { tool: Tool }) {
+  const url = getToolUrl(tool);
+
   return (
-    <section className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left">
-      <div className="mb-8">
-        <h2 className="text-2xl font-semibold md:text-3xl">{title}</h2>
-        <p className="mt-2 text-fd-muted-foreground">{description}</p>
-      </div>
-      <div className="grid gap-y-10 sm:grid-cols-12 sm:gap-y-12 md:gap-y-16 lg:gap-y-20">
-        {items.map((tool) => {
-          const toolUrl = tool.blogPath || `/tools/${tool.slug}`;
-          const label = tool.blogPath ? "Read tutorial" : ctaLabel;
-          return (
-            <div
-              key={tool.slug}
-              className="order-last border-0 bg-transparent shadow-none sm:order-first sm:col-span-12 lg:col-span-10 lg:col-start-2"
-            >
-              <div className="grid gap-y-6 sm:grid-cols-10 sm:gap-x-5 sm:gap-y-0 md:items-center md:gap-x-8 lg:gap-x-12">
-                <div className="sm:col-span-5">
-                  <div className="mb-3 md:mb-4">
-                    <div className="flex flex-wrap gap-2">
-                      {tool.tags?.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2.5 py-0.5 bg-fd-muted text-fd-foreground rounded-full text-xs font-medium"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <h3 className="text-xl font-semibold md:text-2xl lg:text-3xl text-left">
-                    <Link
-                      href={toolUrl}
-                      className="hover:underline cursor-pointer"
-                    >
-                      {tool.title}
-                    </Link>
-                  </h3>
-                  <p className="mt-4 text-fd-muted-foreground md:mt-5 text-left">
-                    {tool.description}
-                  </p>
-                  <div className="mt-6 flex items-center space-x-2 md:mt-8">
-                    <Link
-                      href={toolUrl}
-                      className="inline-flex items-center font-semibold hover:underline md:text-base"
-                    >
-                      <span>{label}</span>
-                      <ArrowRight className="ml-2 size-4 transition-transform" />
-                    </Link>
-                  </div>
-                </div>
-                <div className="order-first sm:order-last sm:col-span-5">
-                  <Link href={toolUrl} className="block">
-                    <div className="aspect-[16/9] overflow-clip rounded-lg border border-border">
-                      {tool.screenshot ? (
-                        <img
-                          src={tool.screenshot}
-                          alt={tool.title}
-                          className="h-full w-full object-cover transition-all duration-300 fade-in hover:opacity-70 hover:scale-105"
-                        />
-                      ) : (
-                        <div className="h-full w-full bg-muted flex items-center justify-center text-muted-foreground">
-                          Preview
-                        </div>
-                      )}
-                    </div>
-                  </Link>
-                </div>
-              </div>
+    <Link href={url} className="group block">
+      <article className="h-full rounded-xl border border-fd-border bg-fd-card overflow-hidden transition-colors hover:border-fd-primary/40">
+        {tool.screenshot && (
+          <div className="aspect-[16/9] overflow-hidden border-b border-fd-border">
+            <img
+              src={tool.screenshot}
+              alt={tool.title}
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          </div>
+        )}
+        <div className="p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <span className="rounded-full border border-fd-border bg-fd-muted px-2 py-0.5 text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground">
+              {tool.type}
+            </span>
+          </div>
+          <h3 className="text-sm font-semibold leading-snug group-hover:text-fd-primary transition-colors">
+            {tool.title}
+          </h3>
+          <p className="mt-1.5 text-xs leading-relaxed text-fd-muted-foreground line-clamp-2">
+            {tool.description}
+          </p>
+          {tool.tags && tool.tags.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {tool.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-fd-muted px-2 py-0.5 text-[11px] font-medium text-fd-foreground"
+                >
+                  {tag}
+                </span>
+              ))}
             </div>
-          );
-        })}
-      </div>
-    </section>
+          )}
+        </div>
+      </article>
+    </Link>
   );
 }
 
@@ -199,24 +96,13 @@ export default function ToolsIndex() {
           </DocsDescription>
         </div>
       </section>
-      <ListingSection
-        title="Standalone Tools"
-        description="Tools that have their own pages."
-        items={tools}
-        ctaLabel="Open tool"
-      />
-      <ListingSection
-        title="Tool Tutorials"
-        description="Small tools that live inside longer posts."
-        items={toolTutorials}
-        ctaLabel="Read tutorial"
-      />
-      <ListingSection
-        title="Extensions"
-        description="Browser extensions and related utilities."
-        items={extensions}
-        ctaLabel="View extension"
-      />
+      <section className="container px-4 py-8 lg:py-12 lg:px-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {allTools.map((tool) => (
+            <ToolCard key={tool.slug} tool={tool} />
+          ))}
+        </div>
+      </section>
     </>
   );
 }

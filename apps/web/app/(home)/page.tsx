@@ -4,6 +4,7 @@ import { GridBackground } from "@repo/ui/components/grid-background";
 import { getBlogPosts } from "@/lib/source";
 import type { BlogPost } from "@repo/fumadocs-blog/blog";
 import { organizationSchema, websiteSchema } from "@/lib/jsonld";
+import { allTools, getToolUrl } from "@/lib/tools";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
@@ -15,32 +16,16 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
   year: "numeric",
 });
 
-const featuredTools = [
-  {
-    title: "LLM Price Calculator",
-    description:
-      "Calculator for checking API costs across Claude, GPT, and Gemini, including prompt caching.",
-    href: "/tools/llm-price-calculator",
-    type: "Standalone Tool",
-    cta: "Open Tool",
-  },
-  {
-    title: "CSS Clamp Calculator",
-    description:
-      "Clamp() calculator plus the tutorial explaining the math behind it.",
-    href: "/blog/tutorial/css-clamp-fluid-responsive-design",
-    type: "Tool + Tutorial",
-    cta: "Read Tutorial",
-  },
-  {
-    title: "ChatGPT Conversation Exporter",
-    description:
-      "Browser extension for exporting one ChatGPT conversation to Markdown or HTML.",
-    href: "/tools/chatgpt-conversation-exporter",
-    type: "Extension",
-    cta: "View Extension",
-  },
-];
+const featuredSlugs = ["llm-price-calculator", "clamp-calculator", "chatgpt-conversation-exporter"];
+const featuredTools = featuredSlugs
+  .map((slug) => allTools.find((t) => t.slug === slug))
+  .filter(Boolean)
+  .map((tool) => ({
+    title: tool!.title,
+    description: tool!.description,
+    href: getToolUrl(tool!),
+    type: tool!.type,
+  }));
 
 function sortPosts(posts: BlogPost[]): SitePost[] {
   return posts

@@ -221,6 +221,54 @@ export function SinglePost({
           </DocsPage>
         </div>
       </DocsLayout>
+
+      {(() => {
+        const currentUrl = page.url || page.data?.url;
+        const currentTags = tags || [];
+        if (currentTags.length === 0 || posts.length === 0) return null;
+
+        const related = posts
+          .filter((p: any) => {
+            const pUrl = p.url || p.data?.url;
+            if (pUrl === currentUrl) return false;
+            const pTags: string[] = p.data?.tags ?? [];
+            return pTags.some((t: string) => currentTags.includes(t));
+          })
+          .slice(0, 3);
+
+        if (related.length === 0) return null;
+
+        return (
+          <div className="relative container px-4 py-8 lg:py-12 lg:px-6">
+            <h2 className="text-lg font-semibold mb-4">Related Posts</h2>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {related.map((post: any) => {
+                const category = post.slugs?.[0];
+                return (
+                  <Link
+                    key={post.url}
+                    href={post.url}
+                    className="group block rounded-xl border border-fd-border p-4 transition-colors hover:border-fd-primary/40 hover:bg-fd-muted/30"
+                  >
+                    <p className="mb-1 text-xs font-medium uppercase tracking-wider text-fd-muted-foreground">
+                      {category || "Post"}
+                      {" \u00b7 "}
+                      {post.data.date.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </p>
+                    <h3 className="text-sm font-semibold leading-snug group-hover:text-fd-primary transition-colors">
+                      {post.data.title}
+                    </h3>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
     </>
   );
 }

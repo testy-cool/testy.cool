@@ -1,4 +1,5 @@
 import { blogSource } from "@/lib/source";
+import { allTools, getToolUrl } from "@/lib/tools";
 import { createSearchAPI } from "fumadocs-core/search/server";
 
 export const revalidate = false;
@@ -18,5 +19,16 @@ export const { staticGET: GET } = createSearchAPI("advanced", {
           tag: "blog",
         };
       }),
+    ...allTools.map((tool) => ({
+      title: tool.title,
+      description: tool.description,
+      url: getToolUrl(tool),
+      id: `tool-${tool.slug}`,
+      structuredData: {
+        headings: [] as { id: string; content: string }[],
+        contents: [{ heading: undefined, content: tool.description }],
+      },
+      tag: "tool",
+    })),
   ],
 });

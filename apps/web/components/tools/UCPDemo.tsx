@@ -151,7 +151,6 @@ export function UCPDemo() {
               <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
                 1
               </div>
-              <div className="w-0.5 flex-1 bg-border mt-2" />
             </div>
             <div className="flex-1 pb-2">
               <h4 className="font-semibold mb-2">Discovery</h4>
@@ -173,7 +172,6 @@ export function UCPDemo() {
               <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
                 2
               </div>
-              <div className="w-0.5 flex-1 bg-border mt-2" />
             </div>
             <div className="flex-1 pb-2">
               <h4 className="font-semibold mb-2">Capability Negotiation</h4>
@@ -209,7 +207,6 @@ export function UCPDemo() {
               <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
                 3
               </div>
-              <div className="w-0.5 flex-1 bg-border mt-2" />
             </div>
             <div className="flex-1 pb-2">
               <h4 className="font-semibold mb-2">Create Checkout Session</h4>
@@ -237,7 +234,6 @@ export function UCPDemo() {
               <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
                 4
               </div>
-              <div className="w-0.5 flex-1 bg-border mt-2" />
             </div>
             <div className="flex-1 pb-2">
               <h4 className="font-semibold mb-2">Payment via Payment Handler</h4>

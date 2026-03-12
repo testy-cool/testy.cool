@@ -251,7 +251,7 @@ export default function HomePage() {
 
         <div className="relative flex items-center justify-center w-full mx-auto container">
           <div className="space-y-8">
-            <Hero />
+            <Hero postCount={posts.length} />
           </div>
         </div>
       </div>

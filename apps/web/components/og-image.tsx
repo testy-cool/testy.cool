@@ -30,7 +30,7 @@ export async function generateOGImage(title: string) {
       <div
         tw="relative flex flex-col items-center justify-center w-full h-full"
         style={{
-          background: "radial-gradient(ellipse 80% 80% at 50% 50%, #1a0a2e 0%, #050505 70%)",
+          background: "radial-gradient(ellipse 80% 80% at 50% 50%, #0a2830 0%, #050505 70%)",
         }}
       >
         {/* Grid background */}
@@ -76,7 +76,7 @@ export async function generateOGImage(title: string) {
             fontFamily: "SourceCodePro",
             bottom: "40px",
             fontSize: "14px",
-            color: "#666",
+            color: "#4a9baf",
             fontWeight: 500,
             letterSpacing: "0.02em",
           }}

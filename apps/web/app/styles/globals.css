@@ -1,6 +1,17 @@
 @import "tailwindcss";
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
+
+/* Accent color override — teal */
+:root {
+  --color-fd-primary: hsl(192, 45%, 30%);
+  --color-fd-primary-foreground: hsl(0, 0%, 98%);
+}
+.dark {
+  --color-fd-primary: hsl(192, 40%, 72%);
+  --color-fd-primary-foreground: hsl(0, 0%, 9%);
+}
+
 @import "fumadocs-twoslash/twoslash.css";
 @import "tw-animate-css";
 
@@ -74,4 +85,14 @@
 .shimmer-bg {
   background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
   background-size: 200% 100%;
+}
+
+/* Touch feedback for mobile */
+@media (hover: none) {
+  button:active,
+  a:active,
+  [role="button"]:active {
+    opacity: 0.75;
+    transition: opacity 0.1s ease;
+  }
 }

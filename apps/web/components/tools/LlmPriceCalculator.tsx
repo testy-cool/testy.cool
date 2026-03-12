@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 
-type Provider = "anthropic" | "openai" | "google";
+type Provider = "anthropic" | "openai" | "google" | "zhipu";
 
 interface Model {
   name: string;
@@ -237,15 +237,71 @@ const models: Model[] = [
     context: 1_000_000,
     maxOutput: 8_192,
   },
+  // Zhipu AI (GLM)
+  {
+    name: "GLM-5",
+    provider: "zhipu",
+    input: 1,
+    output: 3.2,
+    cachedInput: 0.2,
+    context: 200_000,
+    maxOutput: 128_000,
+  },
+  {
+    name: "GLM-5-Code",
+    provider: "zhipu",
+    input: 1.2,
+    output: 5,
+    cachedInput: 0.3,
+    context: 200_000,
+    maxOutput: 128_000,
+  },
+  {
+    name: "GLM-4.7",
+    provider: "zhipu",
+    input: 0.6,
+    output: 2.2,
+    cachedInput: 0.11,
+    context: 200_000,
+    maxOutput: 128_000,
+  },
+  {
+    name: "GLM-4.7-FlashX",
+    provider: "zhipu",
+    input: 0.07,
+    output: 0.4,
+    cachedInput: 0.01,
+    context: 200_000,
+    maxOutput: 128_000,
+  },
+  {
+    name: "GLM-4.5",
+    provider: "zhipu",
+    input: 0.6,
+    output: 2.2,
+    cachedInput: 0.11,
+    context: 128_000,
+    maxOutput: 128_000,
+  },
+  {
+    name: "GLM-4.5-X",
+    provider: "zhipu",
+    input: 2.2,
+    output: 8.9,
+    cachedInput: 0.45,
+    context: 128_000,
+    maxOutput: 128_000,
+  },
 ];
 
 const providerLabels: Record<Provider, string> = {
   anthropic: "Anthropic",
   openai: "OpenAI",
   google: "Google",
+  zhipu: "Zhipu AI",
 };
 
-const providerOrder: Provider[] = ["anthropic", "openai", "google"];
+const providerOrder: Provider[] = ["anthropic", "openai", "google", "zhipu"];
 
 const integerFormatter = new Intl.NumberFormat("en-US");
 const currency2Formatter = new Intl.NumberFormat("en-US", {

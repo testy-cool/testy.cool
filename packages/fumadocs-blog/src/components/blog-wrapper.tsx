@@ -26,6 +26,7 @@ interface BlogWrapperProps {
   getSeriesBySlug: (slug: string) => any;
   mdxComponents: any;
   includeDrafts: boolean;
+  getJsonLd?: (page: any, category?: string) => Record<string, unknown> | Record<string, unknown>[];
 }
 
 export async function BlogWrapper({
@@ -37,6 +38,7 @@ export async function BlogWrapper({
   getSeriesBySlug,
   mdxComponents,
   includeDrafts,
+  getJsonLd,
 }: BlogWrapperProps) {
   const sortedPosts = getSortedByDatePosts(posts, includeDrafts);
 
@@ -124,6 +126,7 @@ export async function BlogWrapper({
         getCategoryBySlug={getCategoryBySlug}
         mdxComponents={mdxComponents}
         posts={sortedPosts}
+        jsonLd={getJsonLd?.(page, category)}
       />
     );
   }

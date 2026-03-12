@@ -76,7 +76,7 @@ export async function generateOGImage(title: string) {
             fontFamily: "SourceCodePro",
             bottom: "40px",
             fontSize: "14px",
-            color: "#4a9baf",
+            color: "#2a6070",
             fontWeight: 500,
             letterSpacing: "0.02em",
           }}

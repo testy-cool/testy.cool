@@ -38,6 +38,7 @@ const tools: Tool[] = [
     title: "LLM Price Calculator",
     description:
       "Calculator for checking API costs across Claude, GPT, and Gemini, including prompt caching.",
+    screenshot: "/images/tools/llm-price-calculator.png",
     tags: ["LLM", "API", "Pricing"],
   },
   {
@@ -45,6 +46,7 @@ const tools: Tool[] = [
     title: "Channel Pantry",
     description:
       "Analyze a YouTube cooking channel to see what ingredients they use most.",
+    screenshot: "/images/tools/channel-pantry.png",
     tags: ["YouTube", "AI", "Cooking"],
   },
 ];

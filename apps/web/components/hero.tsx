@@ -25,17 +25,20 @@ export default function Hero({ postCount }: { postCount?: number }) {
   return (
     <div className="w-full">
       <div className="container mx-auto">
-        <div className="flex flex-col items-center justify-center gap-5 py-12 lg:py-16">
+        <div className="flex flex-col items-center justify-center gap-3 py-12 lg:py-16">
           <h1 className="text-4xl md:text-6xl tracking-tight text-center font-bold">
             Mostly LLMs, mostly.
           </h1>
           <p className="max-w-xl text-center text-lg leading-relaxed text-fd-foreground/72 md:text-xl">
             Notes on{" "}
             <span
-              className="inline-block min-w-[7ch] text-fd-primary font-medium transition-all duration-300 ease-in-out"
+              className="inline-block min-w-[7ch] text-fd-primary font-medium transition-all duration-300"
               style={{
                 opacity: visible ? 1 : 0,
-                transform: visible ? "translateY(0)" : "translateY(4px)",
+                transform: visible
+                  ? "translateY(0) scale(1)"
+                  : "translateY(4px) scale(0.98)",
+                transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
               }}
             >
               {topics[topicIndex]}
@@ -43,12 +46,12 @@ export default function Hero({ postCount }: { postCount?: number }) {
             , mostly ramblings.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <Button asChild size="lg" className="gap-2">
+            <Button asChild size="lg" className="gap-2 hover:shadow-md transition-all">
               <Link href="/blog">
                 Browse notes <MoveRight className="w-4 h-4" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="secondary" className="gap-2">
+            <Button asChild size="lg" variant="outline" className="gap-2 hover:shadow-md transition-all">
               <Link href="/tools">
                 Tools <MoveRight className="w-4 h-4" />
               </Link>

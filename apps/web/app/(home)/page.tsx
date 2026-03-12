@@ -146,7 +146,7 @@ function PostListItem({ post }: { post: SitePost }) {
   const category = getCategorySlug(post);
 
   return (
-    <article className="-mx-3 min-w-0 rounded-2xl border-b border-fd-border/80 px-3 py-4 transition-colors hover:bg-fd-primary/[0.03] last:border-b-0">
+    <article className="-mx-3 min-w-0 rounded-2xl border-b border-fd-border/80 px-3 py-4 transition-colors hover:bg-fd-primary/[0.08] last:border-b-0">
       <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-medium uppercase tracking-[0.16em]">
         <span className="inline-flex rounded-full border border-fd-primary/15 bg-fd-primary/8 px-2.5 py-1 text-fd-primary">
           {getCategoryLabel(category)}

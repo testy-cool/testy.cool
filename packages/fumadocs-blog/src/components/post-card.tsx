@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 import type { BlogPost, BlogConfiguration } from "./types";
 import { cn, getReadingTime } from "./utils";
 
@@ -12,14 +12,21 @@ export function PostCard({ post, configuration = {} }: PostCardProps) {
   const CardComponent = configuration.Card || null;
   const readingTime = getReadingTime(post.data.structuredData);
   const cardClassName =
-    "order-last border-0 bg-transparent shadow-none sm:order-first sm:col-span-12 lg:col-span-10 lg:col-start-2";
+    "order-last border-0 bg-transparent shadow-none sm:order-first sm:col-span-12 lg:col-span-10 lg:col-start-2 transition-all duration-300 hover:shadow-lg rounded-xl";
 
   const cardContent = (
     <div className="grid gap-y-6 sm:grid-cols-10 sm:gap-x-5 sm:gap-y-0 md:items-center md:gap-x-8 lg:gap-x-12">
       <div className="sm:col-span-5">
         <div className="mb-4 md:mb-6">
-          <div className="flex flex-wrap gap-3 text-xs uppercase tracking-wider text-muted-foreground md:gap-5 lg:gap-6">
-            {post.data.tags?.map((tag) => <span key={tag}>{tag}</span>)}
+          <div className="flex flex-wrap gap-2">
+            {post.data.tags?.map((tag) => (
+              <span
+                key={tag}
+                className="px-2.5 py-0.5 bg-fd-muted text-fd-foreground rounded-full text-xs font-medium"
+              >
+                {tag}
+              </span>
+            ))}
           </div>
         </div>
         <h3 className="text-xl font-semibold md:text-2xl lg:text-3xl text-left">
@@ -27,7 +34,7 @@ export function PostCard({ post, configuration = {} }: PostCardProps) {
             {post.data.title}
           </Link>
         </h3>
-        <p className="mt-4 text-muted-foreground md:mt-5 text-left">
+        <p className="mt-4 text-muted-foreground md:mt-5 text-left line-clamp-3">
           {post.data.description}
         </p>
         <div className="mt-6 flex items-center space-x-4 text-sm md:mt-8">
@@ -36,17 +43,22 @@ export function PostCard({ post, configuration = {} }: PostCardProps) {
           </span>
           <span className="text-muted-foreground">•</span>
           <span className="text-muted-foreground">
-            {new Date(post.data.date).toDateString()}
+            {new Date(post.data.date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
           </span>
           <span className="text-muted-foreground">&bull;</span>
-          <span className="text-muted-foreground">
+          <span className="inline-flex items-center gap-1 text-muted-foreground">
+            <Clock className="h-3.5 w-3.5" />
             {readingTime} min read
           </span>
         </div>
         <div className="mt-6 flex items-center space-x-2 md:mt-8">
           <Link
             href={post.url}
-            className="inline-flex items-center font-semibold hover:underline md:text-base"
+            className="inline-flex items-center font-semibold hover:underline underline-offset-2 md:text-base"
           >
             <span>Read more</span>
             <ArrowRight className="ml-2 size-4 transition-transform" />
@@ -59,7 +71,7 @@ export function PostCard({ post, configuration = {} }: PostCardProps) {
             <img
               src={post.data.image || post.url.replace('/blog/', '/blog-og/') + '/image.png'}
               alt={post.data.title}
-              className="h-full w-full object-cover transition-opacity duration-200 fade-in hover:opacity-70"
+              className="h-full w-full object-cover transition-all duration-300 fade-in hover:opacity-70 hover:scale-105"
             />
           </div>
         </Link>

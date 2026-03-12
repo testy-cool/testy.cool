@@ -21,7 +21,7 @@ export default function SimpleFooter({
             <a
               key={item.name}
               href={item.href}
-              className="text-gray-600 hover:text-gray-800"
+              className="text-fd-muted-foreground hover:text-fd-primary transition-colors duration-200"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -30,7 +30,7 @@ export default function SimpleFooter({
             </a>
           ))}
         </div>
-        <p className="mt-8 text-center text-sm/6 text-gray-600 md:order-1 md:mt-0">
+        <p className="mt-8 text-center text-sm/6 text-fd-muted-foreground md:order-1 md:mt-0">
           &copy; {new Date().getFullYear()} testy.cool
         </p>
       </div>

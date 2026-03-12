@@ -35,6 +35,7 @@ interface SinglePostProps {
   getCategoryBySlug: (slug: string) => any;
   mdxComponents: any;
   posts?: any[];
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 export function SinglePost({
@@ -46,6 +47,7 @@ export function SinglePost({
   getCategoryBySlug,
   mdxComponents,
   posts = [],
+  jsonLd,
 }: SinglePostProps) {
   // Use configuration.cn if available, otherwise use the imported cn
   const classNames = configuration?.cn || cn;
@@ -61,6 +63,12 @@ export function SinglePost({
 
   return (
     <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
       <div className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left">
         {slot(configuration?.backgroundPattern, null)}
 
@@ -165,7 +173,7 @@ export function SinglePost({
             tags.map((tag) => (
               <span
                 key={tag}
-                className="px-2.5 py-0.5 bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-300 rounded-full text-xs font-medium"
+                className="px-2.5 py-0.5 bg-fd-muted text-fd-foreground rounded-full text-xs font-medium"
               >
                 {tag}
               </span>

@@ -81,7 +81,6 @@ export function createBlogMetadata(
       ...override.twitter,
     },
     alternates: {
-      canonical: "/",
       types: {
         "application/rss+xml": "/api/rss.xml",
       },

@@ -87,12 +87,24 @@
   background-size: 200% 100%;
 }
 
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Touch feedback for mobile */
 @media (hover: none) {
   button:active,
   a:active,
   [role="button"]:active {
-    opacity: 0.75;
-    transition: opacity 0.1s ease;
+    opacity: 0.85;
+    transform: scale(0.98);
+    transition: opacity 0.15s ease, transform 0.15s ease;
   }
 }

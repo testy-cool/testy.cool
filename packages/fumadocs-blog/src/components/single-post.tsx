@@ -16,9 +16,9 @@ import {
 import { BlogConfiguration } from "./types";
 
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
-import { Calendar, BookOpen } from "lucide-react";
+import { Calendar, Clock, BookOpen } from "lucide-react";
 import Link from "next/link";
-import { cn } from "./utils";
+import { cn, getReadingTime } from "./utils";
 
 // Popover and Badge configuration come from configuration context
 import { SeriesPopoverContent } from "./series-info";
@@ -49,6 +49,7 @@ export function SinglePost({
 }: SinglePostProps) {
   // Use configuration.cn if available, otherwise use the imported cn
   const classNames = configuration?.cn || cn;
+  const readingTime = getReadingTime(page.data.structuredData);
   const MDX = page.data.body;
   const blogBase = configuration?.config?.blogBase ?? "/blog";
   const categoryInfo = category ? getCategoryBySlug(category) : null;
@@ -112,6 +113,10 @@ export function SinglePost({
                   month: "long",
                   day: "numeric",
                 })}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className="h-4 w-4" />
+                {readingTime} min read
               </span>
             </div>
           </div>

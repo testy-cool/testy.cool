@@ -125,3 +125,31 @@ export const getTags = (posts: BlogPost[]) => {
 export const getPostsByTag = (tag: string, posts: BlogPost[]) => {
   return posts.filter((post) => post.data.tags?.includes(tag));
 };
+
+/**
+ * Calculate estimated reading time from structuredData.
+ * Assumes 230 words per minute. Returns at least 1.
+ */
+export function getReadingTime(structuredData?: {
+  headings?: { content: string }[];
+  contents?: { content: string }[];
+}): number {
+  if (!structuredData) return 1;
+
+  let text = "";
+
+  if (structuredData.headings) {
+    for (const h of structuredData.headings) {
+      text += ` ${h.content}`;
+    }
+  }
+
+  if (structuredData.contents) {
+    for (const c of structuredData.contents) {
+      text += ` ${c.content}`;
+    }
+  }
+
+  const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(wordCount / 230));
+}

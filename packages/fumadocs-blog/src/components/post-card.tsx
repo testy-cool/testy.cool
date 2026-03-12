@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { BlogPost, BlogConfiguration } from "./types";
-import { cn } from "./utils";
+import { cn, getReadingTime } from "./utils";
 
 interface PostCardProps {
   post: NonNullable<BlogPost>;
@@ -10,6 +10,7 @@ interface PostCardProps {
 
 export function PostCard({ post, configuration = {} }: PostCardProps) {
   const CardComponent = configuration.Card || null;
+  const readingTime = getReadingTime(post.data.structuredData);
   const cardClassName =
     "order-last border-0 bg-transparent shadow-none sm:order-first sm:col-span-12 lg:col-span-10 lg:col-start-2";
 
@@ -36,6 +37,10 @@ export function PostCard({ post, configuration = {} }: PostCardProps) {
           <span className="text-muted-foreground">•</span>
           <span className="text-muted-foreground">
             {new Date(post.data.date).toDateString()}
+          </span>
+          <span className="text-muted-foreground">&bull;</span>
+          <span className="text-muted-foreground">
+            {readingTime} min read
           </span>
         </div>
         <div className="mt-6 flex items-center space-x-2 md:mt-8">

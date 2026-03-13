@@ -1145,7 +1145,7 @@ export function LlmPriceCalculator() {
               </tr>
             </thead>
             <tbody>
-            <AnimatePresence initial={false} mode="popLayout">
+            <AnimatePresence initial={false}>
               {visibleModels.map((model, index) => {
                 const rank = rankedModels.get(model.name) ?? 999;
                 const isTop1 = rank === 1;
@@ -1155,11 +1155,10 @@ export function LlmPriceCalculator() {
                 return (
                   <motion.tr
                     key={model.name}
-                    layout
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2, layout: { duration: 0.25 } }}
+                    transition={{ duration: 0.15 }}
                     className={`border-b border-fd-border/70 transition-colors hover:bg-fd-muted/45 ${
                       isPinned
                         ? "bg-fd-primary/[0.04]"
@@ -1266,7 +1265,7 @@ export function LlmPriceCalculator() {
 
         {/* Mobile card view */}
         <div className="flex flex-col gap-3 p-3 md:hidden">
-          <AnimatePresence initial={false} mode="popLayout">
+          <AnimatePresence initial={false}>
           {visibleModels.map((model) => {
             const rank = rankedModels.get(model.name) ?? 999;
             const isTop1 = rank === 1;
@@ -1276,11 +1275,10 @@ export function LlmPriceCalculator() {
             return (
               <motion.div
                 key={model.name}
-                layout
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.2, layout: { duration: 0.25 } }}
+                transition={{ duration: 0.15 }}
                 className={`relative rounded-xl border p-4 transition-colors hover:bg-fd-muted/45 ${
                   isPinned
                     ? "border-fd-primary/40 bg-fd-primary/[0.04]"

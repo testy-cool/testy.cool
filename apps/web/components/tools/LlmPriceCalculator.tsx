@@ -980,7 +980,7 @@ export function LlmPriceCalculator() {
               aria-pressed={allSelected}
               className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
                 allSelected
-                  ? "border-fd-border bg-fd-muted/60 text-fd-foreground"
+                  ? "border-fd-primary/40 bg-fd-primary/15 text-fd-foreground"
                   : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
               }`}
             >
@@ -993,7 +993,7 @@ export function LlmPriceCalculator() {
                 aria-pressed={providerFilter.has(provider)}
                 className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
                   !allSelected && providerFilter.has(provider)
-                    ? "border-fd-border bg-fd-muted/60 text-fd-foreground"
+                    ? "border-fd-primary/40 bg-fd-primary/15 text-fd-foreground"
                     : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
                 }`}
               >
@@ -1013,7 +1013,7 @@ export function LlmPriceCalculator() {
                 aria-pressed={modalityFilter.has(modality)}
                 className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
                   modalityFilter.has(modality)
-                    ? "border-fd-border bg-fd-muted/60 text-fd-foreground"
+                    ? "border-fd-primary/40 bg-fd-primary/15 text-fd-foreground"
                     : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
                 }`}
               >

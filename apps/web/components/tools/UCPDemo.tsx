@@ -145,14 +145,15 @@ export function UCPDemo() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-0">
-          {/* Step 1: Discovery */}
-          <div className="flex gap-4 pb-6">
-            <div className="flex flex-col items-center">
-              <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
-                1
-              </div>
+          <div className="relative flex gap-4">
+            {/* Continuous vertical line behind all circles */}
+            <div className="absolute left-5 top-5 bottom-5 w-px bg-border -translate-x-1/2" />
+
+            {/* Steps */}
+            <div className="relative flex flex-col items-center w-10 shrink-0">
+              <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm relative z-10">1</div>
             </div>
-            <div className="flex-1 pb-2">
+            <div className="flex-1 pb-8">
               <h4 className="font-semibold mb-2">Discovery</h4>
               <p className="text-sm text-muted-foreground mb-3">
                 Platform checks if the merchant supports UCP by hitting their well-known endpoint.
@@ -166,14 +167,12 @@ export function UCPDemo() {
             </div>
           </div>
 
-          {/* Step 2: Capability Negotiation */}
-          <div className="flex gap-4 pb-6">
-            <div className="flex flex-col items-center">
-              <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
-                2
-              </div>
+          <div className="relative flex gap-4">
+            <div className="absolute left-5 top-0 bottom-0 w-px bg-border -translate-x-1/2" />
+            <div className="relative flex flex-col items-center w-10 shrink-0">
+              <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm relative z-10">2</div>
             </div>
-            <div className="flex-1 pb-2">
+            <div className="flex-1 pb-8">
               <h4 className="font-semibold mb-2">Capability Negotiation</h4>
               <p className="text-sm text-muted-foreground mb-3">
                 Platform and merchant agree on which capabilities to use.
@@ -201,14 +200,12 @@ export function UCPDemo() {
             </div>
           </div>
 
-          {/* Step 3: Create Checkout Session */}
-          <div className="flex gap-4 pb-6">
-            <div className="flex flex-col items-center">
-              <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
-                3
-              </div>
+          <div className="relative flex gap-4">
+            <div className="absolute left-5 top-0 bottom-0 w-px bg-border -translate-x-1/2" />
+            <div className="relative flex flex-col items-center w-10 shrink-0">
+              <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm relative z-10">3</div>
             </div>
-            <div className="flex-1 pb-2">
+            <div className="flex-1 pb-8">
               <h4 className="font-semibold mb-2">Create Checkout Session</h4>
               <p className="text-sm text-muted-foreground mb-3">
                 Platform creates a checkout session with the items.
@@ -228,14 +225,12 @@ export function UCPDemo() {
             </div>
           </div>
 
-          {/* Step 4: Payment */}
-          <div className="flex gap-4 pb-6">
-            <div className="flex flex-col items-center">
-              <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
-                4
-              </div>
+          <div className="relative flex gap-4">
+            <div className="absolute left-5 top-0 bottom-0 w-px bg-border -translate-x-1/2" />
+            <div className="relative flex flex-col items-center w-10 shrink-0">
+              <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm relative z-10">4</div>
             </div>
-            <div className="flex-1 pb-2">
+            <div className="flex-1 pb-8">
               <h4 className="font-semibold mb-2">Payment via Payment Handler</h4>
               <p className="text-sm text-muted-foreground mb-3">
                 User approves payment. Platform gets a token (never raw card data), sends it to merchant.
@@ -260,12 +255,9 @@ export function UCPDemo() {
             </div>
           </div>
 
-          {/* Step 5: Complete */}
-          <div className="flex gap-4">
-            <div className="flex flex-col items-center">
-              <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center font-bold text-sm">
-                5
-              </div>
+          <div className="relative flex gap-4">
+            <div className="relative flex flex-col items-center w-10 shrink-0">
+              <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center font-bold text-sm relative z-10">5</div>
             </div>
             <div className="flex-1">
               <h4 className="font-semibold mb-2">Order Complete</h4>

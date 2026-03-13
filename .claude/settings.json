@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Check if ALL of these are true: (1) files were edited in this session, (2) the task appears complete and working, (3) the user hasn't already deployed or said they'll deploy later, (4) the conversation doesn't suggest deployment is unwanted. If all true, REMIND the agent to offer deploying by pushing to git (the site auto-deploys from GitHub via Cloudflare Pages). If any condition is false, do nothing. Keep the reminder to one short sentence."
+          }
+        ]
+      }
+    ]
+  }
+}

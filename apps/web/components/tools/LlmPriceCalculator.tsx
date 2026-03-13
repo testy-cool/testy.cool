@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Provider = "anthropic" | "openai" | "google" | "zhipu";
 type Modality = "text" | "image" | "audio" | "video" | "pdf";
@@ -15,6 +16,7 @@ interface Model {
   context: number; // max input context window in tokens
   maxOutput: number; // max output tokens
   modalities: Modality[];
+  reasoning?: number; // $ per 1M reasoning/thinking tokens
 }
 
 function formatTokenCount(n: number): string {
@@ -40,6 +42,7 @@ const models: Model[] = [
     context: 200_000,
     maxOutput: 128_000,
     modalities: ["text", "image", "pdf"],
+    reasoning: 25,
   },
   {
     name: "Claude Sonnet 4.6",
@@ -50,6 +53,7 @@ const models: Model[] = [
     context: 200_000,
     maxOutput: 64_000,
     modalities: ["text", "image", "pdf"],
+    reasoning: 15,
   },
   {
     name: "Claude Haiku 4.5",
@@ -171,6 +175,7 @@ const models: Model[] = [
     context: 200_000,
     maxOutput: 100_000,
     modalities: ["text", "image"],
+    reasoning: 80,
   },
   {
     name: "o3",
@@ -181,6 +186,7 @@ const models: Model[] = [
     context: 200_000,
     maxOutput: 100_000,
     modalities: ["text", "image"],
+    reasoning: 8,
   },
   {
     name: "o4-mini",
@@ -191,6 +197,7 @@ const models: Model[] = [
     context: 200_000,
     maxOutput: 100_000,
     modalities: ["text", "image"],
+    reasoning: 4.4,
   },
   // Google
   {
@@ -397,6 +404,7 @@ const DEFAULTS = {
   sort: "provider",
   mode: "cost",
   budget: 100,
+  reasoning: 0,
 };
 
 function readParams(): {
@@ -409,6 +417,7 @@ function readParams(): {
   sortBy: "provider" | "price";
   mode: CalcMode;
   budget: number;
+  reasoningTokens: number;
 } {
   if (typeof window === "undefined") {
     return {
@@ -421,6 +430,7 @@ function readParams(): {
       sortBy: DEFAULTS.sort as "provider" | "price",
       mode: DEFAULTS.mode as CalcMode,
       budget: DEFAULTS.budget,
+      reasoningTokens: DEFAULTS.reasoning,
     };
   }
   const p = new URLSearchParams(window.location.search);
@@ -457,12 +467,13 @@ function readParams(): {
     sortBy: p.get("sort") === "price" ? "price" : "provider",
     mode: p.get("mode") === "budget" ? "budget" : "cost",
     budget: Number(p.get("budget")) || DEFAULTS.budget,
+    reasoningTokens: Math.max(0, Number(p.get("reasoning")) || DEFAULTS.reasoning),
   };
 }
 
 function InfoTip({ text }: { text: string }) {
   return (
-    <span className="group relative ml-1 inline-flex cursor-help">
+    <span className="group relative inline-flex cursor-help">
       <svg className="h-3.5 w-3.5 text-fd-foreground/35 transition-colors group-hover:text-fd-foreground/60" viewBox="0 0 16 16" fill="currentColor">
         <path fillRule="evenodd" d="M15 8A7 7 0 1 1 1 8a7 7 0 0 1 14 0ZM9 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM6.75 8a.75.75 0 0 0 0 1.5h.75v1.75a.75.75 0 0 0 1.5 0v-2.5A.75.75 0 0 0 8.25 8h-1.5Z" clipRule="evenodd" />
       </svg>
@@ -488,6 +499,7 @@ export function LlmPriceCalculator() {
   const [sortBy, setSortBy] = useState<"provider" | "price">(initial.sortBy);
   const [mode, setMode] = useState<CalcMode>(initial.mode);
   const [budget, setBudget] = useState(initial.budget);
+  const [reasoningTokens, setReasoningTokens] = useState(initial.reasoningTokens);
   const [pinnedModels, setPinnedModels] = useState<Set<string>>(new Set());
 
   const allSelected = providerFilter.size === allProviders.size;
@@ -565,6 +577,7 @@ export function LlmPriceCalculator() {
     if (sortBy !== DEFAULTS.sort) params.set("sort", sortBy);
     if (mode !== DEFAULTS.mode) params.set("mode", mode);
     if (mode === "budget" && budget !== DEFAULTS.budget) params.set("budget", String(budget));
+    if (reasoningTokens !== DEFAULTS.reasoning) params.set("reasoning", String(reasoningTokens));
     const qs = params.toString();
     const url = window.location.pathname + (qs ? `?${qs}` : "");
     window.history.replaceState(null, "", url);
@@ -579,6 +592,7 @@ export function LlmPriceCalculator() {
     sortBy,
     mode,
     budget,
+    reasoningTokens,
   ]);
 
   useEffect(() => {
@@ -592,7 +606,7 @@ export function LlmPriceCalculator() {
   const isBudgetMode = mode === "budget";
 
   const controlLabelClass =
-    "mb-2 block text-sm font-medium text-fd-foreground/72";
+    "mb-2 flex items-center gap-1 text-sm font-medium text-fd-foreground/72";
   const headerCellClass =
     "px-4 py-3 text-right text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62";
   const inputClass =
@@ -606,12 +620,15 @@ export function LlmPriceCalculator() {
     return models.map((model) => {
       const inputCost = (inputTokens / 1_000_000) * model.input;
       const outputCost = (outputTokens / 1_000_000) * model.output;
-      const perCall = inputCost + outputCost;
+      const reasoningCost = model.reasoning
+        ? (reasoningTokens / 1_000_000) * model.reasoning
+        : 0;
+      const perCall = inputCost + outputCost + reasoningCost;
 
       const cachedInputPerCall =
         (inputTokens / 1_000_000) *
         ((1 - cacheRatio) * model.input + cacheRatio * model.cachedInput);
-      const cachedPerCall = cachedInputPerCall + outputCost;
+      const cachedPerCall = cachedInputPerCall + outputCost + reasoningCost;
       const subsequentCalls = Math.max(0, apiCalls - 1);
       const cachedTotal = perCall + cachedPerCall * subsequentCalls;
 
@@ -635,7 +652,7 @@ export function LlmPriceCalculator() {
         maxCalls,
       };
     });
-  }, [inputTokens, outputTokens, apiCalls, cacheRatio, budget, showCache]);
+  }, [inputTokens, outputTokens, reasoningTokens, apiCalls, cacheRatio, budget, showCache]);
 
   const visibleModels = useMemo(() => {
     let filtered = allSelected
@@ -796,7 +813,7 @@ export function LlmPriceCalculator() {
         </div>
 
         {isBudgetMode ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 xl:gap-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
             <div>
               <label htmlFor="budget-input" className={controlLabelClass}>
                 Budget ($)
@@ -846,9 +863,25 @@ export function LlmPriceCalculator() {
                 className={inputClass}
               />
             </div>
+            <div>
+              <label htmlFor="budget-reasoning-tokens" className={controlLabelClass}>
+                Reasoning Tokens
+                <InfoTip text="Internal thinking tokens used by reasoning models (o3, o4-mini, Claude with extended thinking). Billed at the output token rate. Set to 0 for non-reasoning models." />
+              </label>
+              <input
+                id="budget-reasoning-tokens"
+                type="number"
+                value={reasoningTokens}
+                onChange={(e) => setReasoningTokens(Math.max(0, Number(e.target.value)))}
+                min={0}
+                inputMode="numeric"
+                autoComplete="off"
+                className={inputClass}
+              />
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 xl:gap-5">
             <div>
               <label htmlFor="input-tokens" className={controlLabelClass}>
                 Input Tokens
@@ -877,6 +910,23 @@ export function LlmPriceCalculator() {
                 type="number"
                 value={outputTokens}
                 onChange={(e) => setOutputTokens(Number(e.target.value))}
+                min={0}
+                inputMode="numeric"
+                autoComplete="off"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="reasoning-tokens" className={controlLabelClass}>
+                Reasoning Tokens
+                <InfoTip text="Internal thinking tokens used by reasoning models (o3, o4-mini, Claude with extended thinking). Billed at the output token rate. Set to 0 for non-reasoning models." />
+              </label>
+              <input
+                id="reasoning-tokens"
+                name="reasoningTokens"
+                type="number"
+                value={reasoningTokens}
+                onChange={(e) => setReasoningTokens(Math.max(0, Number(e.target.value)))}
                 min={0}
                 inputMode="numeric"
                 autoComplete="off"
@@ -982,12 +1032,14 @@ export function LlmPriceCalculator() {
               {isBudgetMode ? (
                 <>
                   {currency2Formatter.format(budget)} budget · {integerFormatter.format(inputTokens)} in + {integerFormatter.format(outputTokens)} out per call
+                  {reasoningTokens > 0 && ` + ${integerFormatter.format(reasoningTokens)} reasoning`}
                   {showCache && ` · ${cachePercent}% cached`}
                 </>
               ) : (
                 <>
                   {integerFormatter.format(inputTokens)} in +{" "}
                   {integerFormatter.format(outputTokens)} out
+                  {reasoningTokens > 0 && ` + ${integerFormatter.format(reasoningTokens)} reasoning`}
                   {showBulk && ` \u00d7 ${integerFormatter.format(apiCalls)} calls`}
                   {showCache && ` \u00b7 ${cachePercent}% cached`}
                 </>
@@ -1065,6 +1117,7 @@ export function LlmPriceCalculator() {
                 <th className={headerCellClass}>Context</th>
                 {showAdvanced && <th className={headerCellClass}>In/M</th>}
                 {showAdvanced && <th className={headerCellClass}>Out/M</th>}
+                {showAdvanced && <th className={headerCellClass}>Think/M</th>}
                 {isBudgetMode ? (
                   <th className={`${headerCellClass} border-l border-fd-border/60 bg-fd-muted/12 text-fd-foreground/88`}>
                     Max calls
@@ -1092,6 +1145,7 @@ export function LlmPriceCalculator() {
               </tr>
             </thead>
             <tbody>
+            <AnimatePresence initial={false} mode="popLayout">
               {visibleModels.map((model, index) => {
                 const rank = rankedModels.get(model.name) ?? 999;
                 const isTop1 = rank === 1;
@@ -1099,8 +1153,13 @@ export function LlmPriceCalculator() {
                 const isPinned = pinnedModels.has(model.name);
                 const barWidth = getCostBarWidth(model);
                 return (
-                  <tr
+                  <motion.tr
                     key={model.name}
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2, layout: { duration: 0.25 } }}
                     className={`border-b border-fd-border/70 transition-colors hover:bg-fd-muted/45 ${
                       isPinned
                         ? "bg-fd-primary/[0.04]"
@@ -1152,6 +1211,11 @@ export function LlmPriceCalculator() {
                         {formatRate(model.output)}
                       </td>
                     )}
+                    {showAdvanced && (
+                      <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/74">
+                        {model.reasoning ? formatRate(model.reasoning) : <span className="text-fd-foreground/30">-</span>}
+                      </td>
+                    )}
                     {isBudgetMode ? (
                       <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3 text-right">
                         <div className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
@@ -1192,15 +1256,17 @@ export function LlmPriceCalculator() {
                         )}
                       </>
                     )}
-                  </tr>
+                  </motion.tr>
                 );
               })}
+            </AnimatePresence>
             </tbody>
           </table>
         </div>
 
         {/* Mobile card view */}
         <div className="flex flex-col gap-3 p-3 md:hidden">
+          <AnimatePresence initial={false} mode="popLayout">
           {visibleModels.map((model) => {
             const rank = rankedModels.get(model.name) ?? 999;
             const isTop1 = rank === 1;
@@ -1208,8 +1274,13 @@ export function LlmPriceCalculator() {
             const isPinned = pinnedModels.has(model.name);
             const barWidth = getCostBarWidth(model);
             return (
-              <div
+              <motion.div
                 key={model.name}
+                layout
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2, layout: { duration: 0.25 } }}
                 className={`relative rounded-xl border p-4 transition-colors hover:bg-fd-muted/45 ${
                   isPinned
                     ? "border-fd-primary/40 bg-fd-primary/[0.04]"
@@ -1254,6 +1325,7 @@ export function LlmPriceCalculator() {
                   <span>
                     In: {formatRate(model.input)}/M &middot; Out:{" "}
                     {formatRate(model.output)}/M
+                    {model.reasoning && <> &middot; Think: {formatRate(model.reasoning)}/M</>}
                   </span>
                 </div>
 
@@ -1316,9 +1388,10 @@ export function LlmPriceCalculator() {
                     style={{ width: `${barWidth}%` }}
                   />
                 </div>
-              </div>
+              </motion.div>
             );
           })}
+          </AnimatePresence>
         </div>
 
         <div className="border-t border-fd-border px-5 py-3 text-[11px] leading-5 text-fd-foreground/60">

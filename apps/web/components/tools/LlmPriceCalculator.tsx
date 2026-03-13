@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 
 type Provider = "anthropic" | "openai" | "google" | "zhipu";
 type Modality = "text" | "image" | "audio" | "video" | "pdf";
+type CalcMode = "cost" | "budget";
 
 interface Model {
   name: string;
@@ -382,12 +383,27 @@ function formatRate(rate: number): string {
   return `$${rate}`;
 }
 
+function formatCallCount(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return n.toFixed(0);
+}
+
+const presets = [
+  { label: "Chatbot", in: 2000, out: 1000, calls: 100, cache: 0 },
+  { label: "Batch", in: 8000, out: 500, calls: 10000, cache: 80 },
+  { label: "RAG", in: 4000, out: 2000, calls: 500, cache: 60 },
+  { label: "Code", in: 3000, out: 4000, calls: 50, cache: 0 },
+];
+
 const DEFAULTS = {
   in: 1000,
   out: 500,
   calls: 1000,
   cache: 0,
   sort: "provider",
+  mode: "cost",
+  budget: 100,
 };
 
 function readParams(): {
@@ -398,6 +414,8 @@ function readParams(): {
   providerFilter: Set<Provider>;
   modalityFilter: Set<Modality>;
   sortBy: "provider" | "price";
+  mode: CalcMode;
+  budget: number;
 } {
   if (typeof window === "undefined") {
     return {
@@ -408,6 +426,8 @@ function readParams(): {
       providerFilter: new Set(allProviders),
       modalityFilter: new Set<Modality>(),
       sortBy: DEFAULTS.sort as "provider" | "price",
+      mode: DEFAULTS.mode as CalcMode,
+      budget: DEFAULTS.budget,
     };
   }
   const p = new URLSearchParams(window.location.search);
@@ -442,6 +462,8 @@ function readParams(): {
     providerFilter,
     modalityFilter,
     sortBy: p.get("sort") === "price" ? "price" : "provider",
+    mode: p.get("mode") === "budget" ? "budget" : "cost",
+    budget: Number(p.get("budget")) || DEFAULTS.budget,
   };
 }
 
@@ -458,6 +480,9 @@ export function LlmPriceCalculator() {
     initial.modalityFilter,
   );
   const [sortBy, setSortBy] = useState<"provider" | "price">(initial.sortBy);
+  const [mode, setMode] = useState<CalcMode>(initial.mode);
+  const [budget, setBudget] = useState(initial.budget);
+  const [pinnedModels, setPinnedModels] = useState<Set<string>>(new Set());
 
   const allSelected = providerFilter.size === allProviders.size;
 
@@ -492,6 +517,25 @@ export function LlmPriceCalculator() {
     });
   }, []);
 
+  const togglePin = useCallback((name: string) => {
+    setPinnedModels((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) {
+        next.delete(name);
+      } else if (next.size < 3) {
+        next.add(name);
+      }
+      return next;
+    });
+  }, []);
+
+  const applyPreset = useCallback((preset: typeof presets[0]) => {
+    setInputTokens(preset.in);
+    setOutputTokens(preset.out);
+    setApiCalls(preset.calls);
+    setCachePercent(preset.cache);
+  }, []);
+
   // Serialize Set to stable string for useCallback deps
   const providerKey = [...providerFilter].sort().join(",");
   const modalityKey = [...modalityFilter].sort().join(",");
@@ -506,6 +550,8 @@ export function LlmPriceCalculator() {
     if (!allSelected) params.set("provider", providerKey);
     if (modalityKey) params.set("modality", modalityKey);
     if (sortBy !== DEFAULTS.sort) params.set("sort", sortBy);
+    if (mode !== DEFAULTS.mode) params.set("mode", mode);
+    if (mode === "budget" && budget !== DEFAULTS.budget) params.set("budget", String(budget));
     const qs = params.toString();
     const url = window.location.pathname + (qs ? `?${qs}` : "");
     window.history.replaceState(null, "", url);
@@ -518,6 +564,8 @@ export function LlmPriceCalculator() {
     allSelected,
     modalityKey,
     sortBy,
+    mode,
+    budget,
   ]);
 
   useEffect(() => {
@@ -528,6 +576,8 @@ export function LlmPriceCalculator() {
   const showBulk = apiCalls > 1;
   const showCache = cachePercent > 0;
   const showAdvanced = true;
+  const isBudgetMode = mode === "budget";
+
   const controlLabelClass =
     "mb-2 block text-sm font-medium text-fd-foreground/72";
   const headerCellClass =
@@ -558,6 +608,10 @@ export function LlmPriceCalculator() {
           ? Math.max(0, ((fullTotal - cachedTotal) / fullTotal) * 100)
           : 0;
 
+      // Budget mode: how many calls can you make?
+      const effectivePerCall = showCache ? cachedPerCall : perCall;
+      const maxCalls = effectivePerCall > 0 ? budget / effectivePerCall : Infinity;
+
       return {
         ...model,
         perCall,
@@ -565,9 +619,10 @@ export function LlmPriceCalculator() {
         cachedPerCall,
         cachedTotal,
         savings,
+        maxCalls,
       };
     });
-  }, [inputTokens, outputTokens, apiCalls, cacheRatio]);
+  }, [inputTokens, outputTokens, apiCalls, cacheRatio, budget, showCache]);
 
   const visibleModels = useMemo(() => {
     let filtered = allSelected
@@ -580,15 +635,61 @@ export function LlmPriceCalculator() {
       );
     }
 
+    if (isBudgetMode) {
+      return [...filtered].sort((a, b) => b.maxCalls - a.maxCalls);
+    }
+
     if (sortBy === "price") {
       const key = showCache ? "cachedTotal" : "total";
       return [...filtered].sort((a, b) => a[key] - b[key]);
     }
     return filtered;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [calculated, providerKey, allSelected, modalityKey, sortBy, showCache]);
+  }, [calculated, providerKey, allSelected, modalityKey, sortBy, showCache, isBudgetMode]);
+
+  // Compute min/max for highlights and bars
+  const { minCost, maxCost, cheapestName } = useMemo(() => {
+    if (visibleModels.length === 0) return { minCost: 0, maxCost: 0, cheapestName: "" };
+    const costKey = isBudgetMode ? "maxCalls" : (showCache ? "cachedTotal" : "total");
+    let min = Infinity, max = 0, cheapest = "";
+    for (const m of visibleModels) {
+      const val = m[costKey];
+      if (isBudgetMode) {
+        // In budget mode, "best" is most calls
+        if (val > max) { max = val; cheapest = m.name; }
+        if (val < min) min = val;
+      } else {
+        if (val < min) { min = val; cheapest = m.name; }
+        if (val > max) max = val;
+      }
+    }
+    return { minCost: min, maxCost: max, cheapestName: cheapest };
+  }, [visibleModels, showCache, isBudgetMode]);
+
+  // Pinned model data for comparison
+  const pinnedData = useMemo(() => {
+    if (pinnedModels.size < 2) return [];
+    return calculated.filter((m) => pinnedModels.has(m.name));
+  }, [calculated, pinnedModels]);
+
+  const pinnedCheapest = useMemo(() => {
+    if (pinnedData.length < 2) return "";
+    const key = showCache ? "cachedTotal" : "total";
+    return pinnedData.reduce((a, b) => (a[key] < b[key] ? a : b)).name;
+  }, [pinnedData, showCache]);
 
   const tableMinWidthClass = showCache ? "min-w-[1140px]" : "min-w-[980px]";
+
+  function getCostBarWidth(model: typeof visibleModels[0]): number {
+    if (isBudgetMode) {
+      return maxCost > 0 ? (model.maxCalls / maxCost) * 100 : 0;
+    }
+    const cost = showCache ? model.cachedTotal : model.total;
+    return maxCost > 0 ? (cost / maxCost) * 100 : 0;
+  }
+
+  const isMatchingPreset = (p: typeof presets[0]) =>
+    inputTokens === p.in && outputTokens === p.out && apiCalls === p.calls && cachePercent === p.cache;
 
   return (
     <div className="not-prose">
@@ -603,90 +704,242 @@ export function LlmPriceCalculator() {
         }
       `}</style>
 
-      {/* Input Controls */}
-      <div className="mb-5 rounded-xl border border-fd-border bg-fd-card p-5 shadow-sm sm:p-6">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
-          <div>
-            <label htmlFor="input-tokens" className={controlLabelClass}>
-              Input Tokens
-            </label>
-            <input
-              id="input-tokens"
-              name="inputTokens"
-              type="number"
-              value={inputTokens}
-              onChange={(e) => setInputTokens(Number(e.target.value))}
-              min={0}
-              inputMode="numeric"
-              autoComplete="off"
-              className={inputClass}
-            />
+      {/* Input Controls - Sticky */}
+      <div className="sticky top-[var(--fd-nav-height,3.5rem)] z-10 mb-5 rounded-xl border border-fd-border bg-fd-card/95 p-5 shadow-sm backdrop-blur-sm sm:p-6">
+        {/* Mode toggle + Presets row */}
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <div className="inline-flex rounded-lg border border-fd-border bg-fd-background/80 p-1">
+            <button
+              onClick={() => setMode("cost")}
+              className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                mode === "cost"
+                  ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
+                  : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
+              }`}
+            >
+              Calculate cost
+            </button>
+            <button
+              onClick={() => setMode("budget")}
+              className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                mode === "budget"
+                  ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
+                  : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
+              }`}
+            >
+              Set budget
+            </button>
           </div>
-          <div>
-            <label htmlFor="output-tokens" className={controlLabelClass}>
-              Output Tokens
-            </label>
-            <input
-              id="output-tokens"
-              name="outputTokens"
-              type="number"
-              value={outputTokens}
-              onChange={(e) => setOutputTokens(Number(e.target.value))}
-              min={0}
-              inputMode="numeric"
-              autoComplete="off"
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label htmlFor="api-calls" className={controlLabelClass}>
-              API Calls
-            </label>
-            <input
-              id="api-calls"
-              name="apiCalls"
-              type="number"
-              value={apiCalls}
-              onChange={(e) => setApiCalls(Math.max(1, Number(e.target.value)))}
-              min={1}
-              inputMode="numeric"
-              autoComplete="off"
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label htmlFor="cache-hit-rate" className={controlLabelClass}>
-              Cache Hit Rate
-            </label>
-            <div className="mt-1 flex items-center gap-3 rounded-lg border border-fd-border bg-fd-background px-3.5 py-2.5 shadow-sm transition-[border-color,box-shadow] focus-within:border-fd-primary focus-within:ring-2 focus-within:ring-fd-primary/20">
+          {!isBudgetMode && (
+            <>
+              <span className="text-fd-foreground/40 text-xs">|</span>
+              {presets.map((p) => (
+                <button
+                  key={p.label}
+                  onClick={() => applyPreset(p)}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                    isMatchingPreset(p)
+                      ? "bg-fd-primary/10 text-fd-primary"
+                      : "text-fd-foreground/55 hover:bg-fd-muted/60 hover:text-fd-foreground"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+
+        {isBudgetMode ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 xl:gap-5">
+            <div>
+              <label htmlFor="budget-input" className={controlLabelClass}>
+                Budget ($)
+              </label>
               <input
-                id="cache-hit-rate"
-                name="cachePercent"
-                type="range"
+                id="budget-input"
+                type="number"
+                value={budget}
+                onChange={(e) => setBudget(Math.max(0, Number(e.target.value)))}
                 min={0}
-                max={100}
-                step={5}
-                value={cachePercent}
-                onChange={(e) => setCachePercent(Number(e.target.value))}
-                className="flex-1 accent-fd-primary focus-visible:outline-none"
+                step={10}
+                inputMode="numeric"
+                autoComplete="off"
+                className={inputClass}
               />
-              <span className="w-10 text-right text-sm font-medium tabular-nums text-fd-foreground">
-                {cachePercent}%
-              </span>
+            </div>
+            <div>
+              <label htmlFor="budget-input-tokens" className={controlLabelClass}>
+                Input Tokens / call
+              </label>
+              <input
+                id="budget-input-tokens"
+                type="number"
+                value={inputTokens}
+                onChange={(e) => setInputTokens(Number(e.target.value))}
+                min={0}
+                inputMode="numeric"
+                autoComplete="off"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="budget-output-tokens" className={controlLabelClass}>
+                Output Tokens / call
+              </label>
+              <input
+                id="budget-output-tokens"
+                type="number"
+                value={outputTokens}
+                onChange={(e) => setOutputTokens(Number(e.target.value))}
+                min={0}
+                inputMode="numeric"
+                autoComplete="off"
+                className={inputClass}
+              />
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
+            <div>
+              <label htmlFor="input-tokens" className={controlLabelClass}>
+                Input Tokens
+              </label>
+              <input
+                id="input-tokens"
+                name="inputTokens"
+                type="number"
+                value={inputTokens}
+                onChange={(e) => setInputTokens(Number(e.target.value))}
+                min={0}
+                inputMode="numeric"
+                autoComplete="off"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="output-tokens" className={controlLabelClass}>
+                Output Tokens
+              </label>
+              <input
+                id="output-tokens"
+                name="outputTokens"
+                type="number"
+                value={outputTokens}
+                onChange={(e) => setOutputTokens(Number(e.target.value))}
+                min={0}
+                inputMode="numeric"
+                autoComplete="off"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="api-calls" className={controlLabelClass}>
+                API Calls
+              </label>
+              <input
+                id="api-calls"
+                name="apiCalls"
+                type="number"
+                value={apiCalls}
+                onChange={(e) => setApiCalls(Math.max(1, Number(e.target.value)))}
+                min={1}
+                inputMode="numeric"
+                autoComplete="off"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="cache-hit-rate" className={controlLabelClass}>
+                Cache Hit Rate
+              </label>
+              <div className="mt-1 flex items-center gap-3 rounded-lg border border-fd-border bg-fd-background px-3.5 py-2.5 shadow-sm transition-[border-color,box-shadow] focus-within:border-fd-primary focus-within:ring-2 focus-within:ring-fd-primary/20">
+                <input
+                  id="cache-hit-rate"
+                  name="cachePercent"
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={cachePercent}
+                  onChange={(e) => setCachePercent(Number(e.target.value))}
+                  className="flex-1 accent-fd-primary focus-visible:outline-none"
+                />
+                <span className="w-10 text-right text-sm font-medium tabular-nums text-fd-foreground">
+                  {cachePercent}%
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Comparison Panel */}
+      {pinnedData.length >= 2 && (
+        <div className="mb-5 rounded-xl border border-fd-primary/30 bg-fd-primary/[0.03] p-5 shadow-sm">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-xs font-medium uppercase tracking-[0.12em] text-fd-primary">
+              Comparing {pinnedData.length} models
+            </span>
+            <button
+              onClick={() => setPinnedModels(new Set())}
+              className="text-xs font-medium text-fd-foreground/55 hover:text-fd-foreground transition-colors"
+            >
+              Clear
+            </button>
+          </div>
+          <div className={`grid gap-3 ${pinnedData.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+            {pinnedData.map((m) => {
+              const isWinner = m.name === pinnedCheapest;
+              const cost = showCache ? m.cachedTotal : m.total;
+              return (
+                <div
+                  key={m.name}
+                  className={`rounded-lg border p-3 ${
+                    isWinner
+                      ? "border-green-500/40 bg-green-500/[0.06]"
+                      : "border-fd-border bg-fd-card"
+                  }`}
+                >
+                  <div className="text-xs text-fd-muted-foreground">{providerLabels[m.provider]}</div>
+                  <div className="text-sm font-semibold">{m.name}</div>
+                  <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                    <span className="text-fd-foreground/55">In/M</span>
+                    <span className="text-right tabular-nums">{formatRate(m.input)}</span>
+                    <span className="text-fd-foreground/55">Out/M</span>
+                    <span className="text-right tabular-nums">{formatRate(m.output)}</span>
+                    <span className="text-fd-foreground/55">Per call</span>
+                    <span className="text-right tabular-nums">{formatCost(m.perCall)}</span>
+                    <span className="text-fd-foreground/55 font-medium">Total</span>
+                    <span className={`text-right tabular-nums font-semibold ${isWinner ? "text-green-500" : ""}`}>
+                      {formatCost(cost)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Results Table */}
       <div className="overflow-hidden rounded-xl border border-fd-border bg-fd-card shadow-sm">
         <div className="border-b border-fd-border px-5 py-4">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm leading-6 text-fd-foreground/75">
-              {integerFormatter.format(inputTokens)} in +{" "}
-              {integerFormatter.format(outputTokens)} out
-              {showBulk && ` \u00d7 ${integerFormatter.format(apiCalls)} calls`}
-              {showCache && ` \u00b7 ${cachePercent}% cached`}
+              {isBudgetMode ? (
+                <>
+                  {currency2Formatter.format(budget)} budget · {integerFormatter.format(inputTokens)} in + {integerFormatter.format(outputTokens)} out per call
+                  {showCache && ` · ${cachePercent}% cached`}
+                </>
+              ) : (
+                <>
+                  {integerFormatter.format(inputTokens)} in +{" "}
+                  {integerFormatter.format(outputTokens)} out
+                  {showBulk && ` \u00d7 ${integerFormatter.format(apiCalls)} calls`}
+                  {showCache && ` \u00b7 ${cachePercent}% cached`}
+                </>
+              )}
             </span>
             <span className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
               {integerFormatter.format(visibleModels.length)} models
@@ -726,32 +979,34 @@ export function LlmPriceCalculator() {
                 ))}
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="inline-flex w-fit rounded-lg border border-fd-border bg-fd-background/80 p-1">
-                  <button
-                    onClick={() => setSortBy("provider")}
-                    aria-pressed={sortBy === "provider"}
-                    className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                      sortBy === "provider"
-                        ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
-                        : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
-                    }`}
-                  >
-                    By provider
-                  </button>
-                  <button
-                    onClick={() => setSortBy("price")}
-                    aria-pressed={sortBy === "price"}
-                    className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                      sortBy === "price"
-                        ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
-                        : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
-                    }`}
-                  >
-                    By cost
-                  </button>
+              {!isBudgetMode && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="inline-flex w-fit rounded-lg border border-fd-border bg-fd-background/80 p-1">
+                    <button
+                      onClick={() => setSortBy("provider")}
+                      aria-pressed={sortBy === "provider"}
+                      className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                        sortBy === "provider"
+                          ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
+                          : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
+                      }`}
+                    >
+                      By provider
+                    </button>
+                    <button
+                      onClick={() => setSortBy("price")}
+                      aria-pressed={sortBy === "price"}
+                      className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                        sortBy === "price"
+                          ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
+                          : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
+                      }`}
+                    >
+                      By cost
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -776,10 +1031,12 @@ export function LlmPriceCalculator() {
           </div>
         </div>
 
+        {/* Desktop table */}
         <div className="hidden overflow-x-auto md:block">
-          <table className={`${tableMinWidthClass} w-full`}>
+          <table className={`${isBudgetMode ? "min-w-[800px]" : tableMinWidthClass} w-full`}>
             <thead>
               <tr className="border-b border-fd-border bg-fd-muted/15">
+                <th className="w-8 px-2 py-3" />
                 <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
                   Provider
                 </th>
@@ -792,179 +1049,290 @@ export function LlmPriceCalculator() {
                 <th className={headerCellClass}>Context</th>
                 {showAdvanced && <th className={headerCellClass}>In/M</th>}
                 {showAdvanced && <th className={headerCellClass}>Out/M</th>}
-                <th className={`${headerCellClass} text-fd-foreground/84`}>
-                  {showCache ? "1st call" : "Per call"}
-                </th>
-                {showAdvanced && showCache && (
-                  <th
-                    className={`${headerCellClass} border-l border-fd-border/50 text-fd-foreground/72`}
-                  >
-                    Next call
+                {isBudgetMode ? (
+                  <th className={`${headerCellClass} border-l border-fd-border/60 bg-fd-muted/12 text-fd-foreground/88`}>
+                    Max calls
                   </th>
-                )}
-                <th
-                  className={`${headerCellClass} border-l border-fd-border/60 bg-fd-muted/12 text-fd-foreground/88`}
-                >
-                  Total
-                </th>
-                {showAdvanced && showCache && (
-                  <th
-                    className={`${headerCellClass} border-l border-fd-border/50 text-fd-foreground/72`}
-                  >
-                    Savings
-                  </th>
+                ) : (
+                  <>
+                    <th className={`${headerCellClass} text-fd-foreground/84`}>
+                      {showCache ? "1st call" : "Per call"}
+                    </th>
+                    {showAdvanced && showCache && (
+                      <th className={`${headerCellClass} border-l border-fd-border/50 text-fd-foreground/72`}>
+                        Next call
+                      </th>
+                    )}
+                    <th className={`${headerCellClass} border-l border-fd-border/60 bg-fd-muted/12 text-fd-foreground/88`}>
+                      Total
+                    </th>
+                    {showAdvanced && showCache && (
+                      <th className={`${headerCellClass} border-l border-fd-border/50 text-fd-foreground/72`}>
+                        Savings
+                      </th>
+                    )}
+                  </>
                 )}
               </tr>
             </thead>
             <tbody>
-              {visibleModels.map((model, index) => (
-                <tr
-                  key={model.name}
-                  className={`border-b border-fd-border/70 transition-colors hover:bg-fd-muted/45 ${index % 2 === 1 ? "bg-fd-muted/25" : ""}`}
-                >
-                  <td className="px-4 py-3 text-sm font-medium text-fd-foreground/72">
-                    {providerLabels[model.provider]}
-                  </td>
-                  <td className="px-4 py-3 text-left">
-                    <div className="text-sm font-medium text-fd-foreground">
-                      {model.name}
-                    </div>
-                    <div className="mt-1 text-xs text-fd-foreground/54">
-                      max output {formatTokenCount(model.maxOutput)}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-1">
-                      {model.modalities.map((m) => (
-                        <span
-                          key={m}
-                          title={modalityFullLabels[m]}
-                          className="inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-semibold leading-none bg-fd-muted/60 text-fd-foreground/72"
-                        >
-                          {modalityLabels[m]}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/62">
-                    {formatTokenCount(model.context)}/
-                    {formatTokenCount(model.maxOutput)}
-                  </td>
-                  {showAdvanced && (
-                    <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/74">
-                      {formatRate(model.input)}
+              {visibleModels.map((model, index) => {
+                const isCheapest = model.name === cheapestName;
+                const isPinned = pinnedModels.has(model.name);
+                const barWidth = getCostBarWidth(model);
+                return (
+                  <tr
+                    key={model.name}
+                    className={`border-b border-fd-border/70 transition-colors hover:bg-fd-muted/45 ${
+                      isCheapest
+                        ? "bg-green-500/[0.06]"
+                        : isPinned
+                          ? "bg-fd-primary/[0.04]"
+                          : index % 2 === 1
+                            ? "bg-fd-muted/25"
+                            : ""
+                    }`}
+                    style={isCheapest ? { borderLeft: "3px solid rgb(34 197 94)" } : isPinned ? { borderLeft: "3px solid var(--color-fd-primary)" } : undefined}
+                  >
+                    <td className="px-2 py-3 text-center">
+                      <button
+                        onClick={() => togglePin(model.name)}
+                        title={isPinned ? "Unpin" : "Pin to compare"}
+                        className={`inline-flex h-6 w-6 items-center justify-center rounded transition-colors ${
+                          isPinned
+                            ? "text-fd-primary bg-fd-primary/10"
+                            : "text-fd-foreground/30 hover:text-fd-foreground/60"
+                        }`}
+                      >
+                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill={isPinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2}>
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                      </button>
                     </td>
-                  )}
-                  {showAdvanced && (
-                    <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/74">
-                      {formatRate(model.output)}
+                    <td className="px-4 py-3 text-sm font-medium text-fd-foreground/72">
+                      {providerLabels[model.provider]}
                     </td>
-                  )}
-                  <td className="border-l border-fd-border/40 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground">
-                    {formatCost(model.perCall)}
-                  </td>
-                  {showAdvanced && showCache && (
-                    <td className="border-l border-fd-border/40 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground/78">
-                      {formatCost(model.cachedPerCall)}
+                    <td className="px-4 py-3 text-left">
+                      <div className="text-sm font-medium text-fd-foreground">
+                        {model.name}
+                      </div>
+                      <div className="mt-1 text-xs text-fd-foreground/54">
+                        max output {formatTokenCount(model.maxOutput)}
+                      </div>
                     </td>
-                  )}
-                  <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3 text-right text-sm font-semibold tabular-nums text-fd-foreground">
-                    {formatCost(showCache ? model.cachedTotal : model.total)}
-                  </td>
-                  {showAdvanced && showCache && (
-                    <td className="border-l border-fd-border/50 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground/72">
-                      {model.savings.toFixed(0)}%
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1">
+                        {model.modalities.map((m) => (
+                          <span
+                            key={m}
+                            title={modalityFullLabels[m]}
+                            className="inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-semibold leading-none bg-fd-muted/60 text-fd-foreground/72"
+                          >
+                            {modalityLabels[m]}
+                          </span>
+                        ))}
+                      </div>
                     </td>
-                  )}
-                </tr>
-              ))}
+                    <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/62">
+                      {formatTokenCount(model.context)}/
+                      {formatTokenCount(model.maxOutput)}
+                    </td>
+                    {showAdvanced && (
+                      <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/74">
+                        {formatRate(model.input)}
+                      </td>
+                    )}
+                    {showAdvanced && (
+                      <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/74">
+                        {formatRate(model.output)}
+                      </td>
+                    )}
+                    {isBudgetMode ? (
+                      <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3 text-right">
+                        <div className={`text-sm font-semibold tabular-nums ${isCheapest ? "text-green-500" : "text-fd-foreground"}`}>
+                          {model.maxCalls === Infinity ? "\u221e" : formatCallCount(model.maxCalls)}
+                        </div>
+                        <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-300 ${isCheapest ? "bg-green-500" : "bg-fd-primary/60"}`}
+                            style={{ width: `${barWidth}%` }}
+                          />
+                        </div>
+                      </td>
+                    ) : (
+                      <>
+                        <td className="border-l border-fd-border/40 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground">
+                          {formatCost(model.perCall)}
+                        </td>
+                        {showAdvanced && showCache && (
+                          <td className="border-l border-fd-border/40 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground/78">
+                            {formatCost(model.cachedPerCall)}
+                          </td>
+                        )}
+                        <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {isCheapest && (
+                              <span className="rounded-full bg-green-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-green-500">
+                                Cheapest
+                              </span>
+                            )}
+                            <span className={`text-sm font-semibold tabular-nums ${isCheapest ? "text-green-500" : "text-fd-foreground"}`}>
+                              {formatCost(showCache ? model.cachedTotal : model.total)}
+                            </span>
+                          </div>
+                          <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-300 ${isCheapest ? "bg-green-500" : "bg-fd-primary/60"}`}
+                              style={{ width: `${barWidth}%` }}
+                            />
+                          </div>
+                        </td>
+                        {showAdvanced && showCache && (
+                          <td className="border-l border-fd-border/50 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground/72">
+                            {model.savings.toFixed(0)}%
+                          </td>
+                        )}
+                      </>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
 
         {/* Mobile card view */}
         <div className="flex flex-col gap-3 p-3 md:hidden">
-          {visibleModels.map((model) => (
-            <div
-              key={model.name}
-              className="rounded-xl border border-fd-border bg-fd-background p-4 transition-colors hover:bg-fd-muted/45"
-            >
-              <div className="mb-3 flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold text-fd-foreground">
-                    {model.name}
+          {visibleModels.map((model) => {
+            const isCheapest = model.name === cheapestName;
+            const isPinned = pinnedModels.has(model.name);
+            const barWidth = getCostBarWidth(model);
+            return (
+              <div
+                key={model.name}
+                className={`rounded-xl border p-4 transition-colors hover:bg-fd-muted/45 ${
+                  isCheapest
+                    ? "border-green-500/40 bg-green-500/[0.06]"
+                    : isPinned
+                      ? "border-fd-primary/40 bg-fd-primary/[0.04]"
+                      : "border-fd-border bg-fd-background"
+                }`}
+              >
+                <div className="mb-3 flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-fd-foreground">
+                        {model.name}
+                      </span>
+                      {isCheapest && (
+                        <span className="rounded-full bg-green-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-green-500">
+                          {isBudgetMode ? "Best value" : "Cheapest"}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-0.5 text-xs text-fd-muted-foreground">
+                      {providerLabels[model.provider]}
+                    </div>
                   </div>
-                  <div className="mt-0.5 text-xs text-fd-muted-foreground">
-                    {providerLabels[model.provider]}
-                  </div>
-                </div>
-                <div className="flex shrink-0 gap-1">
-                  {model.modalities.map((m) => (
-                    <span
-                      key={m}
-                      title={modalityFullLabels[m]}
-                      className="inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-semibold leading-none bg-fd-muted/60 text-fd-foreground/72"
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <button
+                      onClick={() => togglePin(model.name)}
+                      className={`inline-flex h-6 w-6 items-center justify-center rounded transition-colors ${
+                        isPinned
+                          ? "text-fd-primary bg-fd-primary/10"
+                          : "text-fd-foreground/30 hover:text-fd-foreground/60"
+                      }`}
                     >
-                      {modalityLabels[m]}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mb-3 flex items-center gap-3 text-xs text-fd-muted-foreground">
-                <span>
-                  {formatTokenCount(model.context)} /{" "}
-                  {formatTokenCount(model.maxOutput)}
-                </span>
-                <span className="text-fd-border">|</span>
-                <span>
-                  In: {formatRate(model.input)}/M &middot; Out:{" "}
-                  {formatRate(model.output)}/M
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                <div>
-                  <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
-                    {showCache ? "1st call" : "Per call"}
-                  </div>
-                  <div className="text-sm font-medium tabular-nums text-fd-foreground">
-                    {formatCost(model.perCall)}
+                      <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill={isPinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2}>
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                      </svg>
+                    </button>
+                    {model.modalities.map((m) => (
+                      <span
+                        key={m}
+                        title={modalityFullLabels[m]}
+                        className="inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-semibold leading-none bg-fd-muted/60 text-fd-foreground/72"
+                      >
+                        {modalityLabels[m]}
+                      </span>
+                    ))}
                   </div>
                 </div>
-                {showCache && (
+
+                <div className="mb-3 flex items-center gap-3 text-xs text-fd-muted-foreground">
+                  <span>
+                    {formatTokenCount(model.context)} /{" "}
+                    {formatTokenCount(model.maxOutput)}
+                  </span>
+                  <span className="text-fd-border">|</span>
+                  <span>
+                    In: {formatRate(model.input)}/M &middot; Out:{" "}
+                    {formatRate(model.output)}/M
+                  </span>
+                </div>
+
+                {isBudgetMode ? (
                   <div>
                     <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
-                      Next call
+                      Max calls for {currency2Formatter.format(budget)}
                     </div>
-                    <div className="text-sm font-medium tabular-nums text-fd-foreground/78">
-                      {formatCost(model.cachedPerCall)}
-                    </div>
-                  </div>
-                )}
-                {showBulk && (
-                  <div>
-                    <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
-                      Total
-                    </div>
-                    <div className="text-sm font-semibold tabular-nums text-fd-foreground">
-                      {formatCost(showCache ? model.cachedTotal : model.total)}
+                    <div className={`text-sm font-semibold tabular-nums ${isCheapest ? "text-green-500" : "text-fd-foreground"}`}>
+                      {model.maxCalls === Infinity ? "\u221e" : formatCallCount(model.maxCalls)}
                     </div>
                   </div>
-                )}
-                {showCache && (
-                  <div>
-                    <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
-                      Savings
+                ) : (
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                    <div>
+                      <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                        {showCache ? "1st call" : "Per call"}
+                      </div>
+                      <div className="text-sm font-medium tabular-nums text-fd-foreground">
+                        {formatCost(model.perCall)}
+                      </div>
                     </div>
-                    <div className="text-sm font-medium tabular-nums text-fd-foreground/72">
-                      {model.savings.toFixed(0)}%
-                    </div>
+                    {showCache && (
+                      <div>
+                        <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                          Next call
+                        </div>
+                        <div className="text-sm font-medium tabular-nums text-fd-foreground/78">
+                          {formatCost(model.cachedPerCall)}
+                        </div>
+                      </div>
+                    )}
+                    {showBulk && (
+                      <div>
+                        <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                          Total
+                        </div>
+                        <div className={`text-sm font-semibold tabular-nums ${isCheapest ? "text-green-500" : "text-fd-foreground"}`}>
+                          {formatCost(showCache ? model.cachedTotal : model.total)}
+                        </div>
+                      </div>
+                    )}
+                    {showCache && (
+                      <div>
+                        <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                          Savings
+                        </div>
+                        <div className="text-sm font-medium tabular-nums text-fd-foreground/72">
+                          {model.savings.toFixed(0)}%
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
+
+                {/* Cost bar */}
+                <div className="mt-3 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${isCheapest ? "bg-green-500" : "bg-fd-primary/60"}`}
+                    style={{ width: `${barWidth}%` }}
+                  />
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="border-t border-fd-border px-5 py-3 text-[11px] leading-5 text-fd-foreground/60">
@@ -976,4 +1344,3 @@ export function LlmPriceCalculator() {
     </div>
   );
 }
-

@@ -481,12 +481,19 @@ export function LlmPriceCalculator() {
 
   const toggleProvider = useCallback((provider: Provider) => {
     setProviderFilter((prev) => {
+      // If all selected, switch to only this provider
+      if (prev.size === allProviders.size) {
+        return new Set<Provider>([provider]);
+      }
       const next = new Set(prev);
       if (next.has(provider)) {
         next.delete(provider);
+        // If nothing left, go back to all
         if (next.size === 0) return new Set(allProviders);
       } else {
         next.add(provider);
+        // If all individually selected, set to all
+        if (next.size === allProviders.size) return new Set(allProviders);
       }
       return next;
     });

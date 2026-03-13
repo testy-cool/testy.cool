@@ -337,13 +337,6 @@ const providerOrder: Provider[] = ["anthropic", "openai", "google", "zhipu"];
 const allProviders = new Set<Provider>(providerOrder);
 
 const modalityOrder: Modality[] = ["text", "image", "audio", "video", "pdf"];
-const modalityLabels: Record<Modality, string> = {
-  text: "T",
-  image: "I",
-  audio: "A",
-  video: "V",
-  pdf: "P",
-};
 const modalityFullLabels: Record<Modality, string> = {
   text: "Text",
   image: "Image",
@@ -648,22 +641,15 @@ export function LlmPriceCalculator() {
   }, [calculated, providerKey, allSelected, modalityKey, sortBy, showCache, isBudgetMode]);
 
   // Compute min/max for highlights and bars
-  const { minCost, maxCost, cheapestName } = useMemo(() => {
-    if (visibleModels.length === 0) return { minCost: 0, maxCost: 0, cheapestName: "" };
+  const maxCost = useMemo(() => {
+    if (visibleModels.length === 0) return 0;
     const costKey = isBudgetMode ? "maxCalls" : (showCache ? "cachedTotal" : "total");
-    let min = Infinity, max = 0, cheapest = "";
+    let max = 0;
     for (const m of visibleModels) {
       const val = m[costKey];
-      if (isBudgetMode) {
-        // In budget mode, "best" is most calls
-        if (val > max) { max = val; cheapest = m.name; }
-        if (val < min) min = val;
-      } else {
-        if (val < min) { min = val; cheapest = m.name; }
-        if (val > max) max = val;
-      }
+      if (val > max) max = val;
     }
-    return { minCost: min, maxCost: max, cheapestName: cheapest };
+    return max;
   }, [visibleModels, showCache, isBudgetMode]);
 
   // Pinned model data for comparison
@@ -678,7 +664,21 @@ export function LlmPriceCalculator() {
     return pinnedData.reduce((a, b) => (a[key] < b[key] ? a : b)).name;
   }, [pinnedData, showCache]);
 
-  const tableMinWidthClass = showCache ? "min-w-[1140px]" : "min-w-[980px]";
+  const tableMinWidthClass = showCache ? "min-w-[1020px]" : "min-w-[860px]";
+
+  // Compute rank for each visible model by cost (or value in budget mode)
+  const rankedModels = useMemo(() => {
+    const sorted = [...visibleModels];
+    if (isBudgetMode) {
+      sorted.sort((a, b) => b.maxCalls - a.maxCalls);
+    } else {
+      const key = showCache ? "cachedTotal" : "total";
+      sorted.sort((a, b) => a[key] - b[key]);
+    }
+    const rankMap = new Map<string, number>();
+    sorted.forEach((m, i) => rankMap.set(m.name, i + 1));
+    return rankMap;
+  }, [visibleModels, showCache, isBudgetMode]);
 
   function getCostBarWidth(model: typeof visibleModels[0]): number {
     if (isBudgetMode) {
@@ -746,6 +746,31 @@ export function LlmPriceCalculator() {
                   {p.label}
                 </button>
               ))}
+              <span className="text-fd-foreground/40 text-xs">|</span>
+              <div className="inline-flex rounded-lg border border-fd-border bg-fd-background/80 p-0.5">
+                <button
+                  onClick={() => setSortBy("provider")}
+                  aria-pressed={sortBy === "provider"}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                    sortBy === "provider"
+                      ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
+                      : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
+                  }`}
+                >
+                  By provider
+                </button>
+                <button
+                  onClick={() => setSortBy("price")}
+                  aria-pressed={sortBy === "price"}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                    sortBy === "price"
+                      ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
+                      : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
+                  }`}
+                >
+                  By cost
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -946,88 +971,55 @@ export function LlmPriceCalculator() {
             </span>
           </div>
 
-          <div className="mt-4 flex flex-col gap-3">
-            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
-                  Provider
-                </span>
-                <button
-                  onClick={toggleAllProviders}
-                  aria-pressed={allSelected}
-                  className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                    allSelected
-                      ? "border-fd-border bg-fd-muted/60 text-fd-foreground"
-                      : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
-                  }`}
-                >
-                  All
-                </button>
-                {providerOrder.map((provider) => (
-                  <button
-                    key={provider}
-                    onClick={() => toggleProvider(provider)}
-                    aria-pressed={providerFilter.has(provider)}
-                    className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                      !allSelected && providerFilter.has(provider)
-                        ? "border-fd-border bg-fd-muted/60 text-fd-foreground"
-                        : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
-                    }`}
-                  >
-                    {providerLabels[provider]}
-                  </button>
-                ))}
-              </div>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+              Provider
+            </span>
+            <button
+              onClick={toggleAllProviders}
+              aria-pressed={allSelected}
+              className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                allSelected
+                  ? "border-fd-border bg-fd-muted/60 text-fd-foreground"
+                  : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
+              }`}
+            >
+              All
+            </button>
+            {providerOrder.map((provider) => (
+              <button
+                key={provider}
+                onClick={() => toggleProvider(provider)}
+                aria-pressed={providerFilter.has(provider)}
+                className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                  !allSelected && providerFilter.has(provider)
+                    ? "border-fd-border bg-fd-muted/60 text-fd-foreground"
+                    : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
+                }`}
+              >
+                {providerLabels[provider]}
+              </button>
+            ))}
 
-              {!isBudgetMode && (
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="inline-flex w-fit rounded-lg border border-fd-border bg-fd-background/80 p-1">
-                    <button
-                      onClick={() => setSortBy("provider")}
-                      aria-pressed={sortBy === "provider"}
-                      className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                        sortBy === "provider"
-                          ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
-                          : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
-                      }`}
-                    >
-                      By provider
-                    </button>
-                    <button
-                      onClick={() => setSortBy("price")}
-                      aria-pressed={sortBy === "price"}
-                      className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                        sortBy === "price"
-                          ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
-                          : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
-                      }`}
-                    >
-                      By cost
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            <span className="mx-0.5 h-4 w-px bg-fd-border/60" />
 
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
-                Input
-              </span>
-              {modalityOrder.map((modality) => (
-                <button
-                  key={modality}
-                  onClick={() => toggleModality(modality)}
-                  aria-pressed={modalityFilter.has(modality)}
-                  className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                    modalityFilter.has(modality)
-                      ? "border-fd-border bg-fd-muted/60 text-fd-foreground"
-                      : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
-                  }`}
-                >
-                  {modalityFullLabels[modality]}
-                </button>
-              ))}
-            </div>
+            <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+              Input
+            </span>
+            {modalityOrder.map((modality) => (
+              <button
+                key={modality}
+                onClick={() => toggleModality(modality)}
+                aria-pressed={modalityFilter.has(modality)}
+                className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                  modalityFilter.has(modality)
+                    ? "border-fd-border bg-fd-muted/60 text-fd-foreground"
+                    : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
+                }`}
+              >
+                {modalityFullLabels[modality]}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -1036,15 +1028,12 @@ export function LlmPriceCalculator() {
           <table className={`${isBudgetMode ? "min-w-[800px]" : tableMinWidthClass} w-full`}>
             <thead>
               <tr className="border-b border-fd-border bg-fd-muted/15">
-                <th className="w-8 px-2 py-3" />
+                <th className="w-10 px-2 py-3 text-center text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">#</th>
                 <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
                   Provider
                 </th>
                 <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
                   Model
-                </th>
-                <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
-                  Input
                 </th>
                 <th className={headerCellClass}>Context</th>
                 {showAdvanced && <th className={headerCellClass}>In/M</th>}
@@ -1077,60 +1066,49 @@ export function LlmPriceCalculator() {
             </thead>
             <tbody>
               {visibleModels.map((model, index) => {
-                const isCheapest = model.name === cheapestName;
+                const rank = rankedModels.get(model.name) ?? 999;
+                const isTop1 = rank === 1;
+                const isTop3 = rank <= 3;
                 const isPinned = pinnedModels.has(model.name);
                 const barWidth = getCostBarWidth(model);
                 return (
                   <tr
                     key={model.name}
                     className={`border-b border-fd-border/70 transition-colors hover:bg-fd-muted/45 ${
-                      isCheapest
-                        ? "bg-green-500/[0.06]"
-                        : isPinned
-                          ? "bg-fd-primary/[0.04]"
-                          : index % 2 === 1
-                            ? "bg-fd-muted/25"
-                            : ""
+                      isPinned
+                        ? "bg-fd-primary/[0.04]"
+                        : index % 2 === 1
+                          ? "bg-fd-muted/25"
+                          : ""
                     }`}
-                    style={isCheapest ? { borderLeft: "3px solid rgb(34 197 94)" } : isPinned ? { borderLeft: "3px solid var(--color-fd-primary)" } : undefined}
+                    style={isTop1 ? { borderLeft: "3px solid rgb(34 197 94)" } : isPinned ? { borderLeft: "3px solid var(--color-fd-primary)" } : undefined}
                   >
                     <td className="px-2 py-3 text-center">
-                      <button
-                        onClick={() => togglePin(model.name)}
-                        title={isPinned ? "Unpin" : "Pin to compare"}
-                        className={`inline-flex h-6 w-6 items-center justify-center rounded transition-colors ${
-                          isPinned
-                            ? "text-fd-primary bg-fd-primary/10"
-                            : "text-fd-foreground/30 hover:text-fd-foreground/60"
-                        }`}
-                      >
-                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill={isPinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2}>
-                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                      </button>
+                      <span className={`text-sm font-semibold tabular-nums ${
+                        isTop1
+                          ? "text-green-500"
+                          : isTop3
+                            ? "text-green-500/60"
+                            : "text-fd-foreground/30"
+                      }`}>
+                        {rank}
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-sm font-medium text-fd-foreground/72">
                       {providerLabels[model.provider]}
                     </td>
                     <td className="px-4 py-3 text-left">
-                      <div className="text-sm font-medium text-fd-foreground">
+                      <button
+                        onClick={() => togglePin(model.name)}
+                        title={isPinned ? "Unpin" : "Pin to compare"}
+                        className={`text-left text-sm font-medium text-fd-foreground hover:text-fd-primary transition-colors ${
+                          isPinned ? "underline decoration-fd-primary decoration-2 underline-offset-2" : ""
+                        }`}
+                      >
                         {model.name}
-                      </div>
+                      </button>
                       <div className="mt-1 text-xs text-fd-foreground/54">
                         max output {formatTokenCount(model.maxOutput)}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-1">
-                        {model.modalities.map((m) => (
-                          <span
-                            key={m}
-                            title={modalityFullLabels[m]}
-                            className="inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-semibold leading-none bg-fd-muted/60 text-fd-foreground/72"
-                          >
-                            {modalityLabels[m]}
-                          </span>
-                        ))}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/62">
@@ -1149,12 +1127,12 @@ export function LlmPriceCalculator() {
                     )}
                     {isBudgetMode ? (
                       <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3 text-right">
-                        <div className={`text-sm font-semibold tabular-nums ${isCheapest ? "text-green-500" : "text-fd-foreground"}`}>
+                        <div className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
                           {model.maxCalls === Infinity ? "\u221e" : formatCallCount(model.maxCalls)}
                         </div>
                         <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
                           <div
-                            className={`h-full rounded-full transition-all duration-300 ${isCheapest ? "bg-green-500" : "bg-fd-primary/60"}`}
+                            className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
                             style={{ width: `${barWidth}%` }}
                           />
                         </div>
@@ -1170,19 +1148,12 @@ export function LlmPriceCalculator() {
                           </td>
                         )}
                         <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {isCheapest && (
-                              <span className="rounded-full bg-green-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-green-500">
-                                Cheapest
-                              </span>
-                            )}
-                            <span className={`text-sm font-semibold tabular-nums ${isCheapest ? "text-green-500" : "text-fd-foreground"}`}>
-                              {formatCost(showCache ? model.cachedTotal : model.total)}
-                            </span>
-                          </div>
+                          <span className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
+                            {formatCost(showCache ? model.cachedTotal : model.total)}
+                          </span>
                           <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all duration-300 ${isCheapest ? "bg-green-500" : "bg-fd-primary/60"}`}
+                              className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
                               style={{ width: `${barWidth}%` }}
                             />
                           </div>
@@ -1204,58 +1175,46 @@ export function LlmPriceCalculator() {
         {/* Mobile card view */}
         <div className="flex flex-col gap-3 p-3 md:hidden">
           {visibleModels.map((model) => {
-            const isCheapest = model.name === cheapestName;
+            const rank = rankedModels.get(model.name) ?? 999;
+            const isTop1 = rank === 1;
+            const isTop3 = rank <= 3;
             const isPinned = pinnedModels.has(model.name);
             const barWidth = getCostBarWidth(model);
             return (
               <div
                 key={model.name}
-                className={`rounded-xl border p-4 transition-colors hover:bg-fd-muted/45 ${
-                  isCheapest
-                    ? "border-green-500/40 bg-green-500/[0.06]"
-                    : isPinned
-                      ? "border-fd-primary/40 bg-fd-primary/[0.04]"
-                      : "border-fd-border bg-fd-background"
+                className={`relative rounded-xl border p-4 transition-colors hover:bg-fd-muted/45 ${
+                  isPinned
+                    ? "border-fd-primary/40 bg-fd-primary/[0.04]"
+                    : "border-fd-border bg-fd-background"
                 }`}
+                style={isTop1 ? { borderLeft: "3px solid rgb(34 197 94)" } : undefined}
               >
                 <div className="mb-3 flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-fd-foreground">
-                        {model.name}
+                      <span className={`flex h-5 w-5 items-center justify-center rounded text-xs font-bold tabular-nums ${
+                        isTop1
+                          ? "text-green-500"
+                          : isTop3
+                            ? "text-green-500/60"
+                            : "text-fd-foreground/30"
+                      }`}>
+                        {rank}
                       </span>
-                      {isCheapest && (
-                        <span className="rounded-full bg-green-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-green-500">
-                          {isBudgetMode ? "Best value" : "Cheapest"}
-                        </span>
-                      )}
+                      <button
+                        onClick={() => togglePin(model.name)}
+                        title={isPinned ? "Unpin" : "Pin to compare"}
+                        className={`text-left text-sm font-semibold text-fd-foreground hover:text-fd-primary transition-colors ${
+                          isPinned ? "underline decoration-fd-primary decoration-2 underline-offset-2" : ""
+                        }`}
+                      >
+                        {model.name}
+                      </button>
                     </div>
-                    <div className="mt-0.5 text-xs text-fd-muted-foreground">
+                    <div className="mt-0.5 ml-7 text-xs text-fd-muted-foreground">
                       {providerLabels[model.provider]}
                     </div>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    <button
-                      onClick={() => togglePin(model.name)}
-                      className={`inline-flex h-6 w-6 items-center justify-center rounded transition-colors ${
-                        isPinned
-                          ? "text-fd-primary bg-fd-primary/10"
-                          : "text-fd-foreground/30 hover:text-fd-foreground/60"
-                      }`}
-                    >
-                      <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill={isPinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2}>
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                      </svg>
-                    </button>
-                    {model.modalities.map((m) => (
-                      <span
-                        key={m}
-                        title={modalityFullLabels[m]}
-                        className="inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-semibold leading-none bg-fd-muted/60 text-fd-foreground/72"
-                      >
-                        {modalityLabels[m]}
-                      </span>
-                    ))}
                   </div>
                 </div>
 
@@ -1276,7 +1235,7 @@ export function LlmPriceCalculator() {
                     <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
                       Max calls for {currency2Formatter.format(budget)}
                     </div>
-                    <div className={`text-sm font-semibold tabular-nums ${isCheapest ? "text-green-500" : "text-fd-foreground"}`}>
+                    <div className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
                       {model.maxCalls === Infinity ? "\u221e" : formatCallCount(model.maxCalls)}
                     </div>
                   </div>
@@ -1305,7 +1264,7 @@ export function LlmPriceCalculator() {
                         <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
                           Total
                         </div>
-                        <div className={`text-sm font-semibold tabular-nums ${isCheapest ? "text-green-500" : "text-fd-foreground"}`}>
+                        <div className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
                           {formatCost(showCache ? model.cachedTotal : model.total)}
                         </div>
                       </div>
@@ -1326,7 +1285,7 @@ export function LlmPriceCalculator() {
                 {/* Cost bar */}
                 <div className="mt-3 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all duration-300 ${isCheapest ? "bg-green-500" : "bg-fd-primary/60"}`}
+                    className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
                     style={{ width: `${barWidth}%` }}
                   />
                 </div>

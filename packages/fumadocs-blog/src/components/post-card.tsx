@@ -67,11 +67,11 @@ export function PostCard({ post, configuration = {} }: PostCardProps) {
       </div>
       <div className="order-first sm:order-last sm:col-span-5">
         <Link href={post.url} className="block">
-          <div className="aspect-[16/9] overflow-clip rounded-lg border border-border">
+          <div className="group/thumb aspect-[16/9] overflow-clip rounded-lg border border-border">
             <img
               src={post.data.image || post.url.replace('/blog/', '/blog-og/') + '/image.png'}
               alt={post.data.title}
-              className="h-full w-full object-cover transition-all duration-300 fade-in hover:opacity-70 hover:scale-105"
+              className="h-full w-full object-cover transition-[transform,opacity] duration-500 ease-out group-hover/thumb:scale-105 group-hover/thumb:opacity-80"
             />
           </div>
         </Link>

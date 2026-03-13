@@ -460,6 +460,19 @@ function readParams(): {
   };
 }
 
+function InfoTip({ text }: { text: string }) {
+  return (
+    <span className="group relative ml-1 inline-flex cursor-help">
+      <svg className="h-3.5 w-3.5 text-fd-foreground/35 transition-colors group-hover:text-fd-foreground/60" viewBox="0 0 16 16" fill="currentColor">
+        <path fillRule="evenodd" d="M15 8A7 7 0 1 1 1 8a7 7 0 0 1 14 0ZM9 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM6.75 8a.75.75 0 0 0 0 1.5h.75v1.75a.75.75 0 0 0 1.5 0v-2.5A.75.75 0 0 0 8.25 8h-1.5Z" clipRule="evenodd" />
+      </svg>
+      <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-52 -translate-x-1/2 rounded-lg border border-fd-border bg-fd-card px-3 py-2 text-xs font-normal leading-relaxed text-fd-foreground/80 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+        {text}
+      </span>
+    </span>
+  );
+}
+
 export function LlmPriceCalculator() {
   const initial = readParams();
   const [inputTokens, setInputTokens] = useState(initial.inputTokens);
@@ -787,6 +800,7 @@ export function LlmPriceCalculator() {
             <div>
               <label htmlFor="budget-input" className={controlLabelClass}>
                 Budget ($)
+                <InfoTip text="Your total spending limit. Shows how many API calls each model can make within this budget." />
               </label>
               <input
                 id="budget-input"
@@ -803,6 +817,7 @@ export function LlmPriceCalculator() {
             <div>
               <label htmlFor="budget-input-tokens" className={controlLabelClass}>
                 Input Tokens / call
+                <InfoTip text="Tokens you send to the model per API call - your prompt, system instructions, and any context." />
               </label>
               <input
                 id="budget-input-tokens"
@@ -818,6 +833,7 @@ export function LlmPriceCalculator() {
             <div>
               <label htmlFor="budget-output-tokens" className={controlLabelClass}>
                 Output Tokens / call
+                <InfoTip text="Tokens the model generates in its response. Usually costs 3-5x more than input tokens." />
               </label>
               <input
                 id="budget-output-tokens"
@@ -836,6 +852,7 @@ export function LlmPriceCalculator() {
             <div>
               <label htmlFor="input-tokens" className={controlLabelClass}>
                 Input Tokens
+                <InfoTip text="Tokens you send to the model per API call - your prompt, system instructions, and any context." />
               </label>
               <input
                 id="input-tokens"
@@ -852,6 +869,7 @@ export function LlmPriceCalculator() {
             <div>
               <label htmlFor="output-tokens" className={controlLabelClass}>
                 Output Tokens
+                <InfoTip text="Tokens the model generates in its response. Usually costs 3-5x more than input tokens." />
               </label>
               <input
                 id="output-tokens"
@@ -868,6 +886,7 @@ export function LlmPriceCalculator() {
             <div>
               <label htmlFor="api-calls" className={controlLabelClass}>
                 API Calls
+                <InfoTip text="Number of requests you'll make. Multiply per-call cost by this to get the total." />
               </label>
               <input
                 id="api-calls"
@@ -884,6 +903,7 @@ export function LlmPriceCalculator() {
             <div>
               <label htmlFor="cache-hit-rate" className={controlLabelClass}>
                 Cache Hit Rate
+                <InfoTip text="How often the model reuses cached input tokens instead of reprocessing them. Cached tokens cost 5-10x less. The first call is never cached." />
               </label>
               <div className="mt-1 flex items-center gap-3 rounded-lg border border-fd-border bg-fd-background px-3.5 py-2.5 shadow-sm transition-[border-color,box-shadow] focus-within:border-fd-primary focus-within:ring-2 focus-within:ring-fd-primary/20">
                 <input

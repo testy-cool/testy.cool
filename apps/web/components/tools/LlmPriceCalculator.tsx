@@ -75,6 +75,7 @@ const models: Model[] = [
     context: 1_050_000,
     maxOutput: 128_000,
     modalities: ["text", "image"],
+    reasoning: 15,
   },
   {
     name: "GPT-5.2",
@@ -85,6 +86,7 @@ const models: Model[] = [
     context: 400_000,
     maxOutput: 128_000,
     modalities: ["text", "image"],
+    reasoning: 14,
   },
   {
     name: "GPT-5.1",
@@ -95,6 +97,18 @@ const models: Model[] = [
     context: 400_000,
     maxOutput: 128_000,
     modalities: ["text", "image"],
+    reasoning: 10,
+  },
+  {
+    name: "GPT-5",
+    provider: "openai",
+    input: 1.25,
+    output: 10,
+    cachedInput: 0.125,
+    context: 400_000,
+    maxOutput: 128_000,
+    modalities: ["text", "image"],
+    reasoning: 10,
   },
   {
     name: "GPT-5-mini",
@@ -105,6 +119,7 @@ const models: Model[] = [
     context: 400_000,
     maxOutput: 128_000,
     modalities: ["text", "image"],
+    reasoning: 2,
   },
   {
     name: "GPT-5-nano",
@@ -115,6 +130,7 @@ const models: Model[] = [
     context: 400_000,
     maxOutput: 128_000,
     modalities: ["text", "image"],
+    reasoning: 0.4,
   },
   {
     name: "GPT-4.1",
@@ -239,6 +255,7 @@ const models: Model[] = [
     context: 1_000_000,
     maxOutput: 65_000,
     modalities: ["text", "image", "audio", "video", "pdf"],
+    reasoning: 10,
   },
   {
     name: "Gemini 2.5 Flash",
@@ -249,6 +266,7 @@ const models: Model[] = [
     context: 1_000_000,
     maxOutput: 65_000,
     modalities: ["text", "image", "audio", "video", "pdf"],
+    reasoning: 2.5,
   },
   {
     name: "Gemini 2.5 Flash-Lite",
@@ -1117,7 +1135,6 @@ export function LlmPriceCalculator() {
                 <th className={headerCellClass}>Context</th>
                 {showAdvanced && <th className={headerCellClass}>In/M</th>}
                 {showAdvanced && <th className={headerCellClass}>Out/M</th>}
-                {showAdvanced && <th className={headerCellClass}>Think/M</th>}
                 {isBudgetMode ? (
                   <th className={`${headerCellClass} border-l border-fd-border/60 bg-fd-muted/12 text-fd-foreground/88`}>
                     Max calls
@@ -1183,15 +1200,22 @@ export function LlmPriceCalculator() {
                       {providerLabels[model.provider]}
                     </td>
                     <td className="px-4 py-3 text-left">
-                      <button
-                        onClick={() => togglePin(model.name)}
-                        title={isPinned ? "Unpin" : "Pin to compare"}
-                        className={`text-left text-sm font-medium text-fd-foreground hover:text-fd-primary transition-colors ${
-                          isPinned ? "underline decoration-fd-primary decoration-2 underline-offset-2" : ""
-                        }`}
-                      >
-                        {model.name}
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => togglePin(model.name)}
+                          title={isPinned ? "Unpin" : "Pin to compare"}
+                          className={`text-left text-sm font-medium text-fd-foreground hover:text-fd-primary transition-colors ${
+                            isPinned ? "underline decoration-fd-primary decoration-2 underline-offset-2" : ""
+                          }`}
+                        >
+                          {model.name}
+                        </button>
+                        {model.reasoning && (
+                          <span className="rounded-full bg-fd-primary/10 px-1.5 py-0.5 text-[10px] font-medium leading-none text-fd-primary">
+                            thinking
+                          </span>
+                        )}
+                      </div>
                       <div className="mt-1 text-xs text-fd-foreground/54">
                         max output {formatTokenCount(model.maxOutput)}
                       </div>
@@ -1208,11 +1232,6 @@ export function LlmPriceCalculator() {
                     {showAdvanced && (
                       <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/74">
                         {formatRate(model.output)}
-                      </td>
-                    )}
-                    {showAdvanced && (
-                      <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/74">
-                        {model.reasoning ? formatRate(model.reasoning) : <span className="text-fd-foreground/30">-</span>}
                       </td>
                     )}
                     {isBudgetMode ? (
@@ -1307,6 +1326,11 @@ export function LlmPriceCalculator() {
                       >
                         {model.name}
                       </button>
+                      {model.reasoning && (
+                        <span className="rounded-full bg-fd-primary/10 px-1.5 py-0.5 text-[10px] font-medium leading-none text-fd-primary">
+                          thinking
+                        </span>
+                      )}
                     </div>
                     <div className="mt-0.5 ml-7 text-xs text-fd-muted-foreground">
                       {providerLabels[model.provider]}
@@ -1323,7 +1347,6 @@ export function LlmPriceCalculator() {
                   <span>
                     In: {formatRate(model.input)}/M &middot; Out:{" "}
                     {formatRate(model.output)}/M
-                    {model.reasoning && <> &middot; Think: {formatRate(model.reasoning)}/M</>}
                   </span>
                 </div>
 

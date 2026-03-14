@@ -217,7 +217,7 @@ const models: Model[] = [
   },
   // Google
   {
-    name: "Gemini 3.1 Pro",
+    name: "Gemini 3.1 Pro Preview",
     provider: "google",
     input: 2,
     output: 12,
@@ -227,7 +227,7 @@ const models: Model[] = [
     modalities: ["text", "image", "audio", "video", "pdf"],
   },
   {
-    name: "Gemini 3.1 Flash-Lite",
+    name: "Gemini 3.1 Flash-Lite Preview",
     provider: "google",
     input: 0.25,
     output: 1.5,
@@ -237,7 +237,7 @@ const models: Model[] = [
     modalities: ["text", "image", "audio", "video", "pdf"],
   },
   {
-    name: "Gemini 3 Flash",
+    name: "Gemini 3 Flash Preview",
     provider: "google",
     input: 0.5,
     output: 3,

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 type Provider = "anthropic" | "openai" | "google" | "zhipu";
 type Modality = "text" | "image" | "audio" | "video" | "pdf";
-type CalcMode = "cost" | "budget";
+type CalcMode = "cost" | "budget" | "chain";
 
 interface Model {
   name: string;
@@ -412,6 +412,7 @@ const presets = [
   { label: "Batch", in: 8000, out: 500, calls: 10000, cache: 80 },
   { label: "RAG", in: 4000, out: 2000, calls: 500, cache: 60 },
   { label: "Code", in: 3000, out: 4000, calls: 50, cache: 0 },
+  { label: "Chain", in: 2000, out: 500, calls: 10, cache: 0, turn: 500 },
 ];
 
 const DEFAULTS = {
@@ -423,6 +424,7 @@ const DEFAULTS = {
   mode: "cost",
   budget: 100,
   reasoning: 0,
+  turn: 500,
 };
 
 function readParams(): {
@@ -436,6 +438,7 @@ function readParams(): {
   mode: CalcMode;
   budget: number;
   reasoningTokens: number;
+  turnTokens: number;
 } {
   if (typeof window === "undefined") {
     return {
@@ -449,6 +452,7 @@ function readParams(): {
       mode: DEFAULTS.mode as CalcMode,
       budget: DEFAULTS.budget,
       reasoningTokens: DEFAULTS.reasoning,
+      turnTokens: DEFAULTS.turn,
     };
   }
   const p = new URLSearchParams(window.location.search);
@@ -472,6 +476,8 @@ function readParams(): {
   } else {
     modalityFilter = new Set<Modality>();
   }
+  const modeParam = p.get("mode");
+  const mode: CalcMode = modeParam === "budget" ? "budget" : modeParam === "chain" ? "chain" : "cost";
   return {
     inputTokens: Number(p.get("in")) || DEFAULTS.in,
     outputTokens: Number(p.get("out")) || DEFAULTS.out,
@@ -483,9 +489,10 @@ function readParams(): {
     providerFilter,
     modalityFilter,
     sortBy: p.get("sort") === "price" ? "price" : "provider",
-    mode: p.get("mode") === "budget" ? "budget" : "cost",
+    mode,
     budget: Number(p.get("budget")) || DEFAULTS.budget,
     reasoningTokens: Math.max(0, Number(p.get("reasoning")) || DEFAULTS.reasoning),
+    turnTokens: Math.max(0, Number(p.get("turn")) || DEFAULTS.turn),
   };
 }
 
@@ -500,6 +507,39 @@ function InfoTip({ text }: { text: string }) {
       </span>
     </span>
   );
+}
+
+/** Returns key call numbers for chain progression display */
+function getChainSteps(total: number): number[] {
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+  const steps = new Set([1, 2, 3]);
+  if (total >= 5) steps.add(5);
+  if (total >= 10) steps.add(10);
+  if (total >= 20) steps.add(20);
+  if (total >= 50) steps.add(50);
+  if (total >= 100) steps.add(100);
+  steps.add(total);
+  return [...steps].filter((n) => n <= total).sort((a, b) => a - b);
+}
+
+/** Closed-form cumulative cost at step N for a chain */
+function chainCumulativeAt(
+  params: {
+    base: number;
+    turnSize: number;
+    inputRate: number;
+    cachedRate: number;
+    outputCost: number;
+    reasoningCost: number;
+  },
+  N: number,
+): number {
+  const { base, turnSize, inputRate, cachedRate, outputCost, reasoningCost } = params;
+  const call1 = base * inputRate + outputCost + reasoningCost;
+  if (N <= 1) return call1;
+  const freshPerCall = turnSize * inputRate + outputCost + reasoningCost;
+  const cachedSum = (N - 1) * base + turnSize * ((N - 2) * (N - 1)) / 2;
+  return call1 + (N - 1) * freshPerCall + cachedRate * cachedSum;
 }
 
 export function LlmPriceCalculator() {
@@ -518,6 +558,7 @@ export function LlmPriceCalculator() {
   const [mode, setMode] = useState<CalcMode>(initial.mode);
   const [budget, setBudget] = useState(initial.budget);
   const [reasoningTokens, setReasoningTokens] = useState(initial.reasoningTokens);
+  const [turnTokens, setTurnTokens] = useState(initial.turnTokens);
   const [pinnedModels, setPinnedModels] = useState<Set<string>>(new Set());
 
   const allSelected = providerFilter.size === allProviders.size;
@@ -577,6 +618,10 @@ export function LlmPriceCalculator() {
     setOutputTokens(preset.out);
     setApiCalls(preset.calls);
     setCachePercent(preset.cache);
+    if ("turn" in preset && typeof preset.turn === "number") {
+      setTurnTokens(preset.turn);
+      setMode("chain");
+    }
   }, []);
 
   // Serialize Set to stable string for useCallback deps
@@ -596,6 +641,7 @@ export function LlmPriceCalculator() {
     if (mode !== DEFAULTS.mode) params.set("mode", mode);
     if (mode === "budget" && budget !== DEFAULTS.budget) params.set("budget", String(budget));
     if (reasoningTokens !== DEFAULTS.reasoning) params.set("reasoning", String(reasoningTokens));
+    if (mode === "chain" && turnTokens !== DEFAULTS.turn) params.set("turn", String(turnTokens));
     const qs = params.toString();
     const url = window.location.pathname + (qs ? `?${qs}` : "");
     window.history.replaceState(null, "", url);
@@ -611,6 +657,7 @@ export function LlmPriceCalculator() {
     mode,
     budget,
     reasoningTokens,
+    turnTokens,
   ]);
 
   useEffect(() => {
@@ -622,6 +669,7 @@ export function LlmPriceCalculator() {
   const showCache = cachePercent > 0;
   const showAdvanced = true;
   const isBudgetMode = mode === "budget";
+  const isChainMode = mode === "chain";
 
   const controlLabelClass =
     "mb-2 flex items-center gap-1 text-sm font-medium text-fd-foreground/72";
@@ -660,6 +708,47 @@ export function LlmPriceCalculator() {
       const effectivePerCall = showCache ? cachedPerCall : perCall;
       const maxCalls = effectivePerCall > 0 ? budget / effectivePerCall : Infinity;
 
+      // Chain mode calculations
+      const chainTurnSize = turnTokens + outputTokens;
+      const chainInputRate = model.input / 1_000_000;
+      const chainCachedRate = model.cachedInput / 1_000_000;
+      const chainOutputCost = (outputTokens / 1_000_000) * model.output;
+      const chainReasoningCost = model.reasoning
+        ? (reasoningTokens / 1_000_000) * model.reasoning
+        : 0;
+      const chainParams = {
+        base: inputTokens,
+        turnSize: chainTurnSize,
+        inputRate: chainInputRate,
+        cachedRate: chainCachedRate,
+        outputCost: chainOutputCost,
+        reasoningCost: chainReasoningCost,
+      };
+      const chainCall1 = chainCumulativeAt(chainParams, 1);
+      const chainLastCallCost =
+        apiCalls <= 1
+          ? chainCall1
+          : (() => {
+              const N = apiCalls;
+              const prevInput = inputTokens + (N - 2) * chainTurnSize;
+              return (
+                prevInput * chainCachedRate +
+                chainTurnSize * chainInputRate +
+                chainOutputCost +
+                chainReasoningCost
+              );
+            })();
+      const chainTotal = chainCumulativeAt(chainParams, apiCalls);
+      // Find call number where total input exceeds context window
+      let chainExceedsAt = 0;
+      if (inputTokens > model.context) {
+        chainExceedsAt = 1;
+      } else if (chainTurnSize > 0) {
+        // totalInputAtN = base + (N-1) * turnSize
+        const maxN = Math.floor((model.context - inputTokens) / chainTurnSize) + 1;
+        if (maxN < apiCalls) chainExceedsAt = maxN + 1;
+      }
+
       return {
         ...model,
         perCall,
@@ -668,9 +757,14 @@ export function LlmPriceCalculator() {
         cachedTotal,
         savings,
         maxCalls,
+        chainCall1,
+        chainLastCall: chainLastCallCost,
+        chainTotal,
+        chainExceedsAt,
+        chainParams,
       };
     });
-  }, [inputTokens, outputTokens, reasoningTokens, apiCalls, cacheRatio, budget, showCache]);
+  }, [inputTokens, outputTokens, reasoningTokens, apiCalls, cacheRatio, budget, showCache, turnTokens]);
 
   const visibleModels = useMemo(() => {
     let filtered = allSelected
@@ -687,25 +781,29 @@ export function LlmPriceCalculator() {
       return [...filtered].sort((a, b) => b.maxCalls - a.maxCalls);
     }
 
+    if (isChainMode) {
+      return [...filtered].sort((a, b) => a.chainTotal - b.chainTotal);
+    }
+
     if (sortBy === "price") {
       const key = showCache ? "cachedTotal" : "total";
       return [...filtered].sort((a, b) => a[key] - b[key]);
     }
     return filtered;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [calculated, providerKey, allSelected, modalityKey, sortBy, showCache, isBudgetMode]);
+  }, [calculated, providerKey, allSelected, modalityKey, sortBy, showCache, isBudgetMode, isChainMode]);
 
   // Compute min/max for highlights and bars
   const maxCost = useMemo(() => {
     if (visibleModels.length === 0) return 0;
-    const costKey = isBudgetMode ? "maxCalls" : (showCache ? "cachedTotal" : "total");
+    const costKey = isBudgetMode ? "maxCalls" : isChainMode ? "chainTotal" : (showCache ? "cachedTotal" : "total");
     let max = 0;
     for (const m of visibleModels) {
       const val = m[costKey];
       if (val > max) max = val;
     }
     return max;
-  }, [visibleModels, showCache, isBudgetMode]);
+  }, [visibleModels, showCache, isBudgetMode, isChainMode]);
 
   // Pinned model data for comparison
   const pinnedData = useMemo(() => {
@@ -715,9 +813,9 @@ export function LlmPriceCalculator() {
 
   const pinnedCheapest = useMemo(() => {
     if (pinnedData.length < 2) return "";
-    const key = showCache ? "cachedTotal" : "total";
+    const key = isChainMode ? "chainTotal" : showCache ? "cachedTotal" : "total";
     return pinnedData.reduce((a, b) => (a[key] < b[key] ? a : b)).name;
-  }, [pinnedData, showCache]);
+  }, [pinnedData, showCache, isChainMode]);
 
   const tableMinWidthClass = showCache ? "min-w-[1020px]" : "min-w-[860px]";
 
@@ -726,6 +824,8 @@ export function LlmPriceCalculator() {
     const sorted = [...visibleModels];
     if (isBudgetMode) {
       sorted.sort((a, b) => b.maxCalls - a.maxCalls);
+    } else if (isChainMode) {
+      sorted.sort((a, b) => a.chainTotal - b.chainTotal);
     } else {
       const key = showCache ? "cachedTotal" : "total";
       sorted.sort((a, b) => a[key] - b[key]);
@@ -733,11 +833,14 @@ export function LlmPriceCalculator() {
     const rankMap = new Map<string, number>();
     sorted.forEach((m, i) => rankMap.set(m.name, i + 1));
     return rankMap;
-  }, [visibleModels, showCache, isBudgetMode]);
+  }, [visibleModels, showCache, isBudgetMode, isChainMode]);
 
   function getCostBarWidth(model: typeof visibleModels[0]): number {
     if (isBudgetMode) {
       return maxCost > 0 ? (model.maxCalls / maxCost) * 100 : 0;
+    }
+    if (isChainMode) {
+      return maxCost > 0 ? (model.chainTotal / maxCost) * 100 : 0;
     }
     const cost = showCache ? model.cachedTotal : model.total;
     return maxCost > 0 ? (cost / maxCost) * 100 : 0;
@@ -784,8 +887,18 @@ export function LlmPriceCalculator() {
             >
               Set budget
             </button>
+            <button
+              onClick={() => setMode("chain")}
+              className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                mode === "chain"
+                  ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
+                  : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
+              }`}
+            >
+              Chain
+            </button>
           </div>
-          {!isBudgetMode && (
+          {!isBudgetMode && !isChainMode && (
             <>
               <span className="text-fd-foreground/40 text-xs">|</span>
               {presets.map((p) => (
@@ -830,7 +943,90 @@ export function LlmPriceCalculator() {
           )}
         </div>
 
-        {isBudgetMode ? (
+        {isChainMode ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 xl:gap-5">
+            <div>
+              <label htmlFor="chain-base-tokens" className={controlLabelClass}>
+                Base tokens
+                <InfoTip text="System prompt + first user message. This is the input for call 1 and gets cached in subsequent calls." />
+              </label>
+              <input
+                id="chain-base-tokens"
+                type="number"
+                value={inputTokens}
+                onChange={(e) => setInputTokens(Number(e.target.value))}
+                min={0}
+                inputMode="numeric"
+                autoComplete="off"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="chain-turn-tokens" className={controlLabelClass}>
+                Tokens per turn
+                <InfoTip text="New tokens added each turn - your follow-up message plus the model's previous response. Previous context gets cached." />
+              </label>
+              <input
+                id="chain-turn-tokens"
+                type="number"
+                value={turnTokens}
+                onChange={(e) => setTurnTokens(Math.max(0, Number(e.target.value)))}
+                min={0}
+                inputMode="numeric"
+                autoComplete="off"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="chain-output-tokens" className={controlLabelClass}>
+                Output tokens
+                <InfoTip text="Tokens the model generates per response. Usually costs 3-5x more than input tokens." />
+              </label>
+              <input
+                id="chain-output-tokens"
+                type="number"
+                value={outputTokens}
+                onChange={(e) => setOutputTokens(Number(e.target.value))}
+                min={0}
+                inputMode="numeric"
+                autoComplete="off"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="chain-calls" className={controlLabelClass}>
+                Calls in chain
+                <InfoTip text="Number of sequential calls in the conversation. Each call includes all previous context (cached) plus new tokens." />
+              </label>
+              <input
+                id="chain-calls"
+                type="number"
+                value={apiCalls}
+                onChange={(e) => setApiCalls(Math.max(1, Number(e.target.value)))}
+                min={1}
+                inputMode="numeric"
+                autoComplete="off"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="chain-reasoning-tokens" className={controlLabelClass}>
+                Reasoning tokens
+                <InfoTip text="Internal thinking tokens used by reasoning models per call. Billed at the output token rate." />
+              </label>
+              <input
+                id="chain-reasoning-tokens"
+                type="number"
+                value={reasoningTokens}
+                onChange={(e) => setReasoningTokens(Math.max(0, Number(e.target.value)))}
+                min={0}
+                inputMode="numeric"
+                autoComplete="off"
+                className={inputClass}
+              />
+            </div>
+          </div>
+        ) : isBudgetMode ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
             <div>
               <label htmlFor="budget-input" className={controlLabelClass}>
@@ -1008,37 +1204,78 @@ export function LlmPriceCalculator() {
               Clear
             </button>
           </div>
-          <div className={`grid gap-3 ${pinnedData.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
-            {pinnedData.map((m) => {
-              const isWinner = m.name === pinnedCheapest;
-              const cost = showCache ? m.cachedTotal : m.total;
-              return (
-                <div
-                  key={m.name}
-                  className={`rounded-lg border p-3 ${
-                    isWinner
-                      ? "border-green-500/40 bg-green-500/[0.06]"
-                      : "border-fd-border bg-fd-card"
-                  }`}
-                >
-                  <div className="text-xs text-fd-muted-foreground">{providerLabels[m.provider]}</div>
-                  <div className="text-sm font-semibold">{m.name}</div>
-                  <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-                    <span className="text-fd-foreground/55">In/M</span>
-                    <span className="text-right tabular-nums">{formatRate(m.input)}</span>
-                    <span className="text-fd-foreground/55">Out/M</span>
-                    <span className="text-right tabular-nums">{formatRate(m.output)}</span>
-                    <span className="text-fd-foreground/55">Per call</span>
-                    <span className="text-right tabular-nums">{formatCost(m.perCall)}</span>
-                    <span className="text-fd-foreground/55 font-medium">Total</span>
-                    <span className={`text-right tabular-nums font-semibold ${isWinner ? "text-green-500" : ""}`}>
-                      {formatCost(cost)}
-                    </span>
+          {isChainMode ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-fd-border/60">
+                    <th className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">Call</th>
+                    {pinnedData.map((m) => (
+                      <th key={m.name} className="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
+                        {m.name}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {getChainSteps(apiCalls).map((step) => {
+                    const costs = pinnedData.map((m) => ({
+                      name: m.name,
+                      cost: chainCumulativeAt(m.chainParams, step),
+                    }));
+                    const minCost = Math.min(...costs.map((c) => c.cost));
+                    return (
+                      <tr key={step} className="border-b border-fd-border/30">
+                        <td className="px-3 py-2 text-fd-foreground/60 tabular-nums">{step}</td>
+                        {costs.map((c) => (
+                          <td
+                            key={c.name}
+                            className={`px-3 py-2 text-right tabular-nums font-medium ${
+                              c.cost === minCost ? "text-green-500" : "text-fd-foreground"
+                            }`}
+                          >
+                            {formatCost(c.cost)}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className={`grid gap-3 ${pinnedData.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+              {pinnedData.map((m) => {
+                const isWinner = m.name === pinnedCheapest;
+                const cost = showCache ? m.cachedTotal : m.total;
+                return (
+                  <div
+                    key={m.name}
+                    className={`rounded-lg border p-3 ${
+                      isWinner
+                        ? "border-green-500/40 bg-green-500/[0.06]"
+                        : "border-fd-border bg-fd-card"
+                    }`}
+                  >
+                    <div className="text-xs text-fd-muted-foreground">{providerLabels[m.provider]}</div>
+                    <div className="text-sm font-semibold">{m.name}</div>
+                    <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                      <span className="text-fd-foreground/55">In/M</span>
+                      <span className="text-right tabular-nums">{formatRate(m.input)}</span>
+                      <span className="text-fd-foreground/55">Out/M</span>
+                      <span className="text-right tabular-nums">{formatRate(m.output)}</span>
+                      <span className="text-fd-foreground/55">Per call</span>
+                      <span className="text-right tabular-nums">{formatCost(m.perCall)}</span>
+                      <span className="text-fd-foreground/55 font-medium">Total</span>
+                      <span className={`text-right tabular-nums font-semibold ${isWinner ? "text-green-500" : ""}`}>
+                        {formatCost(cost)}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -1047,7 +1284,12 @@ export function LlmPriceCalculator() {
         <div className="border-b border-fd-border px-5 py-4">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm leading-6 text-fd-foreground/75">
-              {isBudgetMode ? (
+              {isChainMode ? (
+                <>
+                  {integerFormatter.format(inputTokens)} base + {integerFormatter.format(turnTokens)}/turn × {integerFormatter.format(apiCalls)} calls
+                  {reasoningTokens > 0 && ` · ${integerFormatter.format(reasoningTokens)} reasoning`}
+                </>
+              ) : isBudgetMode ? (
                 <>
                   {currency2Formatter.format(budget)} budget · {integerFormatter.format(inputTokens)} in + {integerFormatter.format(outputTokens)} out per call
                   {reasoningTokens > 0 && ` + ${integerFormatter.format(reasoningTokens)} reasoning`}
@@ -1122,7 +1364,7 @@ export function LlmPriceCalculator() {
 
         {/* Desktop table */}
         <div className="hidden overflow-x-auto md:block">
-          <table className={`${isBudgetMode ? "min-w-[800px]" : tableMinWidthClass} w-full`}>
+          <table className={`${isBudgetMode ? "min-w-[800px]" : isChainMode ? "min-w-[900px]" : tableMinWidthClass} w-full`}>
             <thead>
               <tr className="border-b border-fd-border bg-fd-muted/15">
                 <th className="w-10 px-2 py-3 text-center text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">#</th>
@@ -1135,7 +1377,13 @@ export function LlmPriceCalculator() {
                 <th className={headerCellClass}>Context</th>
                 {showAdvanced && <th className={headerCellClass}>In/M</th>}
                 {showAdvanced && <th className={headerCellClass}>Out/M</th>}
-                {isBudgetMode ? (
+                {isChainMode ? (
+                  <>
+                    <th className={`${headerCellClass} text-fd-foreground/84`}>Call 1</th>
+                    <th className={`${headerCellClass} border-l border-fd-border/50 text-fd-foreground/72`}>Last call</th>
+                    <th className={`${headerCellClass} border-l border-fd-border/60 bg-fd-muted/12 text-fd-foreground/88`}>Total</th>
+                  </>
+                ) : isBudgetMode ? (
                   <th className={`${headerCellClass} border-l border-fd-border/60 bg-fd-muted/12 text-fd-foreground/88`}>
                     Max calls
                   </th>
@@ -1234,7 +1482,36 @@ export function LlmPriceCalculator() {
                         {formatRate(model.output)}
                       </td>
                     )}
-                    {isBudgetMode ? (
+                    {isChainMode ? (
+                      <>
+                        <td className="border-l border-fd-border/40 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground">
+                          {formatCost(model.chainCall1)}
+                        </td>
+                        <td className="border-l border-fd-border/40 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground/78">
+                          {formatCost(model.chainLastCall)}
+                        </td>
+                        <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {model.chainExceedsAt > 0 && (
+                              <span title={`Exceeds ${formatTokenCount(model.context)} context at call ${model.chainExceedsAt}`} className="text-amber-500">
+                                <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="currentColor">
+                                  <path fillRule="evenodd" d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575L6.457 1.047ZM8 5a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-1.5 0v-2.5A.75.75 0 0 1 8 5Zm1 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z" clipRule="evenodd" />
+                                </svg>
+                              </span>
+                            )}
+                            <span className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
+                              {formatCost(model.chainTotal)}
+                            </span>
+                          </div>
+                          <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
+                              style={{ width: `${barWidth}%` }}
+                            />
+                          </div>
+                        </td>
+                      </>
+                    ) : isBudgetMode ? (
                       <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3 text-right">
                         <div className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
                           {model.maxCalls === Infinity ? "\u221e" : formatCallCount(model.maxCalls)}
@@ -1350,7 +1627,43 @@ export function LlmPriceCalculator() {
                   </span>
                 </div>
 
-                {isBudgetMode ? (
+                {isChainMode ? (
+                  <div className="grid grid-cols-3 gap-x-3 gap-y-2">
+                    <div>
+                      <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                        Call 1
+                      </div>
+                      <div className="text-sm font-medium tabular-nums text-fd-foreground">
+                        {formatCost(model.chainCall1)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                        Last call
+                      </div>
+                      <div className="text-sm font-medium tabular-nums text-fd-foreground/78">
+                        {formatCost(model.chainLastCall)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                        Total
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {model.chainExceedsAt > 0 && (
+                          <span title={`Exceeds context at call ${model.chainExceedsAt}`} className="text-amber-500">
+                            <svg className="h-3 w-3" viewBox="0 0 16 16" fill="currentColor">
+                              <path fillRule="evenodd" d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575L6.457 1.047ZM8 5a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-1.5 0v-2.5A.75.75 0 0 1 8 5Zm1 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z" clipRule="evenodd" />
+                            </svg>
+                          </span>
+                        )}
+                        <span className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
+                          {formatCost(model.chainTotal)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : isBudgetMode ? (
                   <div>
                     <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
                       Max calls for {currency2Formatter.format(budget)}
@@ -1417,7 +1730,8 @@ export function LlmPriceCalculator() {
 
         <div className="border-t border-fd-border px-5 py-3 text-[11px] leading-5 text-fd-foreground/60">
           Prices per million tokens. Last updated March 2026.
-          {showCache &&
+          {isChainMode && " Chain mode assumes previous context is cached and each turn adds new tokens at full price."}
+          {showCache && !isChainMode &&
             " Totals reflect cache hits at the selected cache rate."}
         </div>
       </div>

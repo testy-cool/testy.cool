@@ -3,7 +3,6 @@
 import { cn } from "@repo/shadverse/lib/utils";
 import { cva } from "class-variance-authority";
 import { Airplay, Moon, Sun } from "lucide-react";
-import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { type HTMLAttributes, useLayoutEffect, useState } from "react";
 
@@ -126,14 +125,7 @@ export function ThemeToggle({
             aria-label={label}
           >
             {isActive && (
-              <motion.div
-                layoutId="activeTheme"
-                className="absolute inset-0 rounded-full bg-accent"
-                transition={{
-                  type: "spring",
-                  duration: mode === "light-dark" ? 1.5 : 1,
-                }}
-              />
+              <div className="absolute inset-0 rounded-full bg-accent" />
             )}
             <Icon
               className={"relative m-auto size-full"}

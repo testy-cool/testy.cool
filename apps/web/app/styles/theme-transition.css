@@ -1,3 +1,25 @@
+/* Page navigation transitions */
+@keyframes page-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+html:not(.theme-toggle-transition)::view-transition-old(root) {
+  animation: page-fade-out 120ms ease-out forwards;
+}
+
+html:not(.theme-toggle-transition)::view-transition-new(root) {
+  animation: page-fade-in 180ms ease-in;
+}
+
+/* Theme toggle transitions */
 @keyframes theme-mask-scale {
   0% {
     mask-size: 0px;

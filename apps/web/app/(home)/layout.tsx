@@ -5,6 +5,8 @@ import { getLinks } from "fumadocs-ui/layouts/shared";
 import { Header } from "@/components/header";
 import { SocialIcons } from "@repo/ui/components/social-icons";
 import SimpleFooter from "@/components/simple-footer";
+import { PageTransition } from "@/components/page-transition";
+import { EasterEgg } from "@/components/easter-egg";
 
 export default function Layout({ children }: { children: ReactNode }) {
   const footerNavigation = [
@@ -39,9 +41,10 @@ export default function Layout({ children }: { children: ReactNode }) {
       className="pt-0 home-layout"
     >
       <div className="home-children flex flex-1 flex-col divide-y divide-dashed divide-border/70 border-border/70 border-dashed sm:border-b dark:divide-border dark:border-border">
-        {children}
+        <PageTransition>{children}</PageTransition>
       </div>
       <SimpleFooter navigation={footerNavigation} />
+      <EasterEgg />
     </HomeLayout>
   );
 }

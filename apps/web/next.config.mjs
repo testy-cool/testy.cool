@@ -9,9 +9,6 @@ const config = {
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   basePath: "",
   images: { unoptimized: true },
-  experimental: {
-    viewTransition: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },

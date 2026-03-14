@@ -245,6 +245,7 @@ const models: Model[] = [
     context: 1_000_000,
     maxOutput: 65_000,
     modalities: ["text", "image", "audio", "video", "pdf"],
+    reasoning: 3,
   },
   {
     name: "Gemini 2.5 Pro",

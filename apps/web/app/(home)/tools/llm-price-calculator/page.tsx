@@ -9,6 +9,12 @@ import {
   BreadcrumbSeparator,
 } from "@repo/shadverse/components/breadcrumb";
 import { LlmPriceCalculator } from "@/components/tools/LlmPriceCalculator";
+import {
+  TokenExplainer,
+  InputOutputCompare,
+  CachingImpact,
+  ChainCostPreview,
+} from "@/components/tools/LlmPricingExplainers";
 import { createMetadata } from "@/lib/metadata";
 
 const description =
@@ -81,26 +87,60 @@ export default function LlmPriceCalculatorPage() {
           <h2 className="text-xl font-semibold mb-3 text-fd-foreground">
             What this calculator does
           </h2>
-          <p className="text-sm leading-relaxed text-fd-muted-foreground mb-4">
+          <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
             This calculator compares API pricing across 30+ large language models
             from Anthropic, OpenAI, Google, and Zhipu AI. It covers input tokens,
             output tokens, prompt caching discounts, and reasoning token costs -
             all the variables that affect your actual bill.
           </p>
-          <p className="text-sm leading-relaxed text-fd-muted-foreground mb-4">
+          <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
             There are three modes. <strong>Calculate cost</strong> shows per-call
             and total costs for a given workload, with presets for common
-            scenarios like chatbots, RAG pipelines, batch processing, and code
-            generation. <strong>Set budget</strong> flips the question - enter a
+            scenarios. <strong>Set budget</strong> flips the question - enter a
             dollar amount and see how many API calls each model can handle.{" "}
             <strong>Chain</strong> models multi-turn conversations where context
-            accumulates, showing how prompt caching affects cost as conversations
-            grow.
+            accumulates. All settings are saved in the URL for bookmarking and
+            sharing.
           </p>
-          <p className="text-sm leading-relaxed text-fd-muted-foreground mb-4">
-            All settings are saved in the URL, so you can bookmark a
-            configuration or share it with your team.
+
+          <h2 className="text-xl font-semibold mb-3 mt-10 text-fd-foreground">
+            How LLM API pricing works
+          </h2>
+          <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
+            LLM APIs charge per token - roughly 0.75 English words each. Type
+            something below to see tokens in action.
           </p>
+          <TokenExplainer />
+
+          <h3 className="text-lg font-medium mb-2 mt-8 text-fd-foreground">
+            Input vs. output cost
+          </h3>
+          <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
+            Input and output tokens are priced separately. Output typically costs
+            3-5x more - a task generating long responses is significantly more
+            expensive than one processing long inputs.
+          </p>
+          <InputOutputCompare />
+
+          <h2 className="text-xl font-semibold mb-3 mt-10 text-fd-foreground">
+            Prompt caching
+          </h2>
+          <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
+            If your application sends the same prefix on every call (system
+            prompts, few-shot examples), caching lets you reuse it at 75-90%
+            off. It&apos;s the single biggest cost lever for most applications.
+          </p>
+          <CachingImpact />
+
+          <h2 className="text-xl font-semibold mb-3 mt-10 text-fd-foreground">
+            Multi-turn conversations
+          </h2>
+          <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
+            Each API call sends the full conversation history as input, so costs
+            grow with every turn. This is why a 10-turn conversation costs more
+            than 10 independent calls.
+          </p>
+          <ChainCostPreview />
 
           <h2 className="text-xl font-semibold mb-3 mt-10 text-fd-foreground">
             Supported models
@@ -109,7 +149,7 @@ export default function LlmPriceCalculatorPage() {
           <h3 className="text-lg font-medium mb-2 mt-6 text-fd-foreground">
             Anthropic
           </h3>
-          <p className="text-sm leading-relaxed text-fd-muted-foreground mb-4">
+          <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
             Claude Opus 4.6, Claude Sonnet 4.6, and Claude Haiku 4.5. Input
             pricing ranges from $1 to $5 per million tokens, output from $5 to
             $25. All three have 200K context windows and support prompt caching
@@ -119,7 +159,7 @@ export default function LlmPriceCalculatorPage() {
           <h3 className="text-lg font-medium mb-2 mt-6 text-fd-foreground">
             OpenAI
           </h3>
-          <p className="text-sm leading-relaxed text-fd-muted-foreground mb-4">
+          <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
             The GPT-5 series (5.4, 5.2, 5.1, 5, 5-mini, 5-nano), GPT-4.1
             (4.1, 4.1-mini, 4.1-nano), GPT-4o and 4o-mini, plus the reasoning
             models o3-pro, o3, and o4-mini. Input ranges from $0.05/MTok
@@ -130,7 +170,7 @@ export default function LlmPriceCalculatorPage() {
           <h3 className="text-lg font-medium mb-2 mt-6 text-fd-foreground">
             Google
           </h3>
-          <p className="text-sm leading-relaxed text-fd-muted-foreground mb-4">
+          <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
             Gemini 3.1 Pro Preview, 3.1 Flash-Lite Preview, 3 Flash Preview,
             2.5 Pro, 2.5 Flash, 2.5 Flash-Lite, and 2.0 Flash. All have 1M
             token context windows. Input starts at $0.10/MTok. Gemini models
@@ -140,7 +180,7 @@ export default function LlmPriceCalculatorPage() {
           <h3 className="text-lg font-medium mb-2 mt-6 text-fd-foreground">
             Zhipu AI
           </h3>
-          <p className="text-sm leading-relaxed text-fd-muted-foreground mb-4">
+          <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
             GLM-5, GLM-5-Code, GLM-4.7, GLM-4.7-FlashX, GLM-4.5, and
             GLM-4.5-X. Text-only models with competitive pricing - GLM-4.7-FlashX
             starts at $0.07/MTok input. Context windows range from 128K to 200K
@@ -148,41 +188,9 @@ export default function LlmPriceCalculatorPage() {
           </p>
 
           <h2 className="text-xl font-semibold mb-3 mt-10 text-fd-foreground">
-            How LLM API pricing works
-          </h2>
-          <p className="text-sm leading-relaxed text-fd-muted-foreground mb-4">
-            LLM APIs charge per token, where one token is roughly 0.75 English
-            words. Input and output tokens are priced separately, with output
-            typically costing 3-5x more than input. This asymmetry matters - a
-            task that generates long responses costs significantly more than one
-            that processes long inputs.
-          </p>
-          <p className="text-sm leading-relaxed text-fd-muted-foreground mb-4">
-            <strong>Prompt caching</strong> lets you reuse previously sent input
-            (like system prompts or few-shot examples) at a steep discount -
-            often 75-90% off the standard input rate. If your application sends
-            the same prefix on every call, caching is the single biggest cost
-            lever you have.
-          </p>
-          <p className="text-sm leading-relaxed text-fd-muted-foreground mb-4">
-            <strong>Reasoning tokens</strong> are internal &quot;thinking&quot;
-            tokens generated by models like Claude Opus, o3, and Gemini 2.5 Pro.
-            They&apos;re billed at output rates and can add substantially to the
-            cost of complex tasks. Not every call triggers reasoning - simpler
-            queries use fewer or no reasoning tokens.
-          </p>
-          <p className="text-sm leading-relaxed text-fd-muted-foreground mb-4">
-            In <strong>multi-turn conversations</strong>, each API call sends the
-            full conversation history as input. This means input costs grow with
-            every turn. The Chain mode in this calculator models that
-            accumulation, so you can see how a 10-turn conversation costs
-            meaningfully more than 10 independent calls.
-          </p>
-
-          <h2 className="text-xl font-semibold mb-3 mt-10 text-fd-foreground">
             Tips for reducing API costs
           </h2>
-          <ul className="text-sm text-fd-muted-foreground list-disc pl-5 space-y-2 mb-4">
+          <ul className="text-base text-fd-muted-foreground list-disc pl-5 space-y-2 mb-4">
             <li>
               <strong>Use prompt caching</strong> for repeated prefixes - system
               prompts, few-shot examples, and shared context. This alone can cut

@@ -145,46 +145,19 @@ export default function LlmPriceCalculatorPage() {
           <h2 className="text-xl font-semibold mb-3 mt-10 text-fd-foreground">
             Supported models
           </h2>
-
-          <h3 className="text-lg font-medium mb-2 mt-6 text-fd-foreground">
-            Anthropic
-          </h3>
           <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
-            Claude Opus 4.6, Claude Sonnet 4.6, and Claude Haiku 4.5. Input
-            pricing ranges from $1 to $5 per million tokens, output from $5 to
-            $25. All three have 200K context windows and support prompt caching
-            at 90% discount. Opus and Sonnet support extended thinking.
-          </p>
-
-          <h3 className="text-lg font-medium mb-2 mt-6 text-fd-foreground">
-            OpenAI
-          </h3>
-          <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
-            The GPT-5 series (5.4, 5.2, 5.1, 5, 5-mini, 5-nano), GPT-4.1
-            (4.1, 4.1-mini, 4.1-nano), GPT-4o and 4o-mini, plus the reasoning
-            models o3-pro, o3, and o4-mini. Input ranges from $0.05/MTok
-            (GPT-5-nano) to $20/MTok (o3-pro). Context windows go up to 1.05M
-            tokens on GPT-5.4.
-          </p>
-
-          <h3 className="text-lg font-medium mb-2 mt-6 text-fd-foreground">
-            Google
-          </h3>
-          <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
-            Gemini 3.1 Pro Preview, 3.1 Flash-Lite Preview, 3 Flash Preview,
-            2.5 Pro, 2.5 Flash, 2.5 Flash-Lite, and 2.0 Flash. All have 1M
-            token context windows. Input starts at $0.10/MTok. Gemini models
-            support multimodal input - text, images, audio, video, and PDF.
-          </p>
-
-          <h3 className="text-lg font-medium mb-2 mt-6 text-fd-foreground">
-            Zhipu AI
-          </h3>
-          <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
-            GLM-5, GLM-5-Code, GLM-4.7, GLM-4.7-FlashX, GLM-4.5, and
-            GLM-4.5-X. Text-only models with competitive pricing - GLM-4.7-FlashX
-            starts at $0.07/MTok input. Context windows range from 128K to 200K
-            tokens.
+            Currently includes 30+ models from Anthropic (Claude), OpenAI (GPT-5,
+            o3), Google (Gemini), and Zhipu AI (GLM). Pricing is pulled from
+            OpenRouter and updated regularly. More models added over time - if
+            you need one that&apos;s missing, let us know on{" "}
+            <a
+              href="https://x.com/testy_cool"
+              className="text-fd-primary underline underline-offset-2 hover:text-fd-primary/80"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              X
+            </a>.
           </p>
 
           <h2 className="text-xl font-semibold mb-3 mt-10 text-fd-foreground">

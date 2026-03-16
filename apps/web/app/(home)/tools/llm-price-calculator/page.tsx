@@ -112,9 +112,9 @@ export default function LlmPriceCalculatorPage() {
           </p>
           <TokenExplainer />
 
-          <h3 className="text-lg font-medium mb-2 mt-8 text-fd-foreground">
+          <h2 className="text-xl font-semibold mb-3 mt-10 text-fd-foreground">
             Input vs. output cost
-          </h3>
+          </h2>
           <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
             Input and output tokens are priced separately. Output typically costs
             3-5x more - a task generating long responses is significantly more
@@ -142,51 +142,12 @@ export default function LlmPriceCalculatorPage() {
           </p>
           <ChainCostPreview />
 
-          <h2 className="text-xl font-semibold mb-3 mt-10 text-fd-foreground">
-            Supported models
-          </h2>
-          <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
-            Currently includes 30+ models from Anthropic (Claude), OpenAI (GPT-5,
-            o3), Google (Gemini), and Zhipu AI (GLM). Pricing is pulled from
-            OpenRouter and updated regularly. More models added over time - if
-            you need one that&apos;s missing, let us know on{" "}
-            <a
-              href="https://x.com/testy_cool"
-              className="text-fd-primary underline underline-offset-2 hover:text-fd-primary/80"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              X
-            </a>.
+          <p className="text-base leading-relaxed text-fd-muted-foreground mt-10">
+            Pricing is pulled from OpenRouter across 30+ models from Anthropic,
+            OpenAI, Google, and Zhipu AI, and updated regularly. All calculator
+            settings save to the URL - bookmark a comparison or share it with
+            your team.
           </p>
-
-          <h2 className="text-xl font-semibold mb-3 mt-10 text-fd-foreground">
-            Tips for reducing API costs
-          </h2>
-          <ul className="text-base text-fd-muted-foreground list-disc pl-5 space-y-2 mb-4">
-            <li>
-              <strong>Use prompt caching</strong> for repeated prefixes - system
-              prompts, few-shot examples, and shared context. This alone can cut
-              input costs by 75-90%.
-            </li>
-            <li>
-              <strong>Pick the smallest model that works.</strong> GPT-5-nano at
-              $0.05/MTok or Gemini 2.0 Flash at $0.10/MTok handle classification,
-              extraction, and simple generation just fine.
-            </li>
-            <li>
-              <strong>Set max output tokens</strong> to avoid paying for verbose
-              responses you don&apos;t need.
-            </li>
-            <li>
-              <strong>Batch similar requests</strong> to maximize cache hit rates
-              across calls.
-            </li>
-            <li>
-              <strong>Use Budget mode</strong> to find your break-even model
-              before committing to a provider.
-            </li>
-          </ul>
         </div>
       </section>
     </>

@@ -57,9 +57,7 @@ export default function LlmPriceCalculatorPage() {
       </section>
 
       <section className="relative container px-4 py-8 lg:py-12 lg:px-6">
-        <div className="max-w-6xl mx-auto">
-          <LlmPriceCalculator />
-        </div>
+        <LlmPriceCalculator />
       </section>
     </>
   );

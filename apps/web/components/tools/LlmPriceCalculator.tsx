@@ -393,6 +393,24 @@ const modalityFullLabels: Record<Modality, string> = {
   pdf: "PDF",
 };
 
+const modalityIcons: Record<Modality, React.ReactNode> = {
+  text: (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 6.1H3M21 12.1H3M15.1 18H3" /></svg>
+  ),
+  image: (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
+  ),
+  audio: (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 10v3M6 6v11M10 3v18M14 8v7M18 5v13M22 10v3" /></svg>
+  ),
+  video: (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.934a.5.5 0 0 0-.777-.416L16 11" /><rect width="14" height="12" x="2" y="6" rx="2" /></svg>
+  ),
+  pdf: (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /></svg>
+  ),
+};
+
 const integerFormatter = new Intl.NumberFormat("en-US");
 const currency2Formatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -1376,12 +1394,13 @@ export function LlmPriceCalculator() {
                   key={modality}
                   onClick={() => toggleModality(modality)}
                   aria-pressed={modalityFilter.has(modality)}
-                  className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                  className={`${chipButtonClass} inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
                     modalityFilter.has(modality)
                       ? "border-fd-primary/40 bg-fd-primary/15 text-fd-foreground"
                       : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
                   }`}
                 >
+                  {modalityIcons[modality]}
                   {modalityFullLabels[modality]}
                 </button>
               ))}

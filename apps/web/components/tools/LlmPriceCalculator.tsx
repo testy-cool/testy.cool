@@ -1509,6 +1509,13 @@ export function LlmPriceCalculator() {
                             thinking
                           </span>
                         )}
+                        {model.modalities.length > 1 && (
+                          <span className="inline-flex items-center gap-1 text-fd-foreground/40">
+                            {model.modalities.filter(m => m !== "text").map(m => (
+                              <span key={m} title={modalityFullLabels[m]}>{modalityIcons[m]}</span>
+                            ))}
+                          </span>
+                        )}
                       </div>
                       <div className="mt-1 text-xs text-fd-foreground/54">
                         max output {formatTokenCount(model.maxOutput)}
@@ -1652,6 +1659,13 @@ export function LlmPriceCalculator() {
                       {model.reasoning && (
                         <span className="rounded-full bg-fd-primary/10 px-1.5 py-0.5 text-[10px] font-medium leading-none text-fd-primary">
                           thinking
+                        </span>
+                      )}
+                      {model.modalities.length > 1 && (
+                        <span className="inline-flex items-center gap-1 text-fd-foreground/40">
+                          {model.modalities.filter(m => m !== "text").map(m => (
+                            <span key={m} title={modalityFullLabels[m]}>{modalityIcons[m]}</span>
+                          ))}
                         </span>
                       )}
                     </div>

@@ -1334,8 +1334,8 @@ export function LlmPriceCalculator() {
           </div>
 
           <div className="mt-3 flex flex-wrap items-start gap-2.5 border-t border-fd-border/40 pt-3">
-            <div className="flex flex-wrap items-center gap-2 rounded-lg bg-fd-muted/20 px-3 py-2">
-              <span className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-fd-border/50 bg-fd-muted/40 px-3 py-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-fd-foreground/70">
                 Provider
               </span>
               <button
@@ -1365,8 +1365,8 @@ export function LlmPriceCalculator() {
               ))}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 rounded-lg bg-fd-muted/20 px-3 py-2">
-              <span className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-fd-border/50 bg-fd-muted/40 px-3 py-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-fd-foreground/70">
                 Input
               </span>
               {modalityOrder.map((modality) => (

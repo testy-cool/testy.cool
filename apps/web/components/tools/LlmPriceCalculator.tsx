@@ -1333,55 +1333,57 @@ export function LlmPriceCalculator() {
             </span>
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
-              Provider
-            </span>
-            <button
-              onClick={toggleAllProviders}
-              aria-pressed={allSelected}
-              className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                allSelected
-                  ? "border-fd-primary/40 bg-fd-primary/15 text-fd-foreground"
-                  : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
-              }`}
-            >
-              All
-            </button>
-            {providerOrder.map((provider) => (
+          <div className="mt-3 flex flex-wrap items-start gap-2.5 border-t border-fd-border/40 pt-3">
+            <div className="flex flex-wrap items-center gap-2 rounded-lg bg-fd-muted/20 px-3 py-2">
+              <span className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
+                Provider
+              </span>
               <button
-                key={provider}
-                onClick={() => toggleProvider(provider)}
-                aria-pressed={providerFilter.has(provider)}
+                onClick={toggleAllProviders}
+                aria-pressed={allSelected}
                 className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                  !allSelected && providerFilter.has(provider)
+                  allSelected
                     ? "border-fd-primary/40 bg-fd-primary/15 text-fd-foreground"
                     : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
                 }`}
               >
-                {providerLabels[provider]}
+                All
               </button>
-            ))}
+              {providerOrder.map((provider) => (
+                <button
+                  key={provider}
+                  onClick={() => toggleProvider(provider)}
+                  aria-pressed={providerFilter.has(provider)}
+                  className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                    !allSelected && providerFilter.has(provider)
+                      ? "border-fd-primary/40 bg-fd-primary/15 text-fd-foreground"
+                      : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
+                  }`}
+                >
+                  {providerLabels[provider]}
+                </button>
+              ))}
+            </div>
 
-            <span className="mx-0.5 h-4 w-px bg-fd-border/60" />
-
-            <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
-              Input
-            </span>
-            {modalityOrder.map((modality) => (
-              <button
-                key={modality}
-                onClick={() => toggleModality(modality)}
-                aria-pressed={modalityFilter.has(modality)}
-                className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                  modalityFilter.has(modality)
-                    ? "border-fd-primary/40 bg-fd-primary/15 text-fd-foreground"
-                    : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
-                }`}
-              >
-                {modalityFullLabels[modality]}
-              </button>
-            ))}
+            <div className="flex flex-wrap items-center gap-2 rounded-lg bg-fd-muted/20 px-3 py-2">
+              <span className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
+                Input
+              </span>
+              {modalityOrder.map((modality) => (
+                <button
+                  key={modality}
+                  onClick={() => toggleModality(modality)}
+                  aria-pressed={modalityFilter.has(modality)}
+                  className={`${chipButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                    modalityFilter.has(modality)
+                      ? "border-fd-primary/40 bg-fd-primary/15 text-fd-foreground"
+                      : "border-fd-border text-fd-foreground/66 hover:bg-fd-muted/55 hover:text-fd-foreground"
+                  }`}
+                >
+                  {modalityFullLabels[modality]}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

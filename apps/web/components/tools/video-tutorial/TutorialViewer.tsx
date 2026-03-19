@@ -26,14 +26,31 @@ function formatTime(seconds: number): string {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-const TAG_STYLES: Record<string, string> = {
-  intro:
-    "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
-  concept: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300",
-  setup:
-    "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
-  action:
-    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+const ACCENT_COLORS: Record<string, { bar: string; bg: string; text: string; badge: string }> = {
+  intro: {
+    bar: "bg-purple-500",
+    bg: "bg-purple-50 dark:bg-purple-950/15",
+    text: "text-purple-700 dark:text-purple-300",
+    badge: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+  },
+  concept: {
+    bar: "bg-sky-500",
+    bg: "bg-sky-50 dark:bg-sky-950/15",
+    text: "text-sky-700 dark:text-sky-300",
+    badge: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300",
+  },
+  setup: {
+    bar: "bg-amber-500",
+    bg: "bg-amber-50 dark:bg-amber-950/15",
+    text: "text-amber-700 dark:text-amber-300",
+    badge: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+  },
+  action: {
+    bar: "bg-emerald-500",
+    bg: "bg-emerald-50 dark:bg-emerald-950/15",
+    text: "text-emerald-700 dark:text-emerald-300",
+    badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+  },
 };
 
 function BlockRenderer({ block }: { block: TutorialBlock }) {
@@ -41,49 +58,53 @@ function BlockRenderer({ block }: { block: TutorialBlock }) {
     case "paragraph":
       return (
         <p
-          className="text-fd-muted-foreground text-base leading-relaxed mb-3 [&_strong]:text-fd-foreground [&_code]:bg-fd-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_code]:border [&_code]:border-fd-border"
+          className="text-fd-muted-foreground text-[15px] leading-[1.75] mb-4 [&_strong]:text-fd-foreground [&_strong]:font-semibold [&_code]:bg-fd-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:text-[13px] [&_code]:font-mono [&_code]:border [&_code]:border-fd-border/50"
           dangerouslySetInnerHTML={{ __html: block.html }}
         />
       );
     case "code":
       return (
-        <pre className="bg-zinc-900 dark:bg-zinc-950 text-zinc-100 p-4 rounded-lg text-sm overflow-x-auto mb-3 border border-zinc-700">
+        <pre className="bg-zinc-950 text-zinc-300 p-5 rounded-xl text-[13px] leading-relaxed overflow-x-auto mb-4 border border-zinc-800 font-mono">
           <code>{block.code}</code>
         </pre>
       );
     case "tldr":
       return (
-        <div className="bg-red-50 dark:bg-red-950/20 border-l-4 border-red-400 dark:border-red-600 p-4 rounded-r-lg mb-3">
-          <span className="font-bold text-red-700 dark:text-red-400">
-            TL;DR:{" "}
-          </span>
-          <span
-            className="text-red-900 dark:text-red-300"
+        <div className="relative bg-fd-card border border-fd-border rounded-xl p-4 pl-5 mb-4 overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-rose-500" />
+          <div className="text-[11px] font-bold uppercase tracking-[0.1em] text-rose-600 dark:text-rose-400 mb-1.5">
+            TL;DR
+          </div>
+          <div
+            className="text-fd-foreground text-[15px] leading-relaxed"
             dangerouslySetInnerHTML={{ __html: block.html }}
           />
         </div>
       );
     case "concept":
       return (
-        <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 p-4 rounded-xl mb-3">
-          <div className="font-bold text-blue-800 dark:text-blue-300 mb-2">
+        <div className="relative bg-fd-card border border-fd-border rounded-xl p-4 pl-5 mb-4 overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-sky-500" />
+          <div className="text-[11px] font-bold uppercase tracking-[0.1em] text-sky-600 dark:text-sky-400 mb-1.5">
             {block.title}
           </div>
           <div
-            className="text-blue-900 dark:text-blue-200 text-base"
+            className="text-fd-muted-foreground text-[15px] leading-relaxed [&_strong]:text-fd-foreground"
             dangerouslySetInnerHTML={{ __html: block.html }}
           />
         </div>
       );
     case "list":
       return (
-        <ul className="list-disc ml-5 mb-3 space-y-1">
+        <ul className="space-y-2 mb-4 pl-1">
           {block.items.map((item, i) => (
             <li
               key={i}
-              className="text-fd-muted-foreground text-base [&_strong]:text-fd-foreground"
-              dangerouslySetInnerHTML={{ __html: item }}
-            />
+              className="flex gap-2.5 text-fd-muted-foreground text-[15px] leading-relaxed [&_strong]:text-fd-foreground"
+            >
+              <span className="text-fd-primary mt-1.5 shrink-0 text-[8px]">&#9679;</span>
+              <span dangerouslySetInnerHTML={{ __html: item }} />
+            </li>
           ))}
         </ul>
       );
@@ -97,43 +118,62 @@ function StepCard({
   active,
   onSeek,
   stepRef,
+  index,
+  total,
 }: {
   step: TutorialStep;
   active: boolean;
   onSeek: (seconds: number) => void;
   stepRef: (el: HTMLDivElement | null) => void;
+  index: number;
+  total: number;
 }) {
+  const accent = ACCENT_COLORS[step.tagType] || ACCENT_COLORS.action;
+
   return (
     <div
       ref={stepRef}
       data-start={step.startSeconds}
       data-end={step.endSeconds}
-      className={`rounded-xl border-2 p-6 mb-6 transition-all duration-300 origin-left ${
+      className={`vtg-step relative rounded-xl overflow-hidden mb-5 transition-all duration-500 ${
         active
-          ? "border-fd-primary bg-fd-card shadow-lg opacity-100 scale-100"
-          : "border-transparent bg-fd-card/60 opacity-40 scale-[0.98]"
+          ? "opacity-100 translate-x-0"
+          : "opacity-30 translate-x-0"
       }`}
     >
-      <div className="flex items-center gap-3 mb-4">
-        <button
-          onClick={() => onSeek(step.startSeconds)}
-          className="bg-fd-primary text-white px-3 py-1 rounded-full text-sm font-bold hover:opacity-80 transition-opacity cursor-pointer flex items-center gap-1.5"
-        >
-          <span className="text-[10px]">&#9654;</span>
-          {formatTime(step.startSeconds)}
-        </button>
-        <span
-          className={`px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider ${TAG_STYLES[step.tagType] || TAG_STYLES.action}`}
-        >
-          {step.tag}
-        </span>
+      {/* Left accent bar */}
+      <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-full transition-opacity duration-500 ${accent.bar} ${active ? "opacity-100" : "opacity-30"}`} />
+
+      <div className="pl-5 pr-1 py-5">
+        {/* Header row */}
+        <div className="flex items-center gap-2.5 mb-3.5">
+          <button
+            onClick={() => onSeek(step.startSeconds)}
+            className="inline-flex items-center gap-1.5 text-[13px] font-mono font-medium text-fd-muted-foreground hover:text-fd-primary transition-colors cursor-pointer group/ts"
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10" className="text-fd-muted-foreground/40 group-hover/ts:text-fd-primary transition-colors">
+              <path d="M2 1l7 4-7 4V1z" fill="currentColor" />
+            </svg>
+            {formatTime(step.startSeconds)}
+          </button>
+          <span className={`px-2 py-0.5 rounded-md text-[11px] font-semibold uppercase tracking-wider ${accent.badge}`}>
+            {step.tag}
+          </span>
+          <span className="ml-auto text-[11px] text-fd-muted-foreground/30 font-mono tabular-nums">
+            {index + 1}/{total}
+          </span>
+        </div>
+
+        {/* Title */}
+        <h2 className="text-lg font-bold text-fd-foreground mb-4 leading-snug">
+          {step.title}
+        </h2>
+
+        {/* Blocks */}
+        {step.blocks.map((block, i) => (
+          <BlockRenderer key={i} block={block} />
+        ))}
       </div>
-      <h2 className="text-xl font-bold text-fd-foreground mb-4">
-        {step.title}
-      </h2>
-      {step.blocks.map((block, i) => (
-        <BlockRenderer key={i} block={block} />
-      ))}
     </div>
   );
 }
@@ -236,7 +276,6 @@ export default function TutorialViewer({ tutorial, onBack }: Props) {
 
     if (closestIdx !== activeIndex) {
       setActiveIndex(closestIdx);
-      // Seek without forcing play — respects paused state
       playerRef.current.seekTo(
         tutorial.steps[closestIdx].startSeconds,
         true,
@@ -256,56 +295,103 @@ export default function TutorialViewer({ tutorial, onBack }: Props) {
     }
   }, []);
 
+  const progressPct =
+    tutorial.steps.length > 0
+      ? ((activeIndex + 1) / tutorial.steps.length) * 100
+      : 0;
+
   return (
-    <div
-      className="flex flex-col lg:flex-row w-full"
-      style={{ height: "calc(100dvh - 64px)" }}
-    >
-      {/* Video panel */}
-      <div className="lg:w-1/2 w-full bg-black flex items-center justify-center shrink-0 min-h-[200px] lg:min-h-0 border-b lg:border-b-0 lg:border-r border-fd-border">
-        <div className="w-full max-w-[900px] aspect-video p-3 lg:p-8">
+    <>
+      <style jsx global>{`
+        .vtg-step {
+          will-change: opacity, transform;
+        }
+        .vtg-progress-rail {
+          transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .vtg-scroll::-webkit-scrollbar {
+          width: 4px;
+        }
+        .vtg-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .vtg-scroll::-webkit-scrollbar-thumb {
+          background: hsl(var(--fd-border));
+          border-radius: 99px;
+        }
+      `}</style>
+
+      <div
+        className="flex flex-col lg:flex-row w-full"
+        style={{ height: "calc(100dvh - 64px)" }}
+      >
+        {/* Video panel */}
+        <div className="lg:w-1/2 w-full bg-zinc-950 flex items-center justify-center shrink-0 min-h-[200px] lg:min-h-0">
+          <div className="w-full max-w-[900px] aspect-video p-2 sm:p-3 lg:p-6">
+            <div
+              id="yt-player"
+              className="w-full h-full rounded-lg lg:rounded-xl overflow-hidden"
+            />
+          </div>
+        </div>
+
+        {/* Tutorial panel */}
+        <div className="lg:w-1/2 w-full flex-1 flex flex-col overflow-hidden border-l border-fd-border/30">
+          {/* Progress rail */}
+          <div className="h-0.5 w-full bg-fd-border/20 shrink-0">
+            <div
+              className="vtg-progress-rail h-full bg-fd-primary rounded-r-full"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+
+          {/* Top bar */}
+          <div className="flex items-center justify-between px-5 lg:px-8 py-3 border-b border-fd-border/30 shrink-0">
+            <button
+              onClick={onBack}
+              className="text-[13px] text-fd-muted-foreground/60 hover:text-fd-foreground transition-colors flex items-center gap-1.5"
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M10 4l-4 4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Back
+            </button>
+            <div className="text-[12px] text-fd-muted-foreground/40 font-mono tabular-nums">
+              {activeIndex + 1} of {tutorial.steps.length} chapters
+            </div>
+          </div>
+
+          {/* Scrollable content */}
           <div
-            id="yt-player"
-            className="w-full h-full rounded-xl overflow-hidden"
-          />
+            ref={scrollRef}
+            onWheel={handleWheel}
+            onScroll={handleScroll}
+            className="vtg-scroll flex-1 overflow-y-auto px-5 lg:px-8 pt-6"
+            style={{ paddingBottom: "50vh" }}
+          >
+            <h1 className="text-xl lg:text-2xl font-extrabold text-fd-foreground mb-1.5 tracking-tight leading-snug">
+              {tutorial.title}
+            </h1>
+            <p className="text-[13px] text-fd-muted-foreground/50 mb-8">
+              Scroll to scrub the video, or play to auto-scroll.
+            </p>
+
+            {tutorial.steps.map((step, i) => (
+              <StepCard
+                key={i}
+                step={step}
+                active={i === activeIndex}
+                onSeek={seekTo}
+                index={i}
+                total={tutorial.steps.length}
+                stepRef={(el) => {
+                  stepRefs.current[i] = el;
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
-
-      {/* Tutorial panel */}
-      <div
-        ref={scrollRef}
-        onWheel={handleWheel}
-        onScroll={handleScroll}
-        className="lg:w-1/2 w-full overflow-y-auto p-5 lg:p-10 flex-1"
-        style={{ paddingBottom: "50vh" }}
-      >
-        <button
-          onClick={onBack}
-          className="text-sm text-fd-muted-foreground hover:text-fd-foreground transition-colors mb-6"
-        >
-          &larr; New tutorial
-        </button>
-
-        <h1 className="text-2xl lg:text-3xl font-extrabold text-fd-foreground mb-2 tracking-tight">
-          {tutorial.title}
-        </h1>
-        <p className="text-fd-muted-foreground mb-8 text-base">
-          <strong className="text-fd-foreground">2-Way Sync:</strong> Scroll
-          to scrub the video, or play to auto-scroll.
-        </p>
-
-        {tutorial.steps.map((step, i) => (
-          <StepCard
-            key={i}
-            step={step}
-            active={i === activeIndex}
-            onSeek={seekTo}
-            stepRef={(el) => {
-              stepRefs.current[i] = el;
-            }}
-          />
-        ))}
-      </div>
-    </div>
+    </>
   );
 }

@@ -1462,6 +1462,67 @@ export function LlmPriceCalculator() {
               </tr>
             </thead>
             <tbody>
+            {/* Cache explainer row */}
+            {showCache && !isBudgetMode && !isChainMode && apiCalls > 1 && (
+              <tr className="border-b border-fd-border/50">
+                <td colSpan={99} className="px-6 py-4">
+                  <div className="flex items-start gap-8">
+                    {/* Left: label */}
+                    <div className="flex-shrink-0 pt-1">
+                      <div className="text-xs font-medium text-fd-foreground/50">How caching affects your {apiCalls.toLocaleString()} calls</div>
+                    </div>
+                    {/* Right: visual */}
+                    <div className="flex flex-1 items-center gap-3">
+                      {/* Call 1 */}
+                      <div className="flex-shrink-0 text-center">
+                        <div className="mb-1 text-[10px] font-medium uppercase tracking-wider text-fd-foreground/35">Call 1</div>
+                        <div className="flex h-8 w-28 overflow-hidden rounded-md">
+                          <div className="flex flex-1 items-center justify-center bg-fd-foreground/12 text-[11px] font-medium text-fd-foreground/60">
+                            {formatTokenCount(inputTokens)} in
+                          </div>
+                        </div>
+                        <div className="mt-1 text-[10px] text-fd-foreground/30">full price</div>
+                      </div>
+                      {/* Arrow */}
+                      <div className="flex flex-col items-center gap-0.5 pt-3 text-fd-foreground/20">
+                        <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor"><path fillRule="evenodd" d="M2 8a.75.75 0 0 1 .75-.75h8.69L8.22 4.03a.75.75 0 0 1 1.06-1.06l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 0 1-1.06-1.06l3.22-3.22H2.75A.75.75 0 0 1 2 8Z" clipRule="evenodd" /></svg>
+                      </div>
+                      {/* Calls 2+ */}
+                      <div className="flex-shrink-0 text-center">
+                        <div className="mb-1 text-[10px] font-medium uppercase tracking-wider text-fd-foreground/35">
+                          {apiCalls > 2 ? `Calls 2\u2013${apiCalls.toLocaleString()}` : "Call 2"}
+                        </div>
+                        <div className="flex h-8 w-48 overflow-hidden rounded-md">
+                          <div
+                            className="flex items-center justify-center bg-green-500/20 text-[11px] font-medium text-green-400/90 transition-all duration-300"
+                            style={{ width: `${cachePercent}%` }}
+                          >
+                            {cachePercent >= 25 && `${formatTokenCount(Math.round(inputTokens * cachePercent / 100))} cached`}
+                          </div>
+                          <div
+                            className="flex items-center justify-center bg-fd-foreground/12 text-[11px] font-medium text-fd-foreground/50 transition-all duration-300"
+                            style={{ width: `${100 - cachePercent}%` }}
+                          >
+                            {(100 - cachePercent) >= 20 && `${formatTokenCount(Math.round(inputTokens * (100 - cachePercent) / 100))} full`}
+                          </div>
+                        </div>
+                        <div className="mt-1 text-[10px] text-green-500/50">{cachePercent}% of input from cache</div>
+                      </div>
+                      {/* Plus output (constant) */}
+                      <div className="flex items-center gap-2 pt-3 text-fd-foreground/20">
+                        <span className="text-xs">+</span>
+                      </div>
+                      <div className="flex-shrink-0 pt-3 text-center">
+                        <div className="flex h-8 w-20 items-center justify-center rounded-md bg-fd-primary/10 text-[11px] font-medium text-fd-primary/60">
+                          {formatTokenCount(outputTokens)} out
+                        </div>
+                        <div className="mt-1 text-[10px] text-fd-foreground/30">always full price</div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            )}
             <AnimatePresence initial={false}>
               {visibleModels.map((model, index) => {
                 const rank = rankedModels.get(model.name) ?? 999;

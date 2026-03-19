@@ -40,6 +40,15 @@ export const allTools: Tool[] = [
     type: "Tutorial",
   },
   {
+    slug: "video-tutorial",
+    title: "Video Tutorial Generator",
+    description:
+      "Turn any YouTube video into an interactive, scroll-synced text tutorial.",
+    screenshot: "/images/tools/video-tutorial.png",
+    tags: ["YouTube", "AI", "Tutorial"],
+    type: "Tool",
+  },
+  {
     slug: "chatgpt-conversation-exporter",
     title: "ChatGPT Conversation Exporter",
     description:

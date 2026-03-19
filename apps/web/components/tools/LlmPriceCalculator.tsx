@@ -602,7 +602,6 @@ export function LlmPriceCalculator() {
   const [turnTokens, setTurnTokens] = useState(initial.turnTokens);
   const [pinnedModels, setPinnedModels] = useState<Set<string>>(new Set());
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const [autoExpandedOnce, setAutoExpandedOnce] = useState(false);
 
   const allSelected = providerFilter.size === allProviders.size;
 
@@ -892,16 +891,20 @@ export function LlmPriceCalculator() {
     return rankMap;
   }, [visibleModels, showCache, isBudgetMode, isChainMode]);
 
-  // Auto-expand the #1 ranked model when cache mode activates
+  // Auto-expand the #1 ranked model when cache becomes active
   useEffect(() => {
-    if (showCache && !isBudgetMode && !isChainMode && visibleModels.length > 0 && !autoExpandedOnce) {
+    if (showCache && !isBudgetMode && !isChainMode && visibleModels.length > 0) {
       const top = visibleModels.find((m) => rankedModels.get(m.name) === 1);
       if (top) {
-        setExpandedRows(new Set([top.name]));
-        setAutoExpandedOnce(true);
+        setExpandedRows((prev) => {
+          if (prev.size === 0) return new Set([top.name]);
+          return prev;
+        });
       }
+    } else if (!showCache) {
+      setExpandedRows(new Set());
     }
-  }, [showCache, isBudgetMode, isChainMode, visibleModels, rankedModels, autoExpandedOnce]);
+  }, [showCache, isBudgetMode, isChainMode, visibleModels, rankedModels]);
 
   function getCostBarWidth(model: typeof visibleModels[0]): number {
     if (isBudgetMode) {
@@ -1654,81 +1657,71 @@ export function LlmPriceCalculator() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
-                      className="border-b border-fd-border/40"
+                      className="border-b border-fd-border/40 bg-fd-muted/[0.06]"
                     >
-                      <td colSpan={colCount} className="px-0 py-0">
-                        <div className="mx-6 my-4 ml-14">
-                          {/* Horizontal layout: Call 1 | Calls 2-N | = Total */}
-                          <div className="flex items-stretch gap-4">
-                            {/* Call 1 card */}
-                            <div className="min-w-0 flex-1 rounded-lg border border-fd-border/50 bg-fd-muted/10 px-4 py-3">
-                              <div className="mb-2 flex items-center justify-between">
-                                <span className="text-[11px] font-medium uppercase tracking-wider text-fd-foreground/45">Call 1</span>
-                                <span className="text-sm font-semibold tabular-nums text-fd-foreground">{formatCost(model.perCall)}</span>
-                              </div>
-                              <div className="space-y-1 text-xs tabular-nums">
-                                <div className="flex justify-between gap-3">
-                                  <span className="text-fd-foreground/45">Input <span className="text-fd-foreground/30">{formatTokenCount(inputTokens)} &times; {formatRate(model.input)}/M</span></span>
-                                  <span className="text-fd-foreground/60">{formatCost(model.inputCost)}</span>
-                                </div>
-                                <div className="flex justify-between gap-3">
-                                  <span className="text-fd-foreground/45">Output <span className="text-fd-foreground/30">{formatTokenCount(outputTokens)} &times; {formatRate(model.output)}/M</span></span>
-                                  <span className="text-fd-foreground/60">{formatCost(model.outputCost)}</span>
-                                </div>
-                                {model.reasoning && reasoningTokens > 0 && (
-                                  <div className="flex justify-between gap-3">
-                                    <span className="text-fd-foreground/45">Reasoning <span className="text-fd-foreground/30">{formatTokenCount(reasoningTokens)} &times; {formatRate(model.reasoning)}/M</span></span>
-                                    <span className="text-fd-foreground/60">{formatCost(model.reasoningCost)}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            {/* + sign */}
-                            {subsequentCalls > 0 && (
-                              <div className="flex flex-col items-center justify-center text-fd-foreground/25">
-                                <span className="text-lg font-light">+</span>
-                              </div>
-                            )}
-                            {/* Calls 2-N card */}
-                            {subsequentCalls > 0 && (
-                              <div className="min-w-0 flex-1 rounded-lg border border-green-500/20 bg-green-500/[0.03] px-4 py-3">
-                                <div className="mb-2 flex items-center justify-between">
-                                  <span className="text-[11px] font-medium uppercase tracking-wider text-fd-foreground/45">
-                                    {subsequentCalls === 1 ? "Call 2" : `Calls 2\u2013${apiCalls.toLocaleString()}`}
-                                    <span className="ml-1.5 normal-case tracking-normal text-fd-foreground/30">
-                                      ({subsequentCalls.toLocaleString()} &times; {formatCost(model.cachedPerCall)})
-                                    </span>
-                                  </span>
-                                  <span className="text-sm font-semibold tabular-nums text-green-500/80">{formatCost(model.cachedPerCall * subsequentCalls)}</span>
-                                </div>
-                                <div className="space-y-1 text-xs tabular-nums">
-                                  <div className="flex justify-between gap-3">
-                                    <span className="text-fd-foreground/45">Input <span className="text-fd-foreground/30">{cachePercent}% cached, {100 - cachePercent}% full price</span></span>
-                                    <span className="text-green-500/60">{formatCost(model.cachedInputCost)}<span className="text-fd-foreground/25">/call</span></span>
-                                  </div>
-                                  <div className="flex justify-between gap-3">
-                                    <span className="text-fd-foreground/45">Output <span className="text-fd-foreground/30">{formatTokenCount(outputTokens)} &times; {formatRate(model.output)}/M</span></span>
-                                    <span className="text-fd-foreground/60">{formatCost(model.outputCost)}<span className="text-fd-foreground/25">/call</span></span>
-                                  </div>
-                                  {model.reasoning && reasoningTokens > 0 && (
-                                    <div className="flex justify-between gap-3">
-                                      <span className="text-fd-foreground/45">Reasoning <span className="text-fd-foreground/30">{formatTokenCount(reasoningTokens)} &times; {formatRate(model.reasoning)}/M</span></span>
-                                      <span className="text-fd-foreground/60">{formatCost(model.reasoningCost)}<span className="text-fd-foreground/25">/call</span></span>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                            {/* = Total */}
-                            <div className="flex flex-col items-center justify-center pl-2 text-center">
-                              <span className="text-lg font-light text-fd-foreground/25">=</span>
-                              <span className="text-base font-bold tabular-nums text-fd-foreground">{formatCost(model.cachedTotal)}</span>
-                              <span className="text-[11px] tabular-nums text-fd-foreground/35">{apiCalls.toLocaleString()} calls</span>
-                              {model.savings > 0 && (
-                                <span className="mt-0.5 text-[11px] tabular-nums text-green-500/60">-{model.savings.toFixed(0)}%</span>
-                              )}
-                            </div>
+                      <td colSpan={colCount} className="px-6 py-3">
+                        {/* Single-row equation: Call 1 + (N-1) cached calls = Total */}
+                        <div className="flex items-center gap-3 pl-8 text-sm tabular-nums">
+                          {/* Call 1 */}
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-xs text-fd-foreground/40">1&times;</span>
+                            <span className="font-medium text-fd-foreground/80">{formatCost(model.perCall)}</span>
                           </div>
+                          {subsequentCalls > 0 && (
+                            <>
+                              <span className="text-fd-foreground/25">+</span>
+                              {/* Cached calls */}
+                              <div className="flex items-baseline gap-1.5">
+                                <span className="text-xs text-green-500/50">{subsequentCalls.toLocaleString()}&times;</span>
+                                <span className="font-medium text-green-500/70">{formatCost(model.cachedPerCall)}</span>
+                                <span className="text-xs text-fd-foreground/30">({cachePercent}% cached)</span>
+                              </div>
+                              <span className="text-fd-foreground/25">=</span>
+                              {/* Total */}
+                              <span className="text-base font-bold text-fd-foreground">{formatCost(model.cachedTotal)}</span>
+                              {model.savings > 0 && (
+                                <span className="rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-500/70">
+                                  -{model.savings.toFixed(0)}%
+                                </span>
+                              )}
+                            </>
+                          )}
+                        </div>
+                        {/* Detail grid below */}
+                        <div className="mt-2.5 grid gap-x-8 gap-y-0 pl-8 text-xs tabular-nums" style={{ gridTemplateColumns: "auto auto auto auto auto auto" }}>
+                          {/* Headers */}
+                          <span className="pb-1 text-[10px] font-medium uppercase tracking-wider text-fd-foreground/30" />
+                          <span className="pb-1 text-[10px] font-medium uppercase tracking-wider text-fd-foreground/30">Input</span>
+                          <span className="pb-1 text-[10px] font-medium uppercase tracking-wider text-fd-foreground/30">Output</span>
+                          {model.reasoning && reasoningTokens > 0 ? (
+                            <span className="pb-1 text-[10px] font-medium uppercase tracking-wider text-fd-foreground/30">Reasoning</span>
+                          ) : <span />}
+                          <span className="pb-1 text-[10px] font-medium uppercase tracking-wider text-fd-foreground/30">Per call</span>
+                          <span className="pb-1 text-[10px] font-medium uppercase tracking-wider text-fd-foreground/30">Subtotal</span>
+                          {/* Call 1 row */}
+                          <span className="py-1 pr-4 font-medium text-fd-foreground/55">Call 1</span>
+                          <span className="py-1 pr-4 text-fd-foreground/50">{formatCost(model.inputCost)}</span>
+                          <span className="py-1 pr-4 text-fd-foreground/50">{formatCost(model.outputCost)}</span>
+                          {model.reasoning && reasoningTokens > 0 ? (
+                            <span className="py-1 pr-4 text-fd-foreground/50">{formatCost(model.reasoningCost)}</span>
+                          ) : <span />}
+                          <span className="py-1 pr-4 font-medium text-fd-foreground/70">{formatCost(model.perCall)}</span>
+                          <span className="py-1 font-medium text-fd-foreground/70">{formatCost(model.perCall)}</span>
+                          {/* Cached calls row */}
+                          {subsequentCalls > 0 && (
+                            <>
+                              <span className="py-1 pr-4 font-medium text-fd-foreground/55">
+                                {subsequentCalls === 1 ? "Call 2" : `Calls 2\u2013${apiCalls.toLocaleString()}`}
+                              </span>
+                              <span className="py-1 pr-4 text-green-500/60">{formatCost(model.cachedInputCost)}</span>
+                              <span className="py-1 pr-4 text-fd-foreground/50">{formatCost(model.outputCost)}</span>
+                              {model.reasoning && reasoningTokens > 0 ? (
+                                <span className="py-1 pr-4 text-fd-foreground/50">{formatCost(model.reasoningCost)}</span>
+                              ) : <span />}
+                              <span className="py-1 pr-4 font-medium text-green-500/70">{formatCost(model.cachedPerCall)}</span>
+                              <span className="py-1 font-medium text-green-500/70">{formatCost(model.cachedPerCall * subsequentCalls)}</span>
+                            </>
+                          )}
                         </div>
                       </td>
                     </motion.tr>
@@ -1931,59 +1924,46 @@ export function LlmPriceCalculator() {
                 {showCache && !isBudgetMode && !isChainMode && expandedRows.has(model.name) && (() => {
                   const subCalls = Math.max(0, apiCalls - 1);
                   return (
-                    <div className="mt-3 flex flex-col gap-2">
-                      {/* Call 1 card */}
-                      <div className="rounded-lg border border-fd-border/50 bg-fd-muted/10 px-3 py-2.5">
-                        <div className="mb-1.5 flex items-center justify-between">
-                          <span className="text-[11px] font-medium uppercase tracking-wider text-fd-foreground/45">Call 1</span>
-                          <span className="text-sm font-semibold tabular-nums text-fd-foreground">{formatCost(model.perCall)}</span>
-                        </div>
-                        <div className="space-y-0.5 text-xs tabular-nums">
-                          <div className="flex justify-between">
-                            <span className="text-fd-foreground/45">Input</span>
-                            <span className="text-fd-foreground/60">{formatCost(model.inputCost)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-fd-foreground/45">Output</span>
-                            <span className="text-fd-foreground/60">{formatCost(model.outputCost)}</span>
-                          </div>
-                          {model.reasoning && reasoningTokens > 0 && (
-                            <div className="flex justify-between">
-                              <span className="text-fd-foreground/45">Reasoning</span>
-                              <span className="text-fd-foreground/60">{formatCost(model.reasoningCost)}</span>
-                            </div>
-                          )}
-                        </div>
+                    <div className="mt-3">
+                      {/* Equation line */}
+                      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm tabular-nums">
+                        <span className="text-xs text-fd-foreground/40">1&times;</span>
+                        <span className="font-medium text-fd-foreground/80">{formatCost(model.perCall)}</span>
+                        {subCalls > 0 && (
+                          <>
+                            <span className="text-fd-foreground/25">+</span>
+                            <span className="text-xs text-green-500/50">{subCalls.toLocaleString()}&times;</span>
+                            <span className="font-medium text-green-500/70">{formatCost(model.cachedPerCall)}</span>
+                            <span className="text-fd-foreground/25">=</span>
+                            <span className="font-bold text-fd-foreground">{formatCost(model.cachedTotal)}</span>
+                            {model.savings > 0 && (
+                              <span className="rounded-full bg-green-500/10 px-1.5 py-0.5 text-[11px] font-medium text-green-500/70">-{model.savings.toFixed(0)}%</span>
+                            )}
+                          </>
+                        )}
                       </div>
-                      {/* Calls 2-N card */}
-                      {subCalls > 0 && (
-                        <div className="rounded-lg border border-green-500/20 bg-green-500/[0.03] px-3 py-2.5">
-                          <div className="mb-1.5 flex items-center justify-between">
-                            <span className="text-[11px] font-medium uppercase tracking-wider text-fd-foreground/45">
-                              {subCalls === 1 ? "Call 2" : `Calls 2\u2013${apiCalls.toLocaleString()}`}
-                              <span className="ml-1 normal-case tracking-normal text-fd-foreground/30">({subCalls.toLocaleString()} &times; {formatCost(model.cachedPerCall)})</span>
-                            </span>
-                            <span className="text-sm font-semibold tabular-nums text-green-500/80">{formatCost(model.cachedPerCall * subCalls)}</span>
+                      {/* Detail rows */}
+                      <div className="mt-2 space-y-2 text-xs tabular-nums">
+                        <div className="flex items-center justify-between gap-2 text-fd-foreground/50">
+                          <span className="font-medium text-fd-foreground/60">Call 1</span>
+                          <div className="flex gap-3">
+                            <span>In {formatCost(model.inputCost)}</span>
+                            <span>Out {formatCost(model.outputCost)}</span>
+                            {model.reasoning && reasoningTokens > 0 && <span>Think {formatCost(model.reasoningCost)}</span>}
                           </div>
-                          <div className="space-y-0.5 text-xs tabular-nums">
-                            <div className="flex justify-between">
-                              <span className="text-fd-foreground/45">Input <span className="text-fd-foreground/30">{cachePercent}% cached</span></span>
-                              <span className="text-green-500/60">{formatCost(model.cachedInputCost)}<span className="text-fd-foreground/25">/call</span></span>
+                          <span className="font-medium text-fd-foreground/70">{formatCost(model.perCall)}</span>
+                        </div>
+                        {subCalls > 0 && (
+                          <div className="flex items-center justify-between gap-2 text-fd-foreground/50">
+                            <span className="font-medium text-fd-foreground/60">{subCalls === 1 ? "Call 2" : `Calls 2\u2013${apiCalls.toLocaleString()}`}</span>
+                            <div className="flex gap-3">
+                              <span className="text-green-500/55">In {formatCost(model.cachedInputCost)}</span>
+                              <span>Out {formatCost(model.outputCost)}</span>
+                              {model.reasoning && reasoningTokens > 0 && <span>Think {formatCost(model.reasoningCost)}</span>}
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-fd-foreground/45">Output</span>
-                              <span className="text-fd-foreground/60">{formatCost(model.outputCost)}<span className="text-fd-foreground/25">/call</span></span>
-                            </div>
+                            <span className="font-medium text-green-500/70">{formatCost(model.cachedPerCall)}/ea</span>
                           </div>
-                        </div>
-                      )}
-                      {/* Total */}
-                      <div className="flex items-center justify-between pt-1">
-                        <span className="text-xs text-fd-foreground/40">{apiCalls.toLocaleString()} calls total</span>
-                        <div className="text-right">
-                          <span className="text-sm font-bold tabular-nums text-fd-foreground">{formatCost(model.cachedTotal)}</span>
-                          {model.savings > 0 && <span className="ml-2 text-xs text-green-500/60">-{model.savings.toFixed(0)}%</span>}
-                        </div>
+                        )}
                       </div>
                     </div>
                   );

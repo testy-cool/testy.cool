@@ -601,7 +601,7 @@ export function LlmPriceCalculator() {
   const [reasoningTokens, setReasoningTokens] = useState(initial.reasoningTokens);
   const [turnTokens, setTurnTokens] = useState(initial.turnTokens);
   const [pinnedModels, setPinnedModels] = useState<Set<string>>(new Set());
-  const [selectedModel, setSelectedModel] = useState<string | null>(null);
+  const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
 
   const allSelected = providerFilter.size === allProviders.size;
 
@@ -1470,7 +1470,7 @@ export function LlmPriceCalculator() {
                 const isTop3 = rank <= 3;
                 const isPinned = pinnedModels.has(model.name);
                 const barWidth = getCostBarWidth(model);
-                const isSelected = selectedModel === model.name;
+                const isSelected = selectedModels.has(model.name);
                 return (
                   <motion.tr
                     key={model.name}
@@ -1478,7 +1478,7 @@ export function LlmPriceCalculator() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
-                    onClick={showCache && !isBudgetMode && !isChainMode ? () => setSelectedModel(isSelected ? null : model.name) : undefined}
+                    onClick={showCache && !isBudgetMode && !isChainMode ? () => setSelectedModels((prev) => { const next = new Set(prev); if (next.has(model.name)) next.delete(model.name); else next.add(model.name); return next; }) : undefined}
                     className={`border-b border-fd-border/70 transition-colors hover:bg-fd-muted/45 ${
                       isSelected
                         ? "bg-fd-primary/[0.06]"
@@ -1805,65 +1805,77 @@ export function LlmPriceCalculator() {
           </AnimatePresence>
         </div>
 
-        {/* Per-model caching detail panel */}
-        {showCache && !isBudgetMode && !isChainMode && selectedModel && (() => {
-          const m = calculated.find((c) => c.name === selectedModel);
-          if (!m) return null;
+        {/* Per-model caching detail panels */}
+        {showCache && !isBudgetMode && !isChainMode && selectedModels.size > 0 && (() => {
+          const selected = calculated.filter((c) => selectedModels.has(c.name));
+          if (selected.length === 0) return null;
           const cachedTokens = Math.round(inputTokens * cachePercent / 100);
           const uncachedTokens = inputTokens - cachedTokens;
           const subsequentCalls = Math.max(0, apiCalls - 1);
-          const inputDiscount = m.input > 0 ? Math.round((1 - m.cachedInput / m.input) * 100) : 0;
           return (
-            <div className="border-t border-fd-primary/20 bg-fd-primary/[0.03] px-6 py-5">
-              <div className="flex items-start justify-between gap-6">
-                {/* Left: explanation */}
-                <div className="min-w-0 flex-1">
-                  <div className="mb-3 flex items-center gap-2">
-                    <span className="text-sm font-semibold text-fd-foreground">{m.name}</span>
-                    <span className="text-sm text-fd-foreground/40">{providerLabels[m.provider]}</span>
-                    <button onClick={() => setSelectedModel(null)} className="ml-auto text-xs text-fd-foreground/30 hover:text-fd-foreground/60 transition-colors">&times; close</button>
-                  </div>
-                  <p className="text-sm leading-relaxed text-fd-foreground/60">
-                    Your first call processes all {formatTokenCount(inputTokens)} input tokens at <span className="font-medium text-fd-foreground/80">{formatRate(m.input)}/M</span>.
-                    {subsequentCalls > 0 && (
-                      <> On the next {subsequentCalls.toLocaleString()} calls, <span className="font-medium text-green-500/80">{cachePercent}%</span> of input comes from cache at <span className="font-medium text-green-500/80">{formatRate(m.cachedInput)}/M</span> instead - that&apos;s <span className="font-medium text-green-500/80">{inputDiscount}% cheaper</span> per cached token. Output tokens ({formatRate(m.output)}/M) are always full price.</>
-                    )}
-                  </p>
-                </div>
-                {/* Right: visual bars */}
-                <div className="flex flex-shrink-0 flex-col gap-3">
-                  {/* Call 1 bar */}
-                  <div>
-                    <div className="mb-1 text-[11px] font-medium text-fd-foreground/40">Call 1</div>
-                    <div className="flex h-7 w-56 overflow-hidden rounded-md">
-                      <div className="flex flex-1 items-center justify-center bg-fd-foreground/12 text-xs font-medium text-fd-foreground/60">
-                        {formatTokenCount(inputTokens)} input &middot; {formatRate(m.input)}/M
+            <div className="border-t border-fd-primary/20 bg-fd-primary/[0.03]">
+              <div className="flex items-center justify-between px-6 pt-4 pb-2">
+                <span className="text-xs font-medium text-fd-foreground/40">Caching breakdown ({selected.length} model{selected.length > 1 ? "s" : ""})</span>
+                <button onClick={() => setSelectedModels(new Set())} className="text-xs text-fd-foreground/30 hover:text-fd-foreground/60 transition-colors">clear all</button>
+              </div>
+              <div className="grid gap-4 px-6 pb-5" style={{ gridTemplateColumns: selected.length === 1 ? "1fr" : selected.length === 2 ? "1fr 1fr" : "1fr 1fr 1fr" }}>
+                {selected.map((m) => {
+                  const inputDiscount = m.input > 0 ? Math.round((1 - m.cachedInput / m.input) * 100) : 0;
+                  return (
+                    <div key={m.name} className="rounded-lg border border-fd-border/40 bg-fd-background/50 px-4 py-3">
+                      <div className="mb-2 flex items-center justify-between">
+                        <div>
+                          <span className="text-sm font-semibold text-fd-foreground">{m.name}</span>
+                          <span className="ml-2 text-xs text-fd-foreground/35">{providerLabels[m.provider]}</span>
+                        </div>
+                        <button onClick={(e) => { e.stopPropagation(); setSelectedModels((prev) => { const next = new Set(prev); next.delete(m.name); return next; }); }} className="text-fd-foreground/25 hover:text-fd-foreground/50 transition-colors">&times;</button>
+                      </div>
+                      {/* Bars */}
+                      <div className="mb-2 space-y-1.5">
+                        <div>
+                          <div className="mb-0.5 flex items-center justify-between text-[11px] text-fd-foreground/35">
+                            <span>Call 1 - full price</span>
+                            <span className="tabular-nums">{formatCost(m.perCall)}</span>
+                          </div>
+                          <div className="flex h-5 w-full overflow-hidden rounded">
+                            <div className="flex flex-1 items-center justify-center bg-fd-foreground/10 text-[10px] font-medium text-fd-foreground/50">
+                              {formatTokenCount(inputTokens)} @ {formatRate(m.input)}/M
+                            </div>
+                          </div>
+                        </div>
+                        {subsequentCalls > 0 && (
+                          <div>
+                            <div className="mb-0.5 flex items-center justify-between text-[11px] text-fd-foreground/35">
+                              <span>{subsequentCalls === 1 ? "Call 2" : `Calls 2\u2013${apiCalls.toLocaleString()}`} - {cachePercent}% cached</span>
+                              <span className="tabular-nums text-green-500/60">{formatCost(m.cachedPerCall)}</span>
+                            </div>
+                            <div className="flex h-5 w-full overflow-hidden rounded">
+                              <div
+                                className="flex items-center justify-center bg-green-500/20 text-[10px] font-medium text-green-400/80 transition-all duration-300"
+                                style={{ width: `${cachePercent}%` }}
+                              >
+                                {cachePercent >= 30 && `${formatTokenCount(cachedTokens)} @ ${formatRate(m.cachedInput)}`}
+                              </div>
+                              <div
+                                className="flex items-center justify-center bg-fd-foreground/10 text-[10px] font-medium text-fd-foreground/45 transition-all duration-300"
+                                style={{ width: `${100 - cachePercent}%` }}
+                              >
+                                {(100 - cachePercent) >= 25 && `${formatTokenCount(uncachedTokens)} @ ${formatRate(m.input)}`}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      {/* Summary line */}
+                      <div className="text-xs text-fd-foreground/45">
+                        Cached input is <span className="font-medium text-green-500/70">{inputDiscount}% cheaper</span> ({formatRate(m.cachedInput)} vs {formatRate(m.input)}/M)
+                        {subsequentCalls > 0 && m.savings > 0 && (
+                          <> &middot; Total: <span className="font-medium text-fd-foreground/70">{formatCost(m.cachedTotal)}</span> saving {m.savings.toFixed(0)}%</>
+                        )}
                       </div>
                     </div>
-                  </div>
-                  {/* Calls 2+ bar */}
-                  {subsequentCalls > 0 && (
-                    <div>
-                      <div className="mb-1 text-[11px] font-medium text-fd-foreground/40">
-                        {subsequentCalls === 1 ? "Call 2" : `Calls 2\u2013${apiCalls.toLocaleString()}`}
-                      </div>
-                      <div className="flex h-7 w-56 overflow-hidden rounded-md">
-                        <div
-                          className="flex items-center justify-center bg-green-500/20 text-xs font-medium text-green-400/80 transition-all duration-300"
-                          style={{ width: `${cachePercent}%` }}
-                        >
-                          {cachePercent >= 30 && `${formatTokenCount(cachedTokens)} @ ${formatRate(m.cachedInput)}`}
-                        </div>
-                        <div
-                          className="flex items-center justify-center bg-fd-foreground/12 text-xs font-medium text-fd-foreground/50 transition-all duration-300"
-                          style={{ width: `${100 - cachePercent}%` }}
-                        >
-                          {(100 - cachePercent) >= 25 && `${formatTokenCount(uncachedTokens)} @ ${formatRate(m.input)}`}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  );
+                })}
               </div>
             </div>
           );
@@ -1872,7 +1884,7 @@ export function LlmPriceCalculator() {
           Prices per million tokens. Last updated March 2026.
           {isChainMode && " Chain mode assumes previous context is cached and each turn adds new tokens at full price."}
           {showCache && !isChainMode &&
-            ` Totals reflect cache hits at the selected cache rate.${!selectedModel ? " Click a model row to see caching details." : ""}`}
+            ` Totals reflect cache hits at the selected cache rate.${selectedModels.size === 0 ? " Click model rows to see caching details." : ""}`}
         </div>
       </div>
     </div>

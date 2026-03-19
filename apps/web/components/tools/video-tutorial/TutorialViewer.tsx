@@ -301,6 +301,47 @@ export default function TutorialViewer({ tutorial, onBack }: Props) {
     };
   }, [tutorial.videoId]);
 
+  // Update document title + inject client-side JSON-LD
+  useEffect(() => {
+    const prevTitle = document.title;
+    document.title = `${tutorial.title} — Interactive Tutorial | testy.cool`;
+
+    // Inject JSON-LD if not already present from server
+    if (!document.querySelector('script[data-vtg-jsonld]')) {
+      const lastStep = tutorial.steps[tutorial.steps.length - 1];
+      const dur = lastStep ? lastStep.endSeconds : 0;
+      const script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.setAttribute("data-vtg-jsonld", "true");
+      script.textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Article",
+            headline: tutorial.title,
+            description: `${tutorial.steps.length}-chapter interactive tutorial`,
+            image: `https://img.youtube.com/vi/${tutorial.videoId}/maxresdefault.jpg`,
+            datePublished: new Date(tutorial.generatedAt).toISOString(),
+            publisher: { "@type": "Organization", name: "testy.cool", url: "https://testy.cool" },
+          },
+          {
+            "@type": "VideoObject",
+            name: tutorial.videoTitle,
+            thumbnailUrl: `https://img.youtube.com/vi/${tutorial.videoId}/maxresdefault.jpg`,
+            embedUrl: `https://www.youtube.com/embed/${tutorial.videoId}`,
+            duration: `PT${Math.floor(dur / 60)}M${dur % 60}S`,
+          },
+        ],
+      });
+      document.head.appendChild(script);
+    }
+
+    return () => {
+      document.title = prevTitle;
+      document.querySelector('script[data-vtg-jsonld]')?.remove();
+    };
+  }, [tutorial]);
+
   // Video → text sync loop
   useEffect(() => {
     if (!playerReady) return;

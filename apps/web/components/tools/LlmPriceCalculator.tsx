@@ -601,7 +601,6 @@ export function LlmPriceCalculator() {
   const [reasoningTokens, setReasoningTokens] = useState(initial.reasoningTokens);
   const [turnTokens, setTurnTokens] = useState(initial.turnTokens);
   const [pinnedModels, setPinnedModels] = useState<Set<string>>(new Set());
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const allSelected = providerFilter.size === allProviders.size;
 
@@ -651,15 +650,6 @@ export function LlmPriceCalculator() {
       } else if (next.size < 3) {
         next.add(name);
       }
-      return next;
-    });
-  }, []);
-
-  const toggleExpand = useCallback((name: string) => {
-    setExpandedRows((prev) => {
-      const next = new Set(prev);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
       return next;
     });
   }, []);
@@ -891,20 +881,6 @@ export function LlmPriceCalculator() {
     return rankMap;
   }, [visibleModels, showCache, isBudgetMode, isChainMode]);
 
-  // Auto-expand the #1 ranked model when cache becomes active
-  useEffect(() => {
-    if (showCache && !isBudgetMode && !isChainMode && visibleModels.length > 0) {
-      const top = visibleModels.find((m) => rankedModels.get(m.name) === 1);
-      if (top) {
-        setExpandedRows((prev) => {
-          if (prev.size === 0) return new Set([top.name]);
-          return prev;
-        });
-      }
-    } else if (!showCache) {
-      setExpandedRows(new Set());
-    }
-  }, [showCache, isBudgetMode, isChainMode, visibleModels, rankedModels]);
 
   function getCostBarWidth(model: typeof visibleModels[0]): number {
     if (isBudgetMode) {
@@ -1493,26 +1469,20 @@ export function LlmPriceCalculator() {
                 const isTop3 = rank <= 3;
                 const isPinned = pinnedModels.has(model.name);
                 const barWidth = getCostBarWidth(model);
-                const isExpanded = expandedRows.has(model.name);
-                const canExpand = showCache && !isBudgetMode && !isChainMode;
-                const colCount = 6 + (showAdvanced ? 2 : 0) + (showCache ? 2 : 0) + (showBulk || showCache ? 1 : 0);
-                const subsequentCalls = Math.max(0, apiCalls - 1);
                 return (
-                  <>
                   <motion.tr
                     key={model.name}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
-                    onClick={canExpand ? () => toggleExpand(model.name) : undefined}
                     className={`border-b border-fd-border/70 transition-colors hover:bg-fd-muted/45 ${
                       isPinned
                         ? "bg-fd-primary/[0.04]"
                         : index % 2 === 1
                           ? "bg-fd-muted/25"
                           : ""
-                    } ${canExpand ? "cursor-pointer" : ""}`}
+                    }`}
                     style={isTop1 ? { borderLeft: "3px solid rgb(34 197 94)" } : isPinned ? { borderLeft: "3px solid var(--color-fd-primary)" } : undefined}
                   >
                     <td className="px-2 py-3 text-center">
@@ -1531,17 +1501,8 @@ export function LlmPriceCalculator() {
                     </td>
                     <td className="px-4 py-3 text-left">
                       <div className="flex items-center gap-1.5">
-                        {canExpand && (
-                          <svg
-                            className={`h-3.5 w-3.5 flex-shrink-0 transition-transform duration-150 ${isExpanded ? "rotate-90 text-fd-primary" : "text-fd-foreground/50"}`}
-                            viewBox="0 0 16 16"
-                            fill="currentColor"
-                          >
-                            <path d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z" />
-                          </svg>
-                        )}
                         <button
-                          onClick={(e) => { e.stopPropagation(); togglePin(model.name); }}
+                          onClick={() => togglePin(model.name)}
                           title={isPinned ? "Unpin" : "Pin to compare"}
                           className={`text-left text-sm font-medium text-fd-foreground hover:text-fd-primary transition-colors ${
                             isPinned ? "underline decoration-fd-primary decoration-2 underline-offset-2" : ""
@@ -1627,8 +1588,13 @@ export function LlmPriceCalculator() {
                           {formatCost(model.perCall)}
                         </td>
                         {showAdvanced && showCache && (
-                          <td className="border-l border-fd-border/40 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground/78">
-                            {formatCost(model.cachedPerCall)}
+                          <td
+                            className="border-l border-fd-border/40 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground/78"
+                            title={`Per-call breakdown (${cachePercent}% cached):\n  Input: ${formatCost(model.cachedInputCost)} (${cachePercent}% at ${formatRate(model.cachedInput)}/M, ${100 - cachePercent}% at ${formatRate(model.input)}/M)\n  Output: ${formatCost(model.outputCost)} (${formatTokenCount(outputTokens)} × ${formatRate(model.output)}/M)${model.reasoning && reasoningTokens > 0 ? `\n  Reasoning: ${formatCost(model.reasoningCost)}` : ""}`}
+                          >
+                            <span className="cursor-help border-b border-dashed border-fd-foreground/25">
+                              {formatCost(model.cachedPerCall)}
+                            </span>
                           </td>
                         )}
                         <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3 text-right">
@@ -1650,65 +1616,6 @@ export function LlmPriceCalculator() {
                       </>
                     )}
                   </motion.tr>
-                  {canExpand && isExpanded && (() => {
-                    const firstCallPct = model.cachedTotal > 0 ? (model.perCall / model.cachedTotal) * 100 : 100;
-                    const cachedPct = 100 - firstCallPct;
-                    return (
-                    <motion.tr
-                      key={`${model.name}-breakdown`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.15 }}
-                      className="border-b border-fd-border/40"
-                    >
-                      <td colSpan={colCount} className="px-6 py-4">
-                        <div className="pl-8">
-                          {/* Stacked cost bar */}
-                          <div className="flex h-7 w-full overflow-hidden rounded-md text-[11px] font-medium leading-7">
-                            <div
-                              className="flex items-center justify-center bg-fd-foreground/10 text-fd-foreground/70 transition-all duration-300"
-                              style={{ width: `${Math.max(firstCallPct, 8)}%` }}
-                              title={`Call 1: ${formatCost(model.perCall)} (full price)`}
-                            >
-                              {firstCallPct > 12 && `Call 1: ${formatCost(model.perCall)}`}
-                            </div>
-                            {subsequentCalls > 0 && (
-                              <div
-                                className="flex items-center justify-center bg-green-500/15 text-green-400/90 transition-all duration-300"
-                                style={{ width: `${Math.max(cachedPct, 8)}%` }}
-                                title={`Calls 2\u2013${apiCalls.toLocaleString()}: ${subsequentCalls.toLocaleString()} \u00d7 ${formatCost(model.cachedPerCall)} (${cachePercent}% cached)`}
-                              >
-                                {cachedPct > 15 && `${subsequentCalls.toLocaleString()} cached calls: ${formatCost(model.cachedPerCall * subsequentCalls)}`}
-                              </div>
-                            )}
-                          </div>
-                          {/* Labels below the bar */}
-                          <div className="mt-2 flex items-baseline justify-between text-xs">
-                            <div className="flex items-baseline gap-4 text-fd-foreground/50">
-                              <span>
-                                <span className="font-medium text-fd-foreground/65">First call</span>{" "}
-                                {formatCost(model.perCall)} full price
-                              </span>
-                              {subsequentCalls > 0 && (
-                                <span>
-                                  <span className="font-medium text-green-500/70">Next {subsequentCalls.toLocaleString()}</span>{" "}
-                                  {formatCost(model.cachedPerCall)}/call with {cachePercent}% cached input
-                                </span>
-                              )}
-                            </div>
-                            {model.savings > 0 && (
-                              <span className="text-xs font-medium tabular-nums text-green-500/60">
-                                saving {model.savings.toFixed(0)}% vs full price
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                    </motion.tr>
-                    );
-                  })()}
-                </>
                 );
               })}
             </AnimatePresence>
@@ -1887,64 +1794,6 @@ export function LlmPriceCalculator() {
                   />
                 </div>
 
-                {/* Mobile: expandable cost breakdown */}
-                {showCache && !isBudgetMode && !isChainMode && (
-                  <button
-                    onClick={() => toggleExpand(model.name)}
-                    className="mt-2 flex w-full items-center gap-1.5 text-xs text-fd-foreground/45 hover:text-fd-foreground/65 transition-colors"
-                  >
-                    <svg
-                      className={`h-3.5 w-3.5 transition-transform duration-150 ${expandedRows.has(model.name) ? "rotate-90 text-fd-primary" : ""}`}
-                      viewBox="0 0 16 16"
-                      fill="currentColor"
-                    >
-                      <path d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z" />
-                    </svg>
-                    Cost breakdown
-                  </button>
-                )}
-                {showCache && !isBudgetMode && !isChainMode && expandedRows.has(model.name) && (() => {
-                  const subCalls = Math.max(0, apiCalls - 1);
-                  const firstPct = model.cachedTotal > 0 ? (model.perCall / model.cachedTotal) * 100 : 100;
-                  const cachedPctMob = 100 - firstPct;
-                  return (
-                    <div className="mt-3">
-                      {/* Stacked bar */}
-                      <div className="flex h-6 w-full overflow-hidden rounded-md text-[10px] font-medium leading-6">
-                        <div
-                          className="flex items-center justify-center bg-fd-foreground/10 text-fd-foreground/65 transition-all duration-300"
-                          style={{ width: `${Math.max(firstPct, 12)}%` }}
-                        >
-                          1st: {formatCost(model.perCall)}
-                        </div>
-                        {subCalls > 0 && (
-                          <div
-                            className="flex items-center justify-center bg-green-500/15 text-green-400/80 transition-all duration-300"
-                            style={{ width: `${Math.max(cachedPctMob, 12)}%` }}
-                          >
-                            {subCalls.toLocaleString()} cached: {formatCost(model.cachedPerCall * subCalls)}
-                          </div>
-                        )}
-                      </div>
-                      {/* Labels */}
-                      <div className="mt-1.5 space-y-0.5 text-xs text-fd-foreground/45">
-                        <div>
-                          <span className="font-medium text-fd-foreground/60">First call</span>{" "}
-                          {formatCost(model.perCall)} at full price
-                        </div>
-                        {subCalls > 0 && (
-                          <div>
-                            <span className="font-medium text-green-500/65">Next {subCalls.toLocaleString()}</span>{" "}
-                            {formatCost(model.cachedPerCall)}/call, {cachePercent}% cached
-                            {model.savings > 0 && (
-                              <span className="ml-1 text-green-500/55">({model.savings.toFixed(0)}% cheaper)</span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })()}
               </motion.div>
             );
           })}

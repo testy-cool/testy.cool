@@ -601,6 +601,7 @@ export function LlmPriceCalculator() {
   const [reasoningTokens, setReasoningTokens] = useState(initial.reasoningTokens);
   const [turnTokens, setTurnTokens] = useState(initial.turnTokens);
   const [pinnedModels, setPinnedModels] = useState<Set<string>>(new Set());
+  const [selectedModel, setSelectedModel] = useState<string | null>(null);
 
   const allSelected = providerFilter.size === allProviders.size;
 
@@ -1462,67 +1463,6 @@ export function LlmPriceCalculator() {
               </tr>
             </thead>
             <tbody>
-            {/* Cache explainer row */}
-            {showCache && !isBudgetMode && !isChainMode && apiCalls > 1 && (
-              <tr className="border-b border-fd-border/50">
-                <td colSpan={99} className="px-6 py-4">
-                  <div className="flex items-start gap-8">
-                    {/* Left: label */}
-                    <div className="flex-shrink-0 pt-1">
-                      <div className="text-xs font-medium text-fd-foreground/50">How caching affects your {apiCalls.toLocaleString()} calls</div>
-                    </div>
-                    {/* Right: visual */}
-                    <div className="flex flex-1 items-center gap-3">
-                      {/* Call 1 */}
-                      <div className="flex-shrink-0 text-center">
-                        <div className="mb-1 text-[10px] font-medium uppercase tracking-wider text-fd-foreground/35">Call 1</div>
-                        <div className="flex h-8 w-28 overflow-hidden rounded-md">
-                          <div className="flex flex-1 items-center justify-center bg-fd-foreground/12 text-[11px] font-medium text-fd-foreground/60">
-                            {formatTokenCount(inputTokens)} in
-                          </div>
-                        </div>
-                        <div className="mt-1 text-[10px] text-fd-foreground/30">full price</div>
-                      </div>
-                      {/* Arrow */}
-                      <div className="flex flex-col items-center gap-0.5 pt-3 text-fd-foreground/20">
-                        <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor"><path fillRule="evenodd" d="M2 8a.75.75 0 0 1 .75-.75h8.69L8.22 4.03a.75.75 0 0 1 1.06-1.06l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 0 1-1.06-1.06l3.22-3.22H2.75A.75.75 0 0 1 2 8Z" clipRule="evenodd" /></svg>
-                      </div>
-                      {/* Calls 2+ */}
-                      <div className="flex-shrink-0 text-center">
-                        <div className="mb-1 text-[10px] font-medium uppercase tracking-wider text-fd-foreground/35">
-                          {apiCalls > 2 ? `Calls 2\u2013${apiCalls.toLocaleString()}` : "Call 2"}
-                        </div>
-                        <div className="flex h-8 w-48 overflow-hidden rounded-md">
-                          <div
-                            className="flex items-center justify-center bg-green-500/20 text-[11px] font-medium text-green-400/90 transition-all duration-300"
-                            style={{ width: `${cachePercent}%` }}
-                          >
-                            {cachePercent >= 25 && `${formatTokenCount(Math.round(inputTokens * cachePercent / 100))} cached`}
-                          </div>
-                          <div
-                            className="flex items-center justify-center bg-fd-foreground/12 text-[11px] font-medium text-fd-foreground/50 transition-all duration-300"
-                            style={{ width: `${100 - cachePercent}%` }}
-                          >
-                            {(100 - cachePercent) >= 20 && `${formatTokenCount(Math.round(inputTokens * (100 - cachePercent) / 100))} full`}
-                          </div>
-                        </div>
-                        <div className="mt-1 text-[10px] text-green-500/50">{cachePercent}% of input from cache</div>
-                      </div>
-                      {/* Plus output (constant) */}
-                      <div className="flex items-center gap-2 pt-3 text-fd-foreground/20">
-                        <span className="text-xs">+</span>
-                      </div>
-                      <div className="flex-shrink-0 pt-3 text-center">
-                        <div className="flex h-8 w-20 items-center justify-center rounded-md bg-fd-primary/10 text-[11px] font-medium text-fd-primary/60">
-                          {formatTokenCount(outputTokens)} out
-                        </div>
-                        <div className="mt-1 text-[10px] text-fd-foreground/30">always full price</div>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            )}
             <AnimatePresence initial={false}>
               {visibleModels.map((model, index) => {
                 const rank = rankedModels.get(model.name) ?? 999;
@@ -1530,6 +1470,7 @@ export function LlmPriceCalculator() {
                 const isTop3 = rank <= 3;
                 const isPinned = pinnedModels.has(model.name);
                 const barWidth = getCostBarWidth(model);
+                const isSelected = selectedModel === model.name;
                 return (
                   <motion.tr
                     key={model.name}
@@ -1537,14 +1478,17 @@ export function LlmPriceCalculator() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
+                    onClick={showCache && !isBudgetMode && !isChainMode ? () => setSelectedModel(isSelected ? null : model.name) : undefined}
                     className={`border-b border-fd-border/70 transition-colors hover:bg-fd-muted/45 ${
-                      isPinned
-                        ? "bg-fd-primary/[0.04]"
-                        : index % 2 === 1
-                          ? "bg-fd-muted/25"
-                          : ""
-                    }`}
-                    style={isTop1 ? { borderLeft: "3px solid rgb(34 197 94)" } : isPinned ? { borderLeft: "3px solid var(--color-fd-primary)" } : undefined}
+                      isSelected
+                        ? "bg-fd-primary/[0.06]"
+                        : isPinned
+                          ? "bg-fd-primary/[0.04]"
+                          : index % 2 === 1
+                            ? "bg-fd-muted/25"
+                            : ""
+                    } ${showCache && !isBudgetMode && !isChainMode ? "cursor-pointer" : ""}`}
+                    style={isSelected ? { borderLeft: "3px solid var(--color-fd-primary)" } : isTop1 ? { borderLeft: "3px solid rgb(34 197 94)" } : isPinned ? { borderLeft: "3px solid var(--color-fd-primary)" } : undefined}
                   >
                     <td className="px-2 py-3 text-center">
                       <span className={`text-sm font-semibold tabular-nums ${
@@ -1861,11 +1805,74 @@ export function LlmPriceCalculator() {
           </AnimatePresence>
         </div>
 
+        {/* Per-model caching detail panel */}
+        {showCache && !isBudgetMode && !isChainMode && selectedModel && (() => {
+          const m = calculated.find((c) => c.name === selectedModel);
+          if (!m) return null;
+          const cachedTokens = Math.round(inputTokens * cachePercent / 100);
+          const uncachedTokens = inputTokens - cachedTokens;
+          const subsequentCalls = Math.max(0, apiCalls - 1);
+          const inputDiscount = m.input > 0 ? Math.round((1 - m.cachedInput / m.input) * 100) : 0;
+          return (
+            <div className="border-t border-fd-primary/20 bg-fd-primary/[0.03] px-6 py-5">
+              <div className="flex items-start justify-between gap-6">
+                {/* Left: explanation */}
+                <div className="min-w-0 flex-1">
+                  <div className="mb-3 flex items-center gap-2">
+                    <span className="text-sm font-semibold text-fd-foreground">{m.name}</span>
+                    <span className="text-sm text-fd-foreground/40">{providerLabels[m.provider]}</span>
+                    <button onClick={() => setSelectedModel(null)} className="ml-auto text-xs text-fd-foreground/30 hover:text-fd-foreground/60 transition-colors">&times; close</button>
+                  </div>
+                  <p className="text-sm leading-relaxed text-fd-foreground/60">
+                    Your first call processes all {formatTokenCount(inputTokens)} input tokens at <span className="font-medium text-fd-foreground/80">{formatRate(m.input)}/M</span>.
+                    {subsequentCalls > 0 && (
+                      <> On the next {subsequentCalls.toLocaleString()} calls, <span className="font-medium text-green-500/80">{cachePercent}%</span> of input comes from cache at <span className="font-medium text-green-500/80">{formatRate(m.cachedInput)}/M</span> instead - that&apos;s <span className="font-medium text-green-500/80">{inputDiscount}% cheaper</span> per cached token. Output tokens ({formatRate(m.output)}/M) are always full price.</>
+                    )}
+                  </p>
+                </div>
+                {/* Right: visual bars */}
+                <div className="flex flex-shrink-0 flex-col gap-3">
+                  {/* Call 1 bar */}
+                  <div>
+                    <div className="mb-1 text-[11px] font-medium text-fd-foreground/40">Call 1</div>
+                    <div className="flex h-7 w-56 overflow-hidden rounded-md">
+                      <div className="flex flex-1 items-center justify-center bg-fd-foreground/12 text-xs font-medium text-fd-foreground/60">
+                        {formatTokenCount(inputTokens)} input &middot; {formatRate(m.input)}/M
+                      </div>
+                    </div>
+                  </div>
+                  {/* Calls 2+ bar */}
+                  {subsequentCalls > 0 && (
+                    <div>
+                      <div className="mb-1 text-[11px] font-medium text-fd-foreground/40">
+                        {subsequentCalls === 1 ? "Call 2" : `Calls 2\u2013${apiCalls.toLocaleString()}`}
+                      </div>
+                      <div className="flex h-7 w-56 overflow-hidden rounded-md">
+                        <div
+                          className="flex items-center justify-center bg-green-500/20 text-xs font-medium text-green-400/80 transition-all duration-300"
+                          style={{ width: `${cachePercent}%` }}
+                        >
+                          {cachePercent >= 30 && `${formatTokenCount(cachedTokens)} @ ${formatRate(m.cachedInput)}`}
+                        </div>
+                        <div
+                          className="flex items-center justify-center bg-fd-foreground/12 text-xs font-medium text-fd-foreground/50 transition-all duration-300"
+                          style={{ width: `${100 - cachePercent}%` }}
+                        >
+                          {(100 - cachePercent) >= 25 && `${formatTokenCount(uncachedTokens)} @ ${formatRate(m.input)}`}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
         <div className="border-t border-fd-border px-5 py-3 text-[11px] leading-5 text-fd-foreground/60">
           Prices per million tokens. Last updated March 2026.
           {isChainMode && " Chain mode assumes previous context is cached and each turn adds new tokens at full price."}
           {showCache && !isChainMode &&
-            " Totals reflect cache hits at the selected cache rate."}
+            ` Totals reflect cache hits at the selected cache rate.${!selectedModel ? " Click a model row to see caching details." : ""}`}
         </div>
       </div>
     </div>

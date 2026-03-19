@@ -601,6 +601,7 @@ export function LlmPriceCalculator() {
   const [reasoningTokens, setReasoningTokens] = useState(initial.reasoningTokens);
   const [turnTokens, setTurnTokens] = useState(initial.turnTokens);
   const [pinnedModels, setPinnedModels] = useState<Set<string>>(new Set());
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const allSelected = providerFilter.size === allProviders.size;
 
@@ -650,6 +651,15 @@ export function LlmPriceCalculator() {
       } else if (next.size < 3) {
         next.add(name);
       }
+      return next;
+    });
+  }, []);
+
+  const toggleExpand = useCallback((name: string) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
       return next;
     });
   }, []);
@@ -797,6 +807,11 @@ export function LlmPriceCalculator() {
         cachedPerCall,
         cachedTotal,
         savings,
+        // cost components for breakdown tree
+        inputCost,
+        outputCost,
+        reasoningCost,
+        cachedInputCost: cachedInputPerCall,
         maxCalls,
         chainCall1,
         chainLastCall: chainLastCallCost,
@@ -1463,20 +1478,26 @@ export function LlmPriceCalculator() {
                 const isTop3 = rank <= 3;
                 const isPinned = pinnedModels.has(model.name);
                 const barWidth = getCostBarWidth(model);
+                const isExpanded = expandedRows.has(model.name);
+                const canExpand = showCache && !isBudgetMode && !isChainMode;
+                const colCount = 6 + (showAdvanced ? 2 : 0) + (showCache ? 2 : 0) + (showBulk || showCache ? 1 : 0);
+                const subsequentCalls = Math.max(0, apiCalls - 1);
                 return (
+                  <>
                   <motion.tr
                     key={model.name}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
+                    onClick={canExpand ? () => toggleExpand(model.name) : undefined}
                     className={`border-b border-fd-border/70 transition-colors hover:bg-fd-muted/45 ${
                       isPinned
                         ? "bg-fd-primary/[0.04]"
                         : index % 2 === 1
                           ? "bg-fd-muted/25"
                           : ""
-                    }`}
+                    } ${canExpand ? "cursor-pointer" : ""}`}
                     style={isTop1 ? { borderLeft: "3px solid rgb(34 197 94)" } : isPinned ? { borderLeft: "3px solid var(--color-fd-primary)" } : undefined}
                   >
                     <td className="px-2 py-3 text-center">
@@ -1495,8 +1516,17 @@ export function LlmPriceCalculator() {
                     </td>
                     <td className="px-4 py-3 text-left">
                       <div className="flex items-center gap-1.5">
+                        {canExpand && (
+                          <svg
+                            className={`h-3 w-3 flex-shrink-0 text-fd-foreground/40 transition-transform duration-150 ${isExpanded ? "rotate-90" : ""}`}
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                          >
+                            <path d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z" />
+                          </svg>
+                        )}
                         <button
-                          onClick={() => togglePin(model.name)}
+                          onClick={(e) => { e.stopPropagation(); togglePin(model.name); }}
                           title={isPinned ? "Unpin" : "Pin to compare"}
                           className={`text-left text-sm font-medium text-fd-foreground hover:text-fd-primary transition-colors ${
                             isPinned ? "underline decoration-fd-primary decoration-2 underline-offset-2" : ""
@@ -1605,6 +1635,90 @@ export function LlmPriceCalculator() {
                       </>
                     )}
                   </motion.tr>
+                  {canExpand && isExpanded && (
+                    <motion.tr
+                      key={`${model.name}-breakdown`}
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className="border-b border-fd-border/40"
+                    >
+                      <td colSpan={colCount} className="px-6 py-3 bg-fd-muted/15">
+                        <div className="font-mono text-xs leading-6 text-fd-foreground/65">
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-fd-foreground/40">├─</span>
+                            <span className="font-semibold text-fd-foreground/80">1st call: {formatCost(model.perCall)}</span>
+                          </div>
+                          <div className="flex items-baseline gap-2 pl-6">
+                            <span className="text-fd-foreground/40">{"├─"}</span>
+                            <span>Input</span>
+                            <span className="text-fd-foreground/40">{formatTokenCount(inputTokens)} x {formatRate(model.input)}/M</span>
+                            <span>=</span>
+                            <span className="tabular-nums">{formatCost(model.inputCost)}</span>
+                          </div>
+                          <div className="flex items-baseline gap-2 pl-6">
+                            <span className="text-fd-foreground/40">{model.reasoning && reasoningTokens > 0 ? "├─" : "└─"}</span>
+                            <span>Output</span>
+                            <span className="text-fd-foreground/40">{formatTokenCount(outputTokens)} x {formatRate(model.output)}/M</span>
+                            <span>=</span>
+                            <span className="tabular-nums">{formatCost(model.outputCost)}</span>
+                          </div>
+                          {model.reasoning && reasoningTokens > 0 && (
+                            <div className="flex items-baseline gap-2 pl-6">
+                              <span className="text-fd-foreground/40">└─</span>
+                              <span>Reasoning</span>
+                              <span className="text-fd-foreground/40">{formatTokenCount(reasoningTokens)} x {formatRate(model.reasoning)}/M</span>
+                              <span>=</span>
+                              <span className="tabular-nums">{formatCost(model.reasoningCost)}</span>
+                            </div>
+                          )}
+                          {subsequentCalls > 0 && (
+                            <>
+                              <div className="flex items-baseline gap-2 mt-1">
+                                <span className="text-fd-foreground/40">└─</span>
+                                <span className="font-semibold text-fd-foreground/80">
+                                  Next call: {formatCost(model.cachedPerCall)}
+                                  {subsequentCalls > 1 && <span className="text-fd-foreground/50"> x{subsequentCalls}</span>}
+                                </span>
+                              </div>
+                              <div className="flex items-baseline gap-2 pl-8">
+                                <span className="text-fd-foreground/40">{"├─"}</span>
+                                <span>Input</span>
+                                <span className="text-fd-foreground/40">
+                                  {formatTokenCount(inputTokens)} x blend({formatRate(model.input)}, {formatRate(model.cachedInput)} @ {cachePercent}%)
+                                </span>
+                                <span>=</span>
+                                <span className="tabular-nums text-green-500/80">{formatCost(model.cachedInputCost)}</span>
+                              </div>
+                              <div className="flex items-baseline gap-2 pl-8">
+                                <span className="text-fd-foreground/40">{model.reasoning && reasoningTokens > 0 ? "├─" : "└─"}</span>
+                                <span>Output</span>
+                                <span className="text-fd-foreground/40">{formatTokenCount(outputTokens)} x {formatRate(model.output)}/M</span>
+                                <span>=</span>
+                                <span className="tabular-nums">{formatCost(model.outputCost)}</span>
+                              </div>
+                              {model.reasoning && reasoningTokens > 0 && (
+                                <div className="flex items-baseline gap-2 pl-8">
+                                  <span className="text-fd-foreground/40">└─</span>
+                                  <span>Reasoning</span>
+                                  <span className="text-fd-foreground/40">{formatTokenCount(reasoningTokens)} x {formatRate(model.reasoning)}/M</span>
+                                  <span>=</span>
+                                  <span className="tabular-nums">{formatCost(model.reasoningCost)}</span>
+                                </div>
+                              )}
+                            </>
+                          )}
+                          {subsequentCalls === 0 && (
+                            <div className="mt-1 pl-6 text-fd-foreground/40 italic">
+                              Set API calls &gt; 1 to see cache savings
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </motion.tr>
+                  )}
+                </>
                 );
               })}
             </AnimatePresence>
@@ -1782,6 +1896,48 @@ export function LlmPriceCalculator() {
                     style={{ width: `${barWidth}%` }}
                   />
                 </div>
+
+                {/* Mobile: expandable cost breakdown */}
+                {showCache && !isBudgetMode && !isChainMode && (
+                  <button
+                    onClick={() => toggleExpand(model.name)}
+                    className="mt-2 flex w-full items-center gap-1 text-[10px] uppercase tracking-wider text-fd-foreground/45 hover:text-fd-foreground/65 transition-colors"
+                  >
+                    <svg
+                      className={`h-2.5 w-2.5 transition-transform duration-150 ${expandedRows.has(model.name) ? "rotate-90" : ""}`}
+                      viewBox="0 0 16 16"
+                      fill="currentColor"
+                    >
+                      <path d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z" />
+                    </svg>
+                    Cost breakdown
+                  </button>
+                )}
+                {showCache && !isBudgetMode && !isChainMode && expandedRows.has(model.name) && (() => {
+                  const subCalls = Math.max(0, apiCalls - 1);
+                  return (
+                    <div className="mt-2 rounded-lg bg-fd-muted/20 px-3 py-2 font-mono text-[11px] leading-5 text-fd-foreground/60">
+                      <div><span className="text-fd-foreground/35">├─</span> <span className="font-semibold text-fd-foreground/75">1st call: {formatCost(model.perCall)}</span></div>
+                      <div className="pl-4"><span className="text-fd-foreground/35">{"├─"}</span> Input {formatTokenCount(inputTokens)} x {formatRate(model.input)}/M = {formatCost(model.inputCost)}</div>
+                      <div className="pl-4"><span className="text-fd-foreground/35">{model.reasoning && reasoningTokens > 0 ? "├─" : "└─"}</span> Output {formatTokenCount(outputTokens)} x {formatRate(model.output)}/M = {formatCost(model.outputCost)}</div>
+                      {model.reasoning && reasoningTokens > 0 && (
+                        <div className="pl-4"><span className="text-fd-foreground/35">└─</span> Reasoning {formatTokenCount(reasoningTokens)} x {formatRate(model.reasoning)}/M = {formatCost(model.reasoningCost)}</div>
+                      )}
+                      {subCalls > 0 ? (
+                        <>
+                          <div className="mt-1"><span className="text-fd-foreground/35">└─</span> <span className="font-semibold text-fd-foreground/75">Next call: {formatCost(model.cachedPerCall)}{subCalls > 1 && <span className="text-fd-foreground/45"> x{subCalls}</span>}</span></div>
+                          <div className="pl-6"><span className="text-fd-foreground/35">├─</span> Input {formatTokenCount(inputTokens)} x blend @ {cachePercent}% = <span className="text-green-500/75">{formatCost(model.cachedInputCost)}</span></div>
+                          <div className="pl-6"><span className="text-fd-foreground/35">{model.reasoning && reasoningTokens > 0 ? "├─" : "└─"}</span> Output {formatTokenCount(outputTokens)} x {formatRate(model.output)}/M = {formatCost(model.outputCost)}</div>
+                          {model.reasoning && reasoningTokens > 0 && (
+                            <div className="pl-6"><span className="text-fd-foreground/35">└─</span> Reasoning {formatTokenCount(reasoningTokens)} x {formatRate(model.reasoning)}/M = {formatCost(model.reasoningCost)}</div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="mt-1 pl-4 text-fd-foreground/35 italic">Set API calls &gt; 1 to see cache savings</div>
+                      )}
+                    </div>
+                  );
+                })()}
               </motion.div>
             );
           })}

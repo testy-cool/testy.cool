@@ -1638,79 +1638,61 @@ export function LlmPriceCalculator() {
                   {canExpand && isExpanded && (
                     <motion.tr
                       key={`${model.name}-breakdown`}
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
                       className="border-b border-fd-border/40"
                     >
-                      <td colSpan={colCount} className="px-6 py-3 bg-fd-muted/15">
-                        <div className="font-mono text-xs leading-6 text-fd-foreground/65">
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-fd-foreground/40">├─</span>
-                            <span className="font-semibold text-fd-foreground/80">1st call: {formatCost(model.perCall)}</span>
+                      <td colSpan={colCount} className="px-0 py-0">
+                        <div className="border-l-2 border-fd-primary/20 ml-8 my-3 pl-4 pr-6">
+                          {/* 1st call header */}
+                          <div className="mb-1.5 flex items-center gap-2 text-[11px] font-medium tracking-wide text-fd-foreground/70">
+                            <span className="uppercase">1st call</span>
+                            <span className="font-semibold tabular-nums text-fd-foreground/90">{formatCost(model.perCall)}</span>
                           </div>
-                          <div className="flex items-baseline gap-2 pl-6">
-                            <span className="text-fd-foreground/40">{"├─"}</span>
-                            <span>Input</span>
-                            <span className="text-fd-foreground/40">{formatTokenCount(inputTokens)} x {formatRate(model.input)}/M</span>
-                            <span>=</span>
-                            <span className="tabular-nums">{formatCost(model.inputCost)}</span>
+                          {/* 1st call line items */}
+                          <div className="grid gap-y-0.5 text-[11px] tabular-nums text-fd-foreground/50" style={{ gridTemplateColumns: "auto 1fr auto" }}>
+                            <span className="pr-3 text-fd-foreground/55">Input</span>
+                            <span className="text-fd-foreground/35">{formatTokenCount(inputTokens)} &times; {formatRate(model.input)}/M</span>
+                            <span className="pl-3 text-right text-fd-foreground/65">{formatCost(model.inputCost)}</span>
+                            <span className="pr-3 text-fd-foreground/55">Output</span>
+                            <span className="text-fd-foreground/35">{formatTokenCount(outputTokens)} &times; {formatRate(model.output)}/M</span>
+                            <span className="pl-3 text-right text-fd-foreground/65">{formatCost(model.outputCost)}</span>
+                            {model.reasoning && reasoningTokens > 0 && (
+                              <>
+                                <span className="pr-3 text-fd-foreground/55">Reasoning</span>
+                                <span className="text-fd-foreground/35">{formatTokenCount(reasoningTokens)} &times; {formatRate(model.reasoning)}/M</span>
+                                <span className="pl-3 text-right text-fd-foreground/65">{formatCost(model.reasoningCost)}</span>
+                              </>
+                            )}
                           </div>
-                          <div className="flex items-baseline gap-2 pl-6">
-                            <span className="text-fd-foreground/40">{model.reasoning && reasoningTokens > 0 ? "├─" : "└─"}</span>
-                            <span>Output</span>
-                            <span className="text-fd-foreground/40">{formatTokenCount(outputTokens)} x {formatRate(model.output)}/M</span>
-                            <span>=</span>
-                            <span className="tabular-nums">{formatCost(model.outputCost)}</span>
-                          </div>
-                          {model.reasoning && reasoningTokens > 0 && (
-                            <div className="flex items-baseline gap-2 pl-6">
-                              <span className="text-fd-foreground/40">└─</span>
-                              <span>Reasoning</span>
-                              <span className="text-fd-foreground/40">{formatTokenCount(reasoningTokens)} x {formatRate(model.reasoning)}/M</span>
-                              <span>=</span>
-                              <span className="tabular-nums">{formatCost(model.reasoningCost)}</span>
-                            </div>
-                          )}
-                          {subsequentCalls > 0 && (
+                          {/* Next call section */}
+                          {subsequentCalls > 0 ? (
                             <>
-                              <div className="flex items-baseline gap-2 mt-1">
-                                <span className="text-fd-foreground/40">└─</span>
-                                <span className="font-semibold text-fd-foreground/80">
-                                  Next call: {formatCost(model.cachedPerCall)}
-                                  {subsequentCalls > 1 && <span className="text-fd-foreground/50"> x{subsequentCalls}</span>}
-                                </span>
+                              <div className="mt-3 mb-1.5 flex items-center gap-2 text-[11px] font-medium tracking-wide text-fd-foreground/70">
+                                <span className="uppercase">Next call</span>
+                                <span className="font-semibold tabular-nums text-fd-foreground/90">{formatCost(model.cachedPerCall)}</span>
+                                {subsequentCalls > 1 && <span className="text-fd-foreground/40">&times;{subsequentCalls}</span>}
                               </div>
-                              <div className="flex items-baseline gap-2 pl-8">
-                                <span className="text-fd-foreground/40">{"├─"}</span>
-                                <span>Input</span>
-                                <span className="text-fd-foreground/40">
-                                  {formatTokenCount(inputTokens)} x blend({formatRate(model.input)}, {formatRate(model.cachedInput)} @ {cachePercent}%)
-                                </span>
-                                <span>=</span>
-                                <span className="tabular-nums text-green-500/80">{formatCost(model.cachedInputCost)}</span>
+                              <div className="grid gap-y-0.5 text-[11px] tabular-nums text-fd-foreground/50" style={{ gridTemplateColumns: "auto 1fr auto" }}>
+                                <span className="pr-3 text-fd-foreground/55">Input</span>
+                                <span className="text-fd-foreground/35">{formatTokenCount(inputTokens)} &times; blend({formatRate(model.input)}, {formatRate(model.cachedInput)} @ {cachePercent}%)</span>
+                                <span className="pl-3 text-right text-green-500/70">{formatCost(model.cachedInputCost)}</span>
+                                <span className="pr-3 text-fd-foreground/55">Output</span>
+                                <span className="text-fd-foreground/35">{formatTokenCount(outputTokens)} &times; {formatRate(model.output)}/M</span>
+                                <span className="pl-3 text-right text-fd-foreground/65">{formatCost(model.outputCost)}</span>
+                                {model.reasoning && reasoningTokens > 0 && (
+                                  <>
+                                    <span className="pr-3 text-fd-foreground/55">Reasoning</span>
+                                    <span className="text-fd-foreground/35">{formatTokenCount(reasoningTokens)} &times; {formatRate(model.reasoning)}/M</span>
+                                    <span className="pl-3 text-right text-fd-foreground/65">{formatCost(model.reasoningCost)}</span>
+                                  </>
+                                )}
                               </div>
-                              <div className="flex items-baseline gap-2 pl-8">
-                                <span className="text-fd-foreground/40">{model.reasoning && reasoningTokens > 0 ? "├─" : "└─"}</span>
-                                <span>Output</span>
-                                <span className="text-fd-foreground/40">{formatTokenCount(outputTokens)} x {formatRate(model.output)}/M</span>
-                                <span>=</span>
-                                <span className="tabular-nums">{formatCost(model.outputCost)}</span>
-                              </div>
-                              {model.reasoning && reasoningTokens > 0 && (
-                                <div className="flex items-baseline gap-2 pl-8">
-                                  <span className="text-fd-foreground/40">└─</span>
-                                  <span>Reasoning</span>
-                                  <span className="text-fd-foreground/40">{formatTokenCount(reasoningTokens)} x {formatRate(model.reasoning)}/M</span>
-                                  <span>=</span>
-                                  <span className="tabular-nums">{formatCost(model.reasoningCost)}</span>
-                                </div>
-                              )}
                             </>
-                          )}
-                          {subsequentCalls === 0 && (
-                            <div className="mt-1 pl-6 text-fd-foreground/40 italic">
+                          ) : (
+                            <div className="mt-2 text-[11px] text-fd-foreground/35 italic">
                               Set API calls &gt; 1 to see cache savings
                             </div>
                           )}
@@ -1901,7 +1883,7 @@ export function LlmPriceCalculator() {
                 {showCache && !isBudgetMode && !isChainMode && (
                   <button
                     onClick={() => toggleExpand(model.name)}
-                    className="mt-2 flex w-full items-center gap-1 text-[10px] uppercase tracking-wider text-fd-foreground/45 hover:text-fd-foreground/65 transition-colors"
+                    className="mt-2 flex w-full items-center gap-1.5 text-[10px] uppercase tracking-wider text-fd-foreground/45 hover:text-fd-foreground/65 transition-colors"
                   >
                     <svg
                       className={`h-2.5 w-2.5 transition-transform duration-150 ${expandedRows.has(model.name) ? "rotate-90" : ""}`}
@@ -1916,24 +1898,51 @@ export function LlmPriceCalculator() {
                 {showCache && !isBudgetMode && !isChainMode && expandedRows.has(model.name) && (() => {
                   const subCalls = Math.max(0, apiCalls - 1);
                   return (
-                    <div className="mt-2 rounded-lg bg-fd-muted/20 px-3 py-2 font-mono text-[11px] leading-5 text-fd-foreground/60">
-                      <div><span className="text-fd-foreground/35">├─</span> <span className="font-semibold text-fd-foreground/75">1st call: {formatCost(model.perCall)}</span></div>
-                      <div className="pl-4"><span className="text-fd-foreground/35">{"├─"}</span> Input {formatTokenCount(inputTokens)} x {formatRate(model.input)}/M = {formatCost(model.inputCost)}</div>
-                      <div className="pl-4"><span className="text-fd-foreground/35">{model.reasoning && reasoningTokens > 0 ? "├─" : "└─"}</span> Output {formatTokenCount(outputTokens)} x {formatRate(model.output)}/M = {formatCost(model.outputCost)}</div>
-                      {model.reasoning && reasoningTokens > 0 && (
-                        <div className="pl-4"><span className="text-fd-foreground/35">└─</span> Reasoning {formatTokenCount(reasoningTokens)} x {formatRate(model.reasoning)}/M = {formatCost(model.reasoningCost)}</div>
-                      )}
+                    <div className="mt-2 border-l-2 border-fd-primary/20 pl-3">
+                      <div className="mb-1 flex items-center gap-2 text-[10px] font-medium tracking-wide text-fd-foreground/70">
+                        <span className="uppercase">1st call</span>
+                        <span className="font-semibold tabular-nums text-fd-foreground/90">{formatCost(model.perCall)}</span>
+                      </div>
+                      <div className="grid gap-y-0.5 text-[10px] tabular-nums text-fd-foreground/50" style={{ gridTemplateColumns: "auto 1fr auto" }}>
+                        <span className="pr-2 text-fd-foreground/55">Input</span>
+                        <span className="text-fd-foreground/35">{formatTokenCount(inputTokens)} &times; {formatRate(model.input)}/M</span>
+                        <span className="pl-2 text-right text-fd-foreground/65">{formatCost(model.inputCost)}</span>
+                        <span className="pr-2 text-fd-foreground/55">Output</span>
+                        <span className="text-fd-foreground/35">{formatTokenCount(outputTokens)} &times; {formatRate(model.output)}/M</span>
+                        <span className="pl-2 text-right text-fd-foreground/65">{formatCost(model.outputCost)}</span>
+                        {model.reasoning && reasoningTokens > 0 && (
+                          <>
+                            <span className="pr-2 text-fd-foreground/55">Reasoning</span>
+                            <span className="text-fd-foreground/35">{formatTokenCount(reasoningTokens)} &times; {formatRate(model.reasoning)}/M</span>
+                            <span className="pl-2 text-right text-fd-foreground/65">{formatCost(model.reasoningCost)}</span>
+                          </>
+                        )}
+                      </div>
                       {subCalls > 0 ? (
                         <>
-                          <div className="mt-1"><span className="text-fd-foreground/35">└─</span> <span className="font-semibold text-fd-foreground/75">Next call: {formatCost(model.cachedPerCall)}{subCalls > 1 && <span className="text-fd-foreground/45"> x{subCalls}</span>}</span></div>
-                          <div className="pl-6"><span className="text-fd-foreground/35">├─</span> Input {formatTokenCount(inputTokens)} x blend @ {cachePercent}% = <span className="text-green-500/75">{formatCost(model.cachedInputCost)}</span></div>
-                          <div className="pl-6"><span className="text-fd-foreground/35">{model.reasoning && reasoningTokens > 0 ? "├─" : "└─"}</span> Output {formatTokenCount(outputTokens)} x {formatRate(model.output)}/M = {formatCost(model.outputCost)}</div>
-                          {model.reasoning && reasoningTokens > 0 && (
-                            <div className="pl-6"><span className="text-fd-foreground/35">└─</span> Reasoning {formatTokenCount(reasoningTokens)} x {formatRate(model.reasoning)}/M = {formatCost(model.reasoningCost)}</div>
-                          )}
+                          <div className="mt-2 mb-1 flex items-center gap-2 text-[10px] font-medium tracking-wide text-fd-foreground/70">
+                            <span className="uppercase">Next call</span>
+                            <span className="font-semibold tabular-nums text-fd-foreground/90">{formatCost(model.cachedPerCall)}</span>
+                            {subCalls > 1 && <span className="text-fd-foreground/40">&times;{subCalls}</span>}
+                          </div>
+                          <div className="grid gap-y-0.5 text-[10px] tabular-nums text-fd-foreground/50" style={{ gridTemplateColumns: "auto 1fr auto" }}>
+                            <span className="pr-2 text-fd-foreground/55">Input</span>
+                            <span className="text-fd-foreground/35 truncate">{formatTokenCount(inputTokens)} &times; blend @ {cachePercent}%</span>
+                            <span className="pl-2 text-right text-green-500/70">{formatCost(model.cachedInputCost)}</span>
+                            <span className="pr-2 text-fd-foreground/55">Output</span>
+                            <span className="text-fd-foreground/35">{formatTokenCount(outputTokens)} &times; {formatRate(model.output)}/M</span>
+                            <span className="pl-2 text-right text-fd-foreground/65">{formatCost(model.outputCost)}</span>
+                            {model.reasoning && reasoningTokens > 0 && (
+                              <>
+                                <span className="pr-2 text-fd-foreground/55">Reasoning</span>
+                                <span className="text-fd-foreground/35">{formatTokenCount(reasoningTokens)} &times; {formatRate(model.reasoning)}/M</span>
+                                <span className="pl-2 text-right text-fd-foreground/65">{formatCost(model.reasoningCost)}</span>
+                              </>
+                            )}
+                          </div>
                         </>
                       ) : (
-                        <div className="mt-1 pl-4 text-fd-foreground/35 italic">Set API calls &gt; 1 to see cache savings</div>
+                        <div className="mt-2 text-[10px] text-fd-foreground/35 italic">Set API calls &gt; 1 to see cache savings</div>
                       )}
                     </div>
                   );

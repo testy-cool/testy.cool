@@ -12,7 +12,8 @@ export type TutorialBlock =
   | { type: "code"; language: string; code: string }
   | { type: "tldr"; html: string }
   | { type: "concept"; title: string; html: string }
-  | { type: "list"; items: string[] };
+  | { type: "list"; items: string[] }
+  | { type: "screenshot"; timestamp: number; caption: string };
 
 export interface Tutorial {
   videoId: string;

@@ -162,6 +162,7 @@ RULES:
 - Format any code shown or mentioned as code blocks with the correct language tag
 - Add a "tldr" block for sections that are conceptually dense
 - Add "concept" blocks for important ideas or notions that deserve a callout box
+- Add "screenshot" blocks whenever the video shows something visually important that the reader should SEE: diagrams, UI screenshots, architecture visuals, terminal output, code on screen, comparison demos, dashboards, graphs, workflow illustrations, etc. Include at least 2-5 screenshots per tutorial. Place them right where the visual appears in the video timeline.
 - tagType must be exactly one of: "intro", "concept", "setup", "action"
 - startSeconds and endSeconds must be integers matching the actual video timeline
 - Sections must cover the entire video chronologically with no timestamp gaps
@@ -181,6 +182,7 @@ OUTPUT FORMAT (return ONLY valid JSON):
       "blocks": [
         { "type": "paragraph", "html": "Text with <strong>bold</strong> and <code>code</code>" },
         { "type": "code", "language": "bash", "code": "actual code from the video" },
+        { "type": "screenshot", "timestamp": 25, "caption": "Brief description of what is shown on screen" },
         { "type": "tldr", "html": "Quick summary of this section" },
         { "type": "concept", "title": "Concept Name", "html": "Explanation of the key idea" },
         { "type": "list", "items": ["<strong>Item 1:</strong> detail", "Item 2: detail"] }

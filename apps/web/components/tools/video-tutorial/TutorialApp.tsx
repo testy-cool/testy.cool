@@ -2,13 +2,85 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
-import type { Tutorial, TutorialSummary } from "@/lib/tools/video-tutorial/types";
+import type {
+  Tutorial,
+  TutorialSummary,
+} from "@/lib/tools/video-tutorial/types";
 import {
   parseVideoId,
   generateTutorial,
   getRecentTutorials,
 } from "@/lib/tools/video-tutorial/tutorialService";
 import TutorialViewer from "./TutorialViewer";
+
+function timeAgo(timestamp: number): string {
+  const diff = Date.now() - timestamp;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(diff / 3600000);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(diff / 86400000);
+  if (days === 1) return "yesterday";
+  if (days < 7) return `${days}d ago`;
+  return `${Math.floor(days / 7)}w ago`;
+}
+
+function RecentCard({
+  tutorial,
+  onClick,
+}: {
+  tutorial: TutorialSummary;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="group text-left rounded-xl border border-fd-border bg-fd-card overflow-hidden hover:border-fd-primary/40 transition-all hover:shadow-md"
+    >
+      {/* Thumbnail */}
+      <div className="aspect-video overflow-hidden bg-fd-muted">
+        <img
+          src={`https://img.youtube.com/vi/${tutorial.videoId}/mqdefault.jpg`}
+          alt={tutorial.title}
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          loading="lazy"
+        />
+      </div>
+      {/* Info */}
+      <div className="p-3.5">
+        <h3 className="text-sm font-semibold text-fd-foreground leading-snug line-clamp-2 group-hover:text-fd-primary transition-colors">
+          {tutorial.title}
+        </h3>
+        <div className="mt-2 flex items-center gap-1.5 text-[12px] text-fd-muted-foreground/70">
+          <span className="inline-flex items-center gap-1">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 16 16"
+              fill="none"
+              className="opacity-60"
+            >
+              <rect
+                x="1"
+                y="3"
+                width="14"
+                height="10"
+                rx="2"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+              <path d="M5 1v4M11 1v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+            {tutorial.stepCount} chapters
+          </span>
+          <span className="opacity-40">·</span>
+          <span>{timeAgo(tutorial.timestamp)}</span>
+        </div>
+      </div>
+    </button>
+  );
+}
 
 export default function TutorialApp() {
   const [tutorial, setTutorial] = useState<Tutorial | null>(null);
@@ -56,7 +128,7 @@ export default function TutorialApp() {
     window.history.replaceState(null, "", window.location.pathname);
   };
 
-  // Viewer mode — full split view
+  // Viewer mode
   if (tutorial) {
     return <TutorialViewer tutorial={tutorial} onBack={handleBack} />;
   }
@@ -131,33 +203,40 @@ export default function TutorialApp() {
 
           {/* Loading */}
           {isLoading && (
-            <div className="mt-10 text-center">
+            <div className="mt-12 text-center">
+              {/* Thumbnail preview while loading */}
+              {input && parseVideoId(input) && (
+                <div className="mx-auto w-48 aspect-video rounded-lg overflow-hidden mb-5 opacity-60 shadow-sm">
+                  <img
+                    src={`https://img.youtube.com/vi/${parseVideoId(input)}/mqdefault.jpg`}
+                    alt="Video thumbnail"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
               <div className="inline-flex items-center gap-3 text-fd-muted-foreground">
                 <span className="h-5 w-5 rounded-full border-2 border-fd-muted-foreground border-t-transparent animate-spin" />
-                <span>Fetching transcript and generating tutorial...</span>
+                <span>Watching video and generating tutorial...</span>
               </div>
               <p className="mt-2 text-sm text-fd-muted-foreground/60">
-                This may take 15-30 seconds
+                Gemini is analyzing the video. This takes 15-45 seconds.
               </p>
             </div>
           )}
 
           {/* Recent tutorials */}
           {recentTutorials.length > 0 && !isLoading && (
-            <div className="mt-6">
-              <span className="text-[13px] text-fd-muted-foreground/60">
-                Recently generated:
-              </span>
-              <div className="mt-2 flex flex-wrap gap-2">
+            <div className="mt-10">
+              <h2 className="text-sm font-semibold text-fd-muted-foreground uppercase tracking-wider mb-4">
+                Recently generated
+              </h2>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {recentTutorials.map((t) => (
-                  <button
+                  <RecentCard
                     key={t.videoId}
+                    tutorial={t}
                     onClick={() => handleGenerate(t.videoId)}
-                    className="px-3 py-1.5 text-[13px] text-fd-muted-foreground rounded-full border border-fd-border/60 hover:border-fd-primary/40 hover:text-fd-foreground transition-colors text-left truncate max-w-[250px]"
-                    title={`${t.stepCount} steps`}
-                  >
-                    {t.title}
-                  </button>
+                  />
                 ))}
               </div>
             </div>

@@ -269,34 +269,16 @@ function VersionDropdown({
 }
 
 function RegenerateButton({ onRegenerate }: { onRegenerate: () => void }) {
-  const [confirming, setConfirming] = useState(false);
-  const timeoutRef = useRef<number>(0);
-
-  const handleClick = () => {
-    if (confirming) {
-      clearTimeout(timeoutRef.current);
-      setConfirming(false);
-      onRegenerate();
-    } else {
-      setConfirming(true);
-      timeoutRef.current = window.setTimeout(() => setConfirming(false), 3000);
-    }
-  };
-
   return (
     <button
-      onClick={handleClick}
+      onClick={onRegenerate}
       className="flex items-center gap-1.5 text-[12px] text-fd-muted-foreground/50 hover:text-fd-foreground transition-colors"
       title="Regenerate tutorial"
     >
-      {confirming ? (
-        <span className="text-fd-primary">Regenerate?</span>
-      ) : (
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M1 4v4h4" />
-          <path d="M3.51 10a5 5 0 1 0 .49-5.37L1 8" />
-        </svg>
-      )}
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M1 4v4h4" />
+        <path d="M3.51 10a5 5 0 1 0 .49-5.37L1 8" />
+      </svg>
     </button>
   );
 }

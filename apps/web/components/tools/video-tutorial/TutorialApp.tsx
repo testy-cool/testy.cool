@@ -5,11 +5,16 @@ import Link from "next/link";
 import type {
   Tutorial,
   TutorialSummary,
+  TutorialVersion,
 } from "@/lib/tools/video-tutorial/types";
 import {
   parseVideoId,
   generateTutorial,
   getRecentTutorials,
+  getVersions,
+  getVersion,
+  getPrompt,
+  updatePrompt,
 } from "@/lib/tools/video-tutorial/tutorialService";
 import TutorialViewer from "./TutorialViewer";
 
@@ -89,6 +94,15 @@ export default function TutorialApp() {
   const [error, setError] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [recentTutorials, setRecentTutorials] = useState<TutorialSummary[]>([]);
+  const [versions, setVersions] = useState<TutorialVersion[]>([]);
+  const [currentVersion, setCurrentVersion] = useState<number>(0);
+  const [showPromptEditor, setShowPromptEditor] = useState(false);
+  const [promptText, setPromptText] = useState("");
+  const [promptLoading, setPromptLoading] = useState(false);
+  const [promptEditing, setPromptEditing] = useState(false);
+  const [promptPassword, setPromptPassword] = useState("");
+  const [promptShowPassword, setPromptShowPassword] = useState(false);
+  const [promptStatus, setPromptStatus] = useState<string | null>(null);
 
   const previewId = useMemo(() => parseVideoId(input), [input]);
   const tutorialRef = useRef(tutorial);
@@ -114,6 +128,10 @@ export default function TutorialApp() {
       setTutorial(result);
       window.history.pushState(null, "", `?v=${videoId}`);
       getRecentTutorials().then(setRecentTutorials);
+      getVersions(videoId).then((v) => {
+        setVersions(v);
+        if (v.length > 0) setCurrentVersion(v[v.length - 1]!.version);
+      });
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to generate tutorial");
       // If previous tutorial had empty steps, keep it so retry screen reappears
@@ -152,8 +170,77 @@ export default function TutorialApp() {
   const handleBack = () => {
     setTutorial(null);
     setError(null);
+    setVersions([]);
+    setCurrentVersion(0);
     window.history.replaceState(null, "", window.location.pathname);
   };
+
+  const handleRegenerate = useCallback(async () => {
+    if (!tutorial) return;
+    setError(null);
+    setIsLoading(true);
+    try {
+      const result = await generateTutorial(tutorial.videoId, true);
+      setTutorial(result);
+      getVersions(tutorial.videoId).then((v) => {
+        setVersions(v);
+        if (v.length > 0) setCurrentVersion(v[v.length - 1]!.version);
+      });
+      getRecentTutorials().then(setRecentTutorials);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to regenerate");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [tutorial]);
+
+  const handleSelectVersion = useCallback(async (version: number) => {
+    if (!tutorial) return;
+    setIsLoading(true);
+    try {
+      const result = await getVersion(tutorial.videoId, version);
+      setTutorial(result);
+      setCurrentVersion(version);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to load version");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [tutorial]);
+
+  const handleTogglePrompt = useCallback(async () => {
+    if (showPromptEditor) {
+      setShowPromptEditor(false);
+      setPromptEditing(false);
+      setPromptPassword("");
+      setPromptShowPassword(false);
+      setPromptStatus(null);
+      return;
+    }
+    setShowPromptEditor(true);
+    setPromptLoading(true);
+    try {
+      const text = await getPrompt();
+      setPromptText(text);
+    } catch {
+      setPromptText("Failed to load prompt");
+    } finally {
+      setPromptLoading(false);
+    }
+  }, [showPromptEditor]);
+
+  const handleSavePrompt = useCallback(async () => {
+    setPromptStatus(null);
+    try {
+      await updatePrompt(promptText, promptPassword);
+      setPromptStatus("Saved");
+      setPromptEditing(false);
+      setPromptPassword("");
+      setPromptShowPassword(false);
+    } catch (e: unknown) {
+      setPromptStatus(e instanceof Error ? e.message : "Failed to save");
+    }
+  }, [promptText, promptPassword]);
 
   if (tutorial && tutorial.steps.length === 0) {
     return (
@@ -208,7 +295,16 @@ export default function TutorialApp() {
   }
 
   if (tutorial) {
-    return <TutorialViewer tutorial={tutorial} onBack={handleBack} />;
+    return (
+      <TutorialViewer
+        tutorial={tutorial}
+        onBack={handleBack}
+        onRegenerate={handleRegenerate}
+        versions={versions}
+        currentVersion={currentVersion}
+        onSelectVersion={handleSelectVersion}
+      />
+    );
   }
 
   return (
@@ -298,6 +394,91 @@ export default function TutorialApp() {
                   "Generate"
                 )}
               </button>
+            </div>
+
+            {/* View Prompt */}
+            <div className="mt-3">
+              <button
+                onClick={handleTogglePrompt}
+                className="text-[13px] text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors"
+              >
+                {showPromptEditor ? "Hide prompt" : "View prompt"}
+              </button>
+              {showPromptEditor && (
+                <div className="mt-3 border border-fd-border rounded-xl overflow-hidden">
+                  {promptLoading ? (
+                    <div className="p-4 text-fd-muted-foreground/50 text-base">Loading...</div>
+                  ) : (
+                    <>
+                      <textarea
+                        value={promptText}
+                        onChange={(e) => setPromptText(e.target.value)}
+                        readOnly={!promptEditing}
+                        className={`w-full p-4 bg-fd-card text-fd-foreground text-base font-mono leading-relaxed resize-y min-h-[200px] focus:outline-none ${
+                          !promptEditing ? "opacity-70" : ""
+                        }`}
+                      />
+                      <div className="flex items-center gap-3 px-4 py-3 border-t border-fd-border/50 bg-fd-card">
+                        {!promptEditing ? (
+                          <button
+                            onClick={() => setPromptShowPassword(true)}
+                            className="text-[13px] text-fd-muted-foreground/60 hover:text-fd-foreground transition-colors"
+                          >
+                            Edit
+                          </button>
+                        ) : (
+                          <button
+                            onClick={handleSavePrompt}
+                            className="text-[13px] text-fd-primary font-medium hover:opacity-80 transition-opacity"
+                          >
+                            Save
+                          </button>
+                        )}
+                        {promptShowPassword && !promptEditing && (
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              if (promptPassword) {
+                                setPromptEditing(true);
+                                setPromptShowPassword(false);
+                              }
+                            }}
+                            className="flex items-center gap-2"
+                          >
+                            <input
+                              type="password"
+                              value={promptPassword}
+                              onChange={(e) => setPromptPassword(e.target.value)}
+                              placeholder="Password"
+                              className="px-3 py-1.5 text-[13px] bg-transparent border border-fd-border rounded-lg text-fd-foreground placeholder:text-fd-muted-foreground/40 focus:outline-none focus:border-fd-primary/50"
+                              autoFocus
+                            />
+                            <button
+                              type="submit"
+                              className="text-[13px] text-fd-primary font-medium hover:opacity-80 transition-opacity"
+                            >
+                              Unlock
+                            </button>
+                          </form>
+                        )}
+                        {promptEditing && (
+                          <button
+                            onClick={() => { setPromptEditing(false); setPromptPassword(""); }}
+                            className="text-[13px] text-fd-muted-foreground/60 hover:text-fd-foreground transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                        {promptStatus && (
+                          <span className={`text-[13px] ml-auto ${promptStatus === "Saved" ? "text-green-500" : "text-red-500"}`}>
+                            {promptStatus}
+                          </span>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Error */}

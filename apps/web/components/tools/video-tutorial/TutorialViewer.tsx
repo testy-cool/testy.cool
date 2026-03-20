@@ -8,6 +8,7 @@ import type {
   Tutorial,
   TutorialStep,
   TutorialBlock,
+  TutorialVersion,
 } from "@/lib/tools/video-tutorial/types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -21,6 +22,10 @@ declare global {
 interface Props {
   tutorial: Tutorial;
   onBack: () => void;
+  onRegenerate?: () => void;
+  versions?: TutorialVersion[];
+  onSelectVersion?: (version: number) => void;
+  currentVersion?: number;
 }
 
 function formatTime(seconds: number): string {
@@ -211,7 +216,92 @@ function StepCard({
   );
 }
 
-export default function TutorialViewer({ tutorial, onBack }: Props) {
+function VersionDropdown({
+  versions,
+  currentVersion,
+  onSelect,
+}: {
+  versions: TutorialVersion[];
+  currentVersion: number;
+  onSelect: (v: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  if (versions.length <= 1) return null;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="text-[11px] font-mono px-1.5 py-0.5 rounded border border-fd-border/50 text-fd-muted-foreground/60 hover:text-fd-foreground hover:border-fd-border transition-colors"
+      >
+        v{currentVersion}
+      </button>
+      {open && (
+        <div className="absolute top-full right-0 mt-1 z-50 min-w-[140px] py-1 rounded-lg border border-fd-border bg-fd-card shadow-lg">
+          {versions.map((v) => (
+            <button
+              key={v.version}
+              onClick={() => { onSelect(v.version); setOpen(false); }}
+              className={`w-full text-left px-3 py-1.5 text-[12px] flex items-center justify-between gap-3 hover:bg-fd-muted/50 transition-colors ${
+                v.version === currentVersion ? "text-fd-primary font-medium" : "text-fd-muted-foreground"
+              }`}
+            >
+              <span>v{v.version}</span>
+              <span className="text-[11px] text-fd-muted-foreground/40">
+                {new Date(v.timestamp).toLocaleDateString()}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RegenerateButton({ onRegenerate }: { onRegenerate: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+  const timeoutRef = useRef<number>(0);
+
+  const handleClick = () => {
+    if (confirming) {
+      clearTimeout(timeoutRef.current);
+      setConfirming(false);
+      onRegenerate();
+    } else {
+      setConfirming(true);
+      timeoutRef.current = window.setTimeout(() => setConfirming(false), 3000);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      className="flex items-center gap-1.5 text-[12px] text-fd-muted-foreground/50 hover:text-fd-foreground transition-colors"
+      title="Regenerate tutorial"
+    >
+      {confirming ? (
+        <span className="text-fd-primary">Regenerate?</span>
+      ) : (
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M1 4v4h4" />
+          <path d="M3.51 10a5 5 0 1 0 .49-5.37L1 8" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
+export default function TutorialViewer({ tutorial, onBack, onRegenerate, versions, onSelectVersion, currentVersion }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -430,8 +520,14 @@ export default function TutorialViewer({ tutorial, onBack }: Props) {
               </svg>
               Back
             </button>
-            <div className="text-[12px] text-fd-muted-foreground/40 font-mono tabular-nums">
-              {activeIndex + 1} of {tutorial.steps.length} chapters
+            <div className="flex items-center gap-3">
+              {onRegenerate && <RegenerateButton onRegenerate={onRegenerate} />}
+              {versions && versions.length > 1 && onSelectVersion && currentVersion && (
+                <VersionDropdown versions={versions} currentVersion={currentVersion} onSelect={onSelectVersion} />
+              )}
+              <div className="text-[12px] text-fd-muted-foreground/40 font-mono tabular-nums">
+                {activeIndex + 1} of {tutorial.steps.length} chapters
+              </div>
             </div>
           </div>
 

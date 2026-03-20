@@ -29,3 +29,9 @@ export interface TutorialSummary {
   stepCount: number;
   timestamp: number;
 }
+
+export interface TutorialVersion {
+  version: number;
+  timestamp: number;
+  stepCount: number;
+}

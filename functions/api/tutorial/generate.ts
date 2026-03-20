@@ -3,12 +3,19 @@ import { GoogleGenAI } from "@google/genai";
 const MODEL = "gemini-3-flash-preview";
 const TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
 const MAX_RECENT = 20;
+const MAX_VERSIONS = 20;
 const RECENT_KEY = "recent_tutorials";
+const PROMPT_KEY = "config:tutorial_prompt";
 
 interface Env {
   GEMINI_API_KEY: string;
   PANTRY_CACHE: KVNamespace;
   FRAME_EXTRACTOR_URL?: string;
+}
+
+interface VersionMeta {
+  currentVersion: number;
+  versions: { version: number; generatedAt: number; prompt?: string }[];
 }
 
 function json(data: unknown, status = 200) {
@@ -18,7 +25,7 @@ function json(data: unknown, status = 200) {
   });
 }
 
-// GET: list recent tutorials or load a specific cached tutorial
+// GET: list recent tutorials, load cached tutorial, prompt, version history
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const kv = context.env.PANTRY_CACHE;
   if (!kv) return json({ error: "KV not configured" }, 502);
@@ -32,6 +39,25 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     return json({ tutorials: raw ? JSON.parse(raw) : [] });
   }
 
+  if (action === "prompt") {
+    const stored = await kv.get(PROMPT_KEY);
+    return json({ prompt: stored || null });
+  }
+
+  if (action === "versions" && videoId) {
+    const metaRaw = await kv.get(`tutorial:${videoId}:meta`);
+    if (!metaRaw) return json({ versions: [] });
+    const meta: VersionMeta = JSON.parse(metaRaw);
+    return json({ versions: meta.versions });
+  }
+
+  if (action === "version" && videoId) {
+    const v = url.searchParams.get("v");
+    if (!v) return json({ error: "Missing version number" }, 400);
+    const raw = await kv.get(`tutorial:${videoId}:v${v}`);
+    return json({ tutorial: raw ? JSON.parse(raw) : null });
+  }
+
   if (videoId) {
     const raw = await kv.get(`tutorial:${videoId}`);
     return json({ tutorial: raw ? JSON.parse(raw) : null });
@@ -40,7 +66,33 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   return json({ error: "Missing action or videoId" }, 400);
 };
 
-// POST: generate tutorial (returns cached if available)
+// PUT: update prompt
+export const onRequestPut: PagesFunction<Env> = async (context) => {
+  const kv = context.env.PANTRY_CACHE;
+  if (!kv) return json({ error: "KV not configured" }, 502);
+
+  let body: { action?: string; prompt?: string; password?: string };
+  try {
+    body = await context.request.json();
+  } catch {
+    return json({ error: "Invalid JSON" }, 400);
+  }
+
+  if (body.action === "updatePrompt") {
+    if (body.password !== "penis") {
+      return json({ error: "Invalid password" }, 403);
+    }
+    if (!body.prompt || typeof body.prompt !== "string") {
+      return json({ error: "Missing prompt" }, 400);
+    }
+    await kv.put(PROMPT_KEY, body.prompt);
+    return json({ success: true });
+  }
+
+  return json({ error: "Unknown action" }, 400);
+};
+
+// POST: generate tutorial (returns cached if available, force bypasses cache)
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const apiKey = context.env.GEMINI_API_KEY;
   if (!apiKey) return json({ error: "Gemini API key not configured" }, 502);
@@ -48,14 +100,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const kv = context.env.PANTRY_CACHE;
   if (!kv) return json({ error: "KV not configured" }, 502);
 
-  let body: { videoId: string };
+  let body: { videoId: string; force?: boolean };
   try {
     body = await context.request.json();
   } catch {
     return json({ error: "Invalid JSON" }, 400);
   }
 
-  const { videoId } = body;
+  const { videoId, force } = body;
   if (!videoId || typeof videoId !== "string") {
     return json({ error: "Missing videoId" }, 400);
   }
@@ -66,20 +118,22 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     return json({ error: "Invalid video ID format" }, 400);
   }
 
-  // Check cache
-  const cached = await kv.get(`tutorial:${videoId}`);
-  if (cached) {
-    const cachedTutorial = JSON.parse(cached);
-    // Don't return broken cached tutorials - delete and regenerate
-    if (!cachedTutorial.steps || cachedTutorial.steps.length === 0) {
-      await kv.delete(`tutorial:${videoId}`);
-      await kv.delete(`generating:${videoId}`);
-    } else {
-      return json({ tutorial: cachedTutorial, cached: true });
+  // Check cache (skip when force)
+  if (!force) {
+    const cached = await kv.get(`tutorial:${videoId}`);
+    if (cached) {
+      const cachedTutorial = JSON.parse(cached);
+      // Don't return broken cached tutorials - delete and regenerate
+      if (!cachedTutorial.steps || cachedTutorial.steps.length === 0) {
+        await kv.delete(`tutorial:${videoId}`);
+        await kv.delete(`generating:${videoId}`);
+      } else {
+        return json({ tutorial: cachedTutorial, cached: true });
+      }
     }
   }
 
-  // Rate limit (skip for cached hits above)
+  // Rate limit (always applies, even with force)
   const ip = context.request.headers.get("cf-connecting-ip") || "unknown";
   const rateLimitKey = `ratelimit:${ip}`;
   const rateLimitRaw = await kv.get(rateLimitKey);
@@ -94,14 +148,19 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     expirationTtl: 3600,
   });
 
-  // Generation lock to prevent duplicate Gemini calls
+  // Generation lock
   const lockKey = `generating:${videoId}`;
-  const existingLock = await kv.get(lockKey);
-  if (existingLock) {
-    return json(
-      { error: "Generation already in progress for this video. Please wait and try again." },
-      409,
-    );
+  if (force) {
+    // Force: delete any existing lock
+    await kv.delete(lockKey);
+  } else {
+    const existingLock = await kv.get(lockKey);
+    if (existingLock) {
+      return json(
+        { error: "Generation already in progress for this video. Please wait and try again." },
+        409,
+      );
+    }
   }
   await kv.put(lockKey, "1", { expirationTtl: 120 });
 
@@ -109,9 +168,16 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     // 1. Get video title via oEmbed
     const videoTitle = await getVideoTitle(videoId);
 
-    // 2. Send YouTube video directly to Gemini for analysis
+    // 2. Determine prompt: check KV for custom prompt, fall back to hardcoded
+    const storedPrompt = await kv.get(PROMPT_KEY);
+    const prompt = storedPrompt || buildPrompt(videoTitle);
+    // If using stored prompt, inject the video title
+    const finalPrompt = storedPrompt
+      ? storedPrompt.replace(/\{videoTitle\}/g, videoTitle)
+      : prompt;
+
+    // 3. Send YouTube video directly to Gemini for analysis
     const ai = new GoogleGenAI({ apiKey });
-    const prompt = buildPrompt(videoTitle);
 
     const response = await ai.models.generateContent({
       model: MODEL,
@@ -124,7 +190,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 mimeType: "video/mp4",
               },
             },
-            { text: prompt },
+            { text: finalPrompt },
           ],
         },
       ],
@@ -158,10 +224,43 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       );
     }
 
-    // 2b. Extract frames for screenshot blocks (non-blocking)
+    // 3b. Extract frames for screenshot blocks (non-blocking)
     await enrichWithFrames(tutorial, context.env.FRAME_EXTRACTOR_URL);
 
-    // 3. Cache result
+    // 4. Version history: store versioned entry and update metadata
+    const metaRaw = await kv.get(`tutorial:${videoId}:meta`);
+    const meta: VersionMeta = metaRaw
+      ? JSON.parse(metaRaw)
+      : { currentVersion: 0, versions: [] };
+
+    const newVersion = meta.currentVersion + 1;
+    meta.currentVersion = newVersion;
+    meta.versions.push({
+      version: newVersion,
+      generatedAt: tutorial.generatedAt,
+      prompt: storedPrompt ? "(custom)" : undefined,
+    });
+
+    // Cap at MAX_VERSIONS: drop oldest
+    if (meta.versions.length > MAX_VERSIONS) {
+      const dropped = meta.versions.splice(0, meta.versions.length - MAX_VERSIONS);
+      // Clean up old version keys
+      for (const d of dropped) {
+        await kv.delete(`tutorial:${videoId}:v${d.version}`);
+      }
+    }
+
+    // Store versioned copy
+    await kv.put(`tutorial:${videoId}:v${newVersion}`, JSON.stringify(tutorial), {
+      expirationTtl: TTL_SECONDS,
+    });
+
+    // Store metadata
+    await kv.put(`tutorial:${videoId}:meta`, JSON.stringify(meta), {
+      expirationTtl: TTL_SECONDS,
+    });
+
+    // Store main key (backward compat)
     await kv.put(`tutorial:${videoId}`, JSON.stringify(tutorial), {
       expirationTtl: TTL_SECONDS,
     });
@@ -169,7 +268,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     // Delete generation lock
     await kv.delete(lockKey);
 
-    // 4. Update recent list
+    // 5. Update recent list
     const raw = await kv.get(RECENT_KEY);
     const recent: { videoId: string }[] = raw ? JSON.parse(raw) : [];
     const summary = {
@@ -184,7 +283,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     ].slice(0, MAX_RECENT);
     await kv.put(RECENT_KEY, JSON.stringify(updated));
 
-    return json({ tutorial, cached: false });
+    return json({ tutorial, cached: false, version: newVersion });
   } catch (e: unknown) {
     await kv.delete(lockKey);
     const msg = e instanceof Error ? e.message : "Unknown error";

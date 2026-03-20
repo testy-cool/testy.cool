@@ -218,6 +218,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       videoId,
       videoTitle,
       title: tutorialData.title || videoTitle,
+      summary: (tutorialData as any).summary || "",
       steps: tutorialData.steps || [],
       generatedAt: Date.now(),
     };
@@ -396,6 +397,7 @@ RULES:
 OUTPUT FORMAT (return ONLY valid JSON):
 {
   "title": "Tutorial title",
+  "summary": "2-4 sentence TL;DR of the entire video. What it covers, who it's for, and whether it's worth watching. Be blunt.",
   "steps": [
     {
       "startSeconds": 0,

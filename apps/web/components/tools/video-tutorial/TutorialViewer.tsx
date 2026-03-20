@@ -583,7 +583,12 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
             <h1 className="text-xl lg:text-2xl font-extrabold text-fd-foreground mb-1.5 tracking-tight leading-snug">
               {tutorial.title}
             </h1>
-            <p className="text-[13px] text-fd-muted-foreground/50 mb-8">
+            {tutorial.summary && (
+              <p className="text-[14px] text-fd-muted-foreground/70 leading-relaxed mb-5 italic">
+                {tutorial.summary}
+              </p>
+            )}
+            <p className="text-[12px] text-fd-muted-foreground/40 mb-8">
               Scroll to scrub the video, or play to auto-scroll.
             </p>
 

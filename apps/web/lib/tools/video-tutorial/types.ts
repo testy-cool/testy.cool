@@ -19,6 +19,7 @@ export interface Tutorial {
   videoId: string;
   videoTitle: string;
   title: string;
+  summary?: string;
   steps: TutorialStep[];
   generatedAt: number;
 }

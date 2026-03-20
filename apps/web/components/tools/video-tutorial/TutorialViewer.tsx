@@ -303,8 +303,15 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
   const userScrollingRef = useRef(false);
   const scrollTimeoutRef = useRef<number>(0);
+  const suppressSyncRef = useRef(false);
+  const suppressTimeoutRef = useRef<number>(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [playerReady, setPlayerReady] = useState(false);
+
+  // Suppress sync loop while regenerating
+  useEffect(() => {
+    if (isRegenerating) suppressSyncRef.current = true;
+  }, [isRegenerating]);
 
   // Auto-dismiss pending version toast after 30s
   useEffect(() => {
@@ -394,14 +401,22 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
   if (tutorial.generatedAt !== prevGeneratedAt) {
     setPrevGeneratedAt(tutorial.generatedAt);
     setActiveIndex(0);
+    // Suppress sync loop until video has seeked to new position
+    suppressSyncRef.current = true;
+    clearTimeout(suppressTimeoutRef.current);
   }
 
-  // After reset, scroll to top and seek video
+  // After reset, scroll to top and seek video, then release sync suppression
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     if (playerRef.current?.seekTo) {
       playerRef.current.seekTo(tutorial.steps[0]?.startSeconds ?? 0, true);
     }
+    // Release sync suppression after video has had time to seek
+    suppressTimeoutRef.current = window.setTimeout(() => {
+      suppressSyncRef.current = false;
+    }, 1000);
+    return () => clearTimeout(suppressTimeoutRef.current);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prevGeneratedAt]);
 
@@ -410,7 +425,7 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
     if (!playerReady) return;
 
     const interval = setInterval(() => {
-      if (isRegenerating) return;
+      if (suppressSyncRef.current) return;
       if (userScrollingRef.current || !playerRef.current?.getCurrentTime)
         return;
 
@@ -431,7 +446,7 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
     }, 250);
 
     return () => clearInterval(interval);
-  }, [playerReady, activeIndex, tutorial.steps, isRegenerating]);
+  }, [playerReady, activeIndex, tutorial.steps]);
 
   // Text scroll → video seek
   const handleWheel = useCallback(() => {
@@ -601,7 +616,7 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
               {tutorial.title}
             </h1>
             {tutorial.summary && (
-              <p className="text-[14px] text-fd-muted-foreground/70 leading-relaxed mb-5 italic">
+              <p className="text-[14px] text-fd-muted-foreground/70 leading-relaxed mb-5 italic line-clamp-3">
                 {tutorial.summary}
               </p>
             )}

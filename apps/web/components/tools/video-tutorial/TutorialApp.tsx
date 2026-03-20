@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import type {
   Tutorial,
@@ -91,6 +91,8 @@ export default function TutorialApp() {
   const [recentTutorials, setRecentTutorials] = useState<TutorialSummary[]>([]);
 
   const previewId = useMemo(() => parseVideoId(input), [input]);
+  const tutorialRef = useRef(tutorial);
+  tutorialRef.current = tutorial;
 
   const handleGenerate = useCallback(async (videoIdOrUrl: string) => {
     const videoId = parseVideoId(videoIdOrUrl);
@@ -100,10 +102,10 @@ export default function TutorialApp() {
     }
     setError(null);
     setIsLoading(true);
-    const prevTutorial = tutorial;
+    const prevTutorial = tutorialRef.current;
 
     // Only clear tutorial if it had valid steps (preserve empty-tutorial screen for retry)
-    if (!tutorial || tutorial.steps.length > 0) {
+    if (!prevTutorial || prevTutorial.steps.length > 0) {
       setTutorial(null);
     }
 
@@ -121,13 +123,14 @@ export default function TutorialApp() {
     } finally {
       setIsLoading(false);
     }
-  }, [tutorial]);
+  }, []);
 
   useEffect(() => {
     const v = new URLSearchParams(window.location.search).get("v");
     if (v) handleGenerate(v);
     getRecentTutorials().then(setRecentTutorials);
-  }, [handleGenerate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const onPopState = () => {

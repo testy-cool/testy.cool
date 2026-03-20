@@ -529,27 +529,19 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
 
           {/* Regenerating banner */}
           {isRegenerating && (
-            <div className="flex items-center gap-2 px-5 lg:px-8 py-2 border-b border-fd-border/20 shrink-0 text-[13px] text-fd-muted-foreground/70">
-              <span className="h-3 w-3 rounded-full border-[1.5px] border-current border-t-transparent animate-spin shrink-0" />
-              Regenerating with Gemini...
+            <div className="flex items-center gap-2 px-5 lg:px-8 py-2.5 border-b border-fd-border/20 shrink-0 text-[13px] text-fd-muted-foreground">
+              <span className="h-3.5 w-3.5 rounded-full border-[1.5px] border-fd-primary border-t-transparent animate-spin shrink-0" />
+              Regenerating with Gemini — you'll be switched automatically when ready
             </div>
           )}
 
-          {/* New version ready toast */}
+          {/* Regenerated success banner */}
           {pendingVersion && !isRegenerating && (
-            <div className="flex items-center justify-between px-5 lg:px-8 py-2 border-b border-fd-border/20 shrink-0 text-[13px]">
-              <div className="flex items-center gap-2 text-fd-muted-foreground/70">
-                New version ready
-                <button
-                  onClick={() => onSelectVersion?.(pendingVersion)}
-                  className="text-fd-primary font-medium hover:opacity-80 transition-opacity"
-                >
-                  Switch to v{pendingVersion}
-                </button>
-              </div>
+            <div className="flex items-center justify-between px-5 lg:px-8 py-2 border-b border-fd-border/20 shrink-0 text-[13px] text-fd-muted-foreground">
+              Switched to v{pendingVersion}. Previous versions in the dropdown.
               <button
                 onClick={onDismissPending}
-                className="text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors p-0.5"
+                className="text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors p-0.5 ml-3"
               >
                 <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                   <path d="M4 4l8 8M12 4l-8 8" />

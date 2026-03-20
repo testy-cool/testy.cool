@@ -179,16 +179,19 @@ export default function TutorialApp() {
   };
 
   const handleRegenerate = useCallback(async () => {
-    if (!tutorial) return;
+    const current = tutorialRef.current;
+    if (!current) return;
     setError(null);
     setIsLoading(true);
     setPendingVersion(null);
     try {
-      await generateTutorial(tutorial.videoId, true);
-      const v = await getVersions(tutorial.videoId);
+      const result = await generateTutorial(current.videoId, true);
+      setTutorial(result);
+      const v = await getVersions(current.videoId);
       setVersions(v);
       if (v.length > 0) {
         const newVer = v[v.length - 1]!.version;
+        setCurrentVersion(newVer);
         setPendingVersion(newVer);
       }
       getRecentTutorials().then(setRecentTutorials);
@@ -197,7 +200,7 @@ export default function TutorialApp() {
     } finally {
       setIsLoading(false);
     }
-  }, [tutorial]);
+  }, []);
 
   const handleSelectVersion = useCallback(async (version: number) => {
     if (!tutorial) return;

@@ -389,11 +389,28 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
     };
   }, [tutorial]);
 
+  // Reset to step 0 synchronously when tutorial changes (before paint)
+  const [prevGeneratedAt, setPrevGeneratedAt] = useState(tutorial.generatedAt);
+  if (tutorial.generatedAt !== prevGeneratedAt) {
+    setPrevGeneratedAt(tutorial.generatedAt);
+    setActiveIndex(0);
+  }
+
+  // After reset, scroll to top and seek video
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    if (playerRef.current?.seekTo) {
+      playerRef.current.seekTo(tutorial.steps[0]?.startSeconds ?? 0, true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prevGeneratedAt]);
+
   // Video → text sync loop
   useEffect(() => {
     if (!playerReady) return;
 
     const interval = setInterval(() => {
+      if (isRegenerating) return;
       if (userScrollingRef.current || !playerRef.current?.getCurrentTime)
         return;
 
@@ -414,7 +431,7 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
     }, 250);
 
     return () => clearInterval(interval);
-  }, [playerReady, activeIndex, tutorial.steps]);
+  }, [playerReady, activeIndex, tutorial.steps, isRegenerating]);
 
   // Text scroll → video seek
   const handleWheel = useCallback(() => {

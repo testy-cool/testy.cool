@@ -29,32 +29,6 @@ function formatTime(seconds: number): string {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-const ACCENT_COLORS: Record<string, { bar: string; bg: string; text: string; badge: string }> = {
-  intro: {
-    bar: "bg-purple-500",
-    bg: "bg-purple-50 dark:bg-purple-950/15",
-    text: "text-purple-700 dark:text-purple-300",
-    badge: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
-  },
-  concept: {
-    bar: "bg-sky-500",
-    bg: "bg-sky-50 dark:bg-sky-950/15",
-    text: "text-sky-700 dark:text-sky-300",
-    badge: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300",
-  },
-  setup: {
-    bar: "bg-amber-500",
-    bg: "bg-amber-50 dark:bg-amber-950/15",
-    text: "text-amber-700 dark:text-amber-300",
-    badge: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
-  },
-  action: {
-    bar: "bg-emerald-500",
-    bg: "bg-emerald-50 dark:bg-emerald-950/15",
-    text: "text-emerald-700 dark:text-emerald-300",
-    badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
-  },
-};
 
 function TimestampChip({
   timestamp,
@@ -140,24 +114,22 @@ function BlockRenderer({
       );
     case "tldr":
       return (
-        <div className="relative bg-fd-card border border-fd-border rounded-xl p-4 pl-5 mb-4 overflow-hidden">
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-rose-500" />
-          <div className="text-[11px] font-bold uppercase tracking-[0.1em] text-rose-600 dark:text-rose-400 mb-1.5">
-            TL;DR
-          </div>
+        <div className="mb-5 pl-4 border-l border-fd-border/40">
+          <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1 block">
+            tl;dr
+          </span>
           <div
-            className="text-fd-foreground text-[15px] leading-relaxed"
+            className="text-fd-foreground text-[15px] leading-relaxed italic"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.html, SANITIZE_CFG) }}
           />
         </div>
       );
     case "concept":
       return (
-        <div className="relative bg-fd-card border border-fd-border rounded-xl p-4 pl-5 mb-4 overflow-hidden">
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-sky-500" />
-          <div className="text-[11px] font-bold uppercase tracking-[0.1em] text-sky-600 dark:text-sky-400 mb-1.5">
+        <div className="mb-5 pl-4 border-l border-fd-border/40">
+          <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1 block">
             {block.title}
-          </div>
+          </span>
           <div
             className="text-fd-muted-foreground text-[15px] leading-relaxed [&_strong]:text-fd-foreground"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.html, SANITIZE_CFG) }}
@@ -198,52 +170,43 @@ function StepCard({
   index: number;
   total: number;
 }) {
-  const accent = ACCENT_COLORS[step.tagType] || ACCENT_COLORS.action;
-
   return (
     <div
       ref={stepRef}
       data-start={step.startSeconds}
       data-end={step.endSeconds}
-      className={`vtg-step relative rounded-xl overflow-hidden mb-5 transition-all duration-500 ${
-        active
-          ? "opacity-100 translate-x-0"
-          : "opacity-30 translate-x-0"
+      className={`vtg-step mb-8 transition-all duration-500 ${
+        active ? "opacity-100" : "opacity-30"
       }`}
     >
-      {/* Left accent bar */}
-      <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-full transition-opacity duration-500 ${accent.bar} ${active ? "opacity-100" : "opacity-30"}`} />
-
-      <div className="pl-5 pr-1 py-5">
-        {/* Header row */}
-        <div className="flex items-center gap-2.5 mb-3.5">
-          <button
-            onClick={() => onSeek(step.startSeconds)}
-            className="inline-flex items-center gap-1.5 text-[13px] font-mono font-medium text-fd-muted-foreground hover:text-fd-primary transition-colors cursor-pointer group/ts"
-          >
-            <svg width="10" height="10" viewBox="0 0 10 10" className="text-fd-muted-foreground/40 group-hover/ts:text-fd-primary transition-colors">
-              <path d="M2 1l7 4-7 4V1z" fill="currentColor" />
-            </svg>
-            {formatTime(step.startSeconds)}
-          </button>
-          <span className={`px-2 py-0.5 rounded-md text-[11px] font-semibold uppercase tracking-wider ${accent.badge}`}>
-            {step.tag}
-          </span>
-          <span className="ml-auto text-[11px] text-fd-muted-foreground/30 font-mono tabular-nums">
-            {index + 1}/{total}
-          </span>
-        </div>
-
-        {/* Title */}
-        <h2 className="text-lg font-bold text-fd-foreground mb-4 leading-snug">
-          {step.title}
-        </h2>
-
-        {/* Blocks */}
-        {step.blocks.map((block, i) => (
-          <BlockRenderer key={i} block={block} onSeek={onSeek} />
-        ))}
+      {/* Header row */}
+      <div className="flex items-center gap-2.5 mb-2">
+        <button
+          onClick={() => onSeek(step.startSeconds)}
+          className="inline-flex items-center gap-1.5 text-[12px] font-mono text-fd-muted-foreground/50 hover:text-fd-primary transition-colors cursor-pointer"
+        >
+          {formatTime(step.startSeconds)}
+        </button>
+        <span className="text-[11px] uppercase tracking-[0.06em] text-fd-muted-foreground/40">
+          {step.tag}
+        </span>
+        <span className="ml-auto text-[11px] text-fd-muted-foreground/25 font-mono tabular-nums">
+          {index + 1}/{total}
+        </span>
       </div>
+
+      {/* Title */}
+      <h2 className="text-[17px] font-semibold text-fd-foreground mb-3 leading-snug">
+        {step.title}
+      </h2>
+
+      {/* Blocks */}
+      {step.blocks.map((block, i) => (
+        <BlockRenderer key={i} block={block} onSeek={onSeek} />
+      ))}
+
+      {/* Separator */}
+      <div className="h-px bg-fd-border/20 mt-6" />
     </div>
   );
 }

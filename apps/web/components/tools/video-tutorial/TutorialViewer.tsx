@@ -59,7 +59,7 @@ function TimestampChip({
           <img
             src={`data:image/jpeg;base64,${frameData}`}
             alt={caption}
-            className="w-[220px] rounded-lg border border-fd-border/50 group-hover/frame:border-fd-primary/40 transition-all duration-200 shadow-sm"
+            className="w-full rounded-lg border border-fd-border/30 group-hover/frame:border-fd-primary/40 transition-all duration-200"
           />
         </button>
       )}
@@ -466,7 +466,7 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
 
     scrollTimeoutRef.current = window.setTimeout(() => {
       userScrollingRef.current = false;
-    }, 150);
+    }, 1500);
   }, [activeIndex, tutorial.steps]);
 
   const seekTo = useCallback((seconds: number) => {
@@ -508,17 +508,17 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
         style={{ height: "calc(100dvh - 64px)" }}
       >
         {/* Video panel */}
-        <div className="lg:w-1/2 w-full bg-zinc-950 flex items-center justify-center shrink-0 min-h-[200px] lg:min-h-0">
-          <div className="w-full max-w-[900px] aspect-video p-2 sm:p-3 lg:p-6">
+        <div className="lg:w-[60%] w-full bg-zinc-950 flex items-center justify-center shrink-0 min-h-[240px] lg:min-h-0">
+          <div className="w-full h-full p-2 sm:p-3 lg:p-4">
             <div
               id="yt-player"
-              className="w-full h-full rounded-lg lg:rounded-xl overflow-hidden"
+              className="w-full h-full rounded-lg overflow-hidden"
             />
           </div>
         </div>
 
         {/* Tutorial panel */}
-        <div className="lg:w-1/2 w-full flex-1 flex flex-col overflow-hidden border-l border-fd-border/30">
+        <div className="lg:w-[40%] w-full flex-1 flex flex-col overflow-hidden border-l border-fd-border/30">
           {/* Progress rail */}
           <div className="h-0.5 w-full bg-fd-border/20 shrink-0">
             <div

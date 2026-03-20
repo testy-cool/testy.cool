@@ -8,6 +8,7 @@ const RECENT_KEY = "recent_tutorials";
 interface Env {
   GEMINI_API_KEY: string;
   PANTRY_CACHE: KVNamespace;
+  FRAME_EXTRACTOR_URL?: string;
 }
 
 function json(data: unknown, status = 200) {
@@ -157,6 +158,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       );
     }
 
+    // 2b. Extract frames for screenshot blocks (non-blocking)
+    await enrichWithFrames(tutorial, context.env.FRAME_EXTRACTOR_URL);
+
     // 3. Cache result
     await kv.put(`tutorial:${videoId}`, JSON.stringify(tutorial), {
       expirationTtl: TTL_SECONDS,
@@ -187,6 +191,64 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     return json({ error: msg }, 500);
   }
 };
+
+async function enrichWithFrames(
+  tutorial: { videoId: string; steps: { blocks: { type: string; timestamp?: number; frameData?: string }[] }[] },
+  frameExtractorUrl?: string,
+): Promise<void> {
+  try {
+    // Collect all screenshot timestamps
+    const screenshotBlocks: { stepIdx: number; blockIdx: number; timestamp: number }[] = [];
+    for (let si = 0; si < tutorial.steps.length; si++) {
+      const step = tutorial.steps[si];
+      for (let bi = 0; bi < step.blocks.length; bi++) {
+        const block = step.blocks[bi];
+        if (block.type === "screenshot" && typeof block.timestamp === "number") {
+          screenshotBlocks.push({ stepIdx: si, blockIdx: bi, timestamp: block.timestamp });
+        }
+      }
+    }
+
+    if (screenshotBlocks.length === 0) return;
+
+    const baseUrl = (frameExtractorUrl || "https://frames.voidxd.cloud").replace(/\/$/, "");
+    const res = await fetch(`${baseUrl}/extract-frames`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        videoId: tutorial.videoId,
+        timestamps: screenshotBlocks.map((b) => b.timestamp),
+      }),
+      signal: AbortSignal.timeout(90_000),
+    });
+
+    if (!res.ok) {
+      console.error(`Frame extractor returned ${res.status}: ${await res.text().catch(() => "")}`);
+      return;
+    }
+
+    const data = (await res.json()) as { frames?: { timestamp: number; data: string }[] };
+    if (!data.frames || !Array.isArray(data.frames)) return;
+
+    // Build a lookup by timestamp
+    const frameMap = new Map<number, string>();
+    for (const f of data.frames) {
+      if (f.data) frameMap.set(f.timestamp, f.data);
+    }
+
+    // Merge back into blocks
+    for (const sb of screenshotBlocks) {
+      const frameData = frameMap.get(sb.timestamp);
+      if (frameData) {
+        tutorial.steps[sb.stepIdx].blocks[sb.blockIdx].frameData = frameData;
+      }
+    }
+
+    console.log(`Enriched ${frameMap.size}/${screenshotBlocks.length} screenshot blocks with frames`);
+  } catch (err) {
+    console.error("Frame extraction failed (non-fatal):", err instanceof Error ? err.message : err);
+  }
+}
 
 async function getVideoTitle(videoId: string): Promise<string> {
   try {

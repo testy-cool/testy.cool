@@ -68,7 +68,13 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   // Check cache
   const cached = await kv.get(`tutorial:${videoId}`);
   if (cached) {
-    return json({ tutorial: JSON.parse(cached), cached: true });
+    const cachedTutorial = JSON.parse(cached);
+    // Don't return broken cached tutorials - delete and regenerate
+    if (!cachedTutorial.steps || cachedTutorial.steps.length === 0) {
+      await kv.delete(`tutorial:${videoId}`);
+    } else {
+      return json({ tutorial: cachedTutorial, cached: true });
+    }
   }
 
   // Rate limit (skip for cached hits above)

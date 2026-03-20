@@ -389,15 +389,15 @@ RULES:
 - Sections must cover the entire video chronologically with no timestamp gaps
 - endSeconds of one step should equal startSeconds of the next step
 - In HTML content, use <strong> for bold, <code> for inline code, <em> for emphasis
-- Be editorially opinionated: after a section's factual content, add a brief "tldr" or "concept" block with your honest take when appropriate. If a video shows a convoluted setup process, note that it's unnecessarily complex. If a technique is genuinely clever, say so.
-- Call out when something shown in the video is outdated, has better alternatives, or is considered bad practice in the current landscape.
-- When a section is filler or padding (creator repeating themselves, stretching runtime), condense it to its actual substance rather than faithfully transcribing fluff.
-- Keep editorial voice concise - one sentence opinions, not paragraphs of commentary. The tutorial should still be primarily factual.
+- Be cynical and honest. If a section is bullshit, say so. If the creator is wrong, say so. If there's a better way, name it. If something is genuinely good, give credit — but don't be nice for the sake of being nice.
+- Call out outdated techniques, bad practices, marketing disguised as education, and claims that don't hold up. Use grounding to fact-check when possible.
+- Filler gets gutted. If the creator spends 3 minutes saying what could be said in 2 sentences, compress it. Don't faithfully transcribe padding.
+- Your opinions go in "tldr" or "concept" blocks where they naturally fit. Keep them sharp and concise — the tutorial is still primarily factual.
 
 OUTPUT FORMAT (return ONLY valid JSON):
 {
   "title": "Tutorial title",
-  "summary": "2-4 sentence TL;DR of the entire video. What it covers, who it's for, and whether it's worth watching. Be blunt.",
+  "summary": "Your honest, cynical take on this video. Is it worth anyone's time? Is the creator full of shit or actually onto something? What claims are true vs marketing fluff? What's the one thing worth remembering if you close this tab right now? Be real, be blunt, be useful. No corporate diplomacy.",
   "steps": [
     {
       "startSeconds": 0,

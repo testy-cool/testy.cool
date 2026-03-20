@@ -170,6 +170,7 @@ export default function TutorialApp() {
   const handleBack = () => {
     setTutorial(null);
     setError(null);
+    setIsLoading(false);
     setVersions([]);
     setCurrentVersion(0);
     window.history.replaceState(null, "", window.location.pathname);
@@ -300,6 +301,7 @@ export default function TutorialApp() {
         tutorial={tutorial}
         onBack={handleBack}
         onRegenerate={handleRegenerate}
+        isRegenerating={isLoading}
         versions={versions}
         currentVersion={currentVersion}
         onSelectVersion={handleSelectVersion}

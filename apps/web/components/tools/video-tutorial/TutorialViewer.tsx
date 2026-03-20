@@ -23,6 +23,7 @@ interface Props {
   tutorial: Tutorial;
   onBack: () => void;
   onRegenerate?: () => void;
+  isRegenerating?: boolean;
   versions?: TutorialVersion[];
   onSelectVersion?: (version: number) => void;
   currentVersion?: number;
@@ -268,14 +269,25 @@ function VersionDropdown({
   );
 }
 
-function RegenerateButton({ onRegenerate }: { onRegenerate: () => void }) {
+function RegenerateButton({ onRegenerate, isRegenerating }: { onRegenerate: () => void; isRegenerating?: boolean }) {
   return (
     <button
       onClick={onRegenerate}
-      className="flex items-center gap-1.5 text-[12px] text-fd-muted-foreground/50 hover:text-fd-foreground transition-colors"
+      disabled={isRegenerating}
+      className="flex items-center gap-1.5 text-[12px] text-fd-muted-foreground/50 hover:text-fd-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       title="Regenerate tutorial"
     >
-      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg
+        width="13"
+        height="13"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={isRegenerating ? "animate-spin" : ""}
+      >
         <path d="M1 4v4h4" />
         <path d="M3.51 10a5 5 0 1 0 .49-5.37L1 8" />
       </svg>
@@ -283,7 +295,7 @@ function RegenerateButton({ onRegenerate }: { onRegenerate: () => void }) {
   );
 }
 
-export default function TutorialViewer({ tutorial, onBack, onRegenerate, versions, onSelectVersion, currentVersion }: Props) {
+export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegenerating, versions, onSelectVersion, currentVersion }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -503,7 +515,7 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, version
               Back
             </button>
             <div className="flex items-center gap-3">
-              {onRegenerate && <RegenerateButton onRegenerate={onRegenerate} />}
+              {onRegenerate && <RegenerateButton onRegenerate={onRegenerate} isRegenerating={isRegenerating} />}
               {versions && versions.length > 1 && onSelectVersion && currentVersion && (
                 <VersionDropdown versions={versions} currentVersion={currentVersion} onSelect={onSelectVersion} />
               )}

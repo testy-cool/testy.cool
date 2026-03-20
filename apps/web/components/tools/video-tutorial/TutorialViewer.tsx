@@ -56,84 +56,55 @@ const ACCENT_COLORS: Record<string, { bar: string; bg: string; text: string; bad
   },
 };
 
-function ScreenshotBlock({
+function TimestampChip({
   timestamp,
   caption,
-  videoId,
   onSeek,
 }: {
   timestamp: number;
   caption: string;
-  videoId: string;
   onSeek: (s: number) => void;
 }) {
-  const [imgError, setImgError] = useState(false);
-  // YouTube auto-picks 3 keyframes: sd1, sd2, sd3. Pick the one closest to our timestamp position.
-  // For a rough mapping: sd1 ≈ 25%, sd2 ≈ 50%, sd3 ≈ 75% of video
-  const sdIndex = timestamp < 60 ? 1 : timestamp < 300 ? 2 : 3;
-  const thumbUrl = imgError
-    ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
-    : `https://img.youtube.com/vi/${videoId}/sd${sdIndex}.jpg`;
-
   return (
     <button
       onClick={() => onSeek(timestamp)}
-      className="group w-full text-left mb-4 rounded-xl overflow-hidden border border-fd-border/50 hover:border-fd-primary/40 transition-all duration-300 cursor-pointer"
+      className="group flex items-center gap-2.5 w-full text-left mb-3 px-3 py-2 rounded-lg border border-fd-border/50 hover:border-fd-primary/40 bg-fd-card/50 hover:bg-fd-card transition-all duration-200 cursor-pointer"
     >
-      <div className="relative aspect-video bg-zinc-900 overflow-hidden">
-        <img
-          src={thumbUrl}
-          alt={caption}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-90 group-hover:opacity-100"
-          onError={() => setImgError(true)}
-          loading="lazy"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
-        {/* Play / seek indicator */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <div className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-              <path d="M4 2l10 6-10 6V2z" fill="#18181b" />
-            </svg>
-          </div>
-        </div>
-        {/* Timestamp badge */}
-        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm">
-          <svg width="10" height="10" viewBox="0 0 16 16" fill="none" className="text-white/60">
-            <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M6 5v6l5-3-5-3z" fill="currentColor" />
-          </svg>
-          <span className="text-[11px] font-mono font-medium text-white/90">
-            {formatTime(timestamp)}
-          </span>
-        </div>
-        {/* Caption at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-3">
-          <p className="text-[13px] text-white/90 leading-snug drop-shadow-sm">
-            {caption}
-          </p>
-        </div>
-      </div>
+      {/* Film frame icon */}
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="shrink-0 text-fd-muted-foreground/50 group-hover:text-fd-primary transition-colors">
+        <rect x="1" y="3" width="14" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+        <rect x="3" y="1" width="2" height="3" rx="0.5" fill="currentColor" />
+        <rect x="7" y="1" width="2" height="3" rx="0.5" fill="currentColor" />
+        <rect x="11" y="1" width="2" height="3" rx="0.5" fill="currentColor" />
+        <rect x="3" y="12" width="2" height="3" rx="0.5" fill="currentColor" />
+        <rect x="7" y="12" width="2" height="3" rx="0.5" fill="currentColor" />
+        <rect x="11" y="12" width="2" height="3" rx="0.5" fill="currentColor" />
+      </svg>
+      {/* Timestamp badge */}
+      <span className="shrink-0 px-1.5 py-0.5 rounded text-[11px] font-mono font-semibold bg-fd-primary/10 text-fd-primary">
+        {formatTime(timestamp)}
+      </span>
+      {/* Caption */}
+      <span className="text-[13px] text-fd-muted-foreground group-hover:text-fd-foreground transition-colors leading-snug truncate">
+        {caption}
+      </span>
     </button>
   );
 }
 
 function BlockRenderer({
   block,
-  videoId,
   onSeek,
 }: {
   block: TutorialBlock;
-  videoId: string;
   onSeek: (s: number) => void;
 }) {
   switch (block.type) {
     case "screenshot":
       return (
-        <ScreenshotBlock
+        <TimestampChip
           timestamp={block.timestamp}
           caption={block.caption}
-          videoId={videoId}
           onSeek={onSeek}
         />
       );
@@ -202,7 +173,6 @@ function StepCard({
   stepRef,
   index,
   total,
-  videoId,
 }: {
   step: TutorialStep;
   active: boolean;
@@ -210,7 +180,6 @@ function StepCard({
   stepRef: (el: HTMLDivElement | null) => void;
   index: number;
   total: number;
-  videoId: string;
 }) {
   const accent = ACCENT_COLORS[step.tagType] || ACCENT_COLORS.action;
 
@@ -255,7 +224,7 @@ function StepCard({
 
         {/* Blocks */}
         {step.blocks.map((block, i) => (
-          <BlockRenderer key={i} block={block} videoId={videoId} onSeek={onSeek} />
+          <BlockRenderer key={i} block={block} onSeek={onSeek} />
         ))}
       </div>
     </div>
@@ -509,7 +478,6 @@ export default function TutorialViewer({ tutorial, onBack }: Props) {
                 onSeek={seekTo}
                 index={i}
                 total={tutorial.steps.length}
-                videoId={tutorial.videoId}
                 stepRef={(el) => {
                   stepRefs.current[i] = el;
                 }}

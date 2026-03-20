@@ -59,11 +59,43 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     return json({ error: "Missing videoId" }, 400);
   }
 
+  // Validate video ID format
+  const VIDEO_ID_REGEX = /^[a-zA-Z0-9_-]{11}$/;
+  if (!VIDEO_ID_REGEX.test(videoId)) {
+    return json({ error: "Invalid video ID format" }, 400);
+  }
+
   // Check cache
   const cached = await kv.get(`tutorial:${videoId}`);
   if (cached) {
     return json({ tutorial: JSON.parse(cached), cached: true });
   }
+
+  // Rate limit (skip for cached hits above)
+  const ip = context.request.headers.get("cf-connecting-ip") || "unknown";
+  const rateLimitKey = `ratelimit:${ip}`;
+  const rateLimitRaw = await kv.get(rateLimitKey);
+  const rateLimitCount = rateLimitRaw ? parseInt(rateLimitRaw, 10) : 0;
+  if (rateLimitCount >= 10) {
+    return json(
+      { error: "Rate limit exceeded. Max 10 generations per hour." },
+      429,
+    );
+  }
+  await kv.put(rateLimitKey, String(rateLimitCount + 1), {
+    expirationTtl: 3600,
+  });
+
+  // Generation lock to prevent duplicate Gemini calls
+  const lockKey = `generating:${videoId}`;
+  const existingLock = await kv.get(lockKey);
+  if (existingLock) {
+    return json(
+      { error: "Generation already in progress for this video. Please wait and try again." },
+      409,
+    );
+  }
+  await kv.put(lockKey, "1", { expirationTtl: 120 });
 
   try {
     // 1. Get video title via oEmbed
@@ -109,10 +141,22 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       generatedAt: Date.now(),
     };
 
+    // Validate tutorial has steps before caching
+    if (!tutorial.steps || (tutorial.steps as unknown[]).length === 0) {
+      await kv.delete(lockKey);
+      return json(
+        { error: "Failed to generate tutorial content. Please try again." },
+        500,
+      );
+    }
+
     // 3. Cache result
     await kv.put(`tutorial:${videoId}`, JSON.stringify(tutorial), {
       expirationTtl: TTL_SECONDS,
     });
+
+    // Delete generation lock
+    await kv.delete(lockKey);
 
     // 4. Update recent list
     const raw = await kv.get(RECENT_KEY);
@@ -131,6 +175,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     return json({ tutorial, cached: false });
   } catch (e: unknown) {
+    await kv.delete(lockKey);
     const msg = e instanceof Error ? e.message : "Unknown error";
     return json({ error: msg }, 500);
   }

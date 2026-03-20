@@ -1,6 +1,9 @@
 "use client";
 
 import { useRef, useEffect, useState, useCallback } from "react";
+import DOMPurify from "dompurify";
+
+const SANITIZE_CFG = { ALLOWED_TAGS: ['strong', 'code', 'em', 'ul', 'ol', 'li', 'br', 'p', 'span'] };
 import type {
   Tutorial,
   TutorialStep,
@@ -138,7 +141,7 @@ function BlockRenderer({
       return (
         <p
           className="text-fd-muted-foreground text-[15px] leading-[1.75] mb-4 [&_strong]:text-fd-foreground [&_strong]:font-semibold [&_code]:bg-fd-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:text-[13px] [&_code]:font-mono [&_code]:border [&_code]:border-fd-border/50"
-          dangerouslySetInnerHTML={{ __html: block.html }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.html, SANITIZE_CFG) }}
         />
       );
     case "code":
@@ -156,7 +159,7 @@ function BlockRenderer({
           </div>
           <div
             className="text-fd-foreground text-[15px] leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: block.html }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.html, SANITIZE_CFG) }}
           />
         </div>
       );
@@ -169,7 +172,7 @@ function BlockRenderer({
           </div>
           <div
             className="text-fd-muted-foreground text-[15px] leading-relaxed [&_strong]:text-fd-foreground"
-            dangerouslySetInnerHTML={{ __html: block.html }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.html, SANITIZE_CFG) }}
           />
         </div>
       );
@@ -182,7 +185,7 @@ function BlockRenderer({
               className="flex gap-2.5 text-fd-muted-foreground text-[15px] leading-relaxed [&_strong]:text-fd-foreground"
             >
               <span className="text-fd-primary mt-1.5 shrink-0 text-[8px]">&#9679;</span>
-              <span dangerouslySetInnerHTML={{ __html: item }} />
+              <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item, SANITIZE_CFG) }} />
             </li>
           ))}
         </ul>

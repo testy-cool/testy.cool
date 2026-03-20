@@ -72,6 +72,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     // Don't return broken cached tutorials - delete and regenerate
     if (!cachedTutorial.steps || cachedTutorial.steps.length === 0) {
       await kv.delete(`tutorial:${videoId}`);
+      await kv.delete(`generating:${videoId}`);
     } else {
       return json({ tutorial: cachedTutorial, cached: true });
     }

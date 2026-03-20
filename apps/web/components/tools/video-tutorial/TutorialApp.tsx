@@ -100,7 +100,12 @@ export default function TutorialApp() {
     }
     setError(null);
     setIsLoading(true);
-    setTutorial(null);
+    const prevTutorial = tutorial;
+
+    // Only clear tutorial if it had valid steps (preserve empty-tutorial screen for retry)
+    if (!tutorial || tutorial.steps.length > 0) {
+      setTutorial(null);
+    }
 
     try {
       const result = await generateTutorial(videoId);
@@ -109,10 +114,14 @@ export default function TutorialApp() {
       getRecentTutorials().then(setRecentTutorials);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to generate tutorial");
+      // If previous tutorial had empty steps, keep it so retry screen reappears
+      if (prevTutorial && prevTutorial.steps.length === 0) {
+        setTutorial(prevTutorial);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [tutorial]);
 
   useEffect(() => {
     const v = new URLSearchParams(window.location.search).get("v");
@@ -147,33 +156,49 @@ export default function TutorialApp() {
     return (
       <div className="min-h-screen flex items-center justify-center px-5">
         <div className="max-w-md w-full text-center p-8 rounded-2xl border border-fd-border bg-fd-card">
-          <div className="mx-auto mb-5 h-12 w-12 rounded-full bg-red-100 dark:bg-red-950/30 flex items-center justify-center">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-500">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-          </div>
-          <h2 className="text-lg font-semibold text-fd-foreground mb-2">
-            This tutorial failed to generate properly.
-          </h2>
-          <p className="text-base text-fd-muted-foreground/70 mb-6">
-            The video may be too short, private, or unsupported. You can try again or go back and pick a different video.
-          </p>
-          <div className="flex items-center justify-center gap-3">
-            <button
-              onClick={handleBack}
-              className="px-5 py-2.5 rounded-xl border border-fd-border text-fd-muted-foreground text-[15px] font-medium hover:bg-fd-muted/50 transition-colors"
-            >
-              Back
-            </button>
-            <button
-              onClick={() => handleGenerate(tutorial.videoId)}
-              className="px-5 py-2.5 rounded-xl bg-fd-foreground text-fd-background text-[15px] font-semibold hover:opacity-80 transition-opacity"
-            >
-              Try Again
-            </button>
-          </div>
+          {isLoading ? (
+            <>
+              <div className="mx-auto mb-5 h-12 w-12 flex items-center justify-center">
+                <span className="h-8 w-8 rounded-full border-2 border-fd-primary border-t-transparent animate-spin" />
+              </div>
+              <h2 className="text-lg font-semibold text-fd-foreground mb-2">
+                Regenerating tutorial...
+              </h2>
+              <p className="text-base text-fd-muted-foreground/70">
+                Analyzing video with Gemini. Usually takes 15-45 seconds.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="mx-auto mb-5 h-12 w-12 rounded-full bg-red-100 dark:bg-red-950/30 flex items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-500">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              </div>
+              <h2 className="text-lg font-semibold text-fd-foreground mb-2">
+                This tutorial failed to generate properly.
+              </h2>
+              <p className="text-base text-fd-muted-foreground/70 mb-6">
+                {error || "The video may be too short, private, or unsupported. You can try again or go back and pick a different video."}
+              </p>
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  onClick={handleBack}
+                  className="px-5 py-2.5 rounded-xl border border-fd-border text-fd-muted-foreground text-[15px] font-medium hover:bg-fd-muted/50 transition-colors"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={() => handleGenerate(tutorial.videoId)}
+                  className="px-5 py-2.5 rounded-xl bg-fd-foreground text-fd-background text-[15px] font-semibold hover:opacity-80 transition-opacity"
+                >
+                  Try Again
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     );

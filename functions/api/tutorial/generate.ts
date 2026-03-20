@@ -194,7 +194,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           ],
         },
       ],
-      config: { responseMimeType: "application/json" },
+      config: {
+        responseMimeType: "application/json",
+        thinkingConfig: { thinkingBudget: 2048 },
+        tools: [
+          { googleSearch: {} },
+          { urlContext: {} },
+        ],
+      },
     });
 
     const text = response.text;

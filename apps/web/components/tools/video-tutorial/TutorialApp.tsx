@@ -96,6 +96,7 @@ export default function TutorialApp() {
   const [recentTutorials, setRecentTutorials] = useState<TutorialSummary[]>([]);
   const [versions, setVersions] = useState<TutorialVersion[]>([]);
   const [currentVersion, setCurrentVersion] = useState<number>(0);
+  const [pendingVersion, setPendingVersion] = useState<number | null>(null);
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [promptText, setPromptText] = useState("");
   const [promptLoading, setPromptLoading] = useState(false);
@@ -173,6 +174,7 @@ export default function TutorialApp() {
     setIsLoading(false);
     setVersions([]);
     setCurrentVersion(0);
+    setPendingVersion(null);
     window.history.replaceState(null, "", window.location.pathname);
   };
 
@@ -180,13 +182,15 @@ export default function TutorialApp() {
     if (!tutorial) return;
     setError(null);
     setIsLoading(true);
+    setPendingVersion(null);
     try {
-      const result = await generateTutorial(tutorial.videoId, true);
-      setTutorial(result);
-      getVersions(tutorial.videoId).then((v) => {
-        setVersions(v);
-        if (v.length > 0) setCurrentVersion(v[v.length - 1]!.version);
-      });
+      await generateTutorial(tutorial.videoId, true);
+      const v = await getVersions(tutorial.videoId);
+      setVersions(v);
+      if (v.length > 0) {
+        const newVer = v[v.length - 1]!.version;
+        setPendingVersion(newVer);
+      }
       getRecentTutorials().then(setRecentTutorials);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to regenerate");
@@ -197,6 +201,7 @@ export default function TutorialApp() {
 
   const handleSelectVersion = useCallback(async (version: number) => {
     if (!tutorial) return;
+    setPendingVersion(null);
     setIsLoading(true);
     try {
       const result = await getVersion(tutorial.videoId, version);
@@ -305,6 +310,8 @@ export default function TutorialApp() {
         versions={versions}
         currentVersion={currentVersion}
         onSelectVersion={handleSelectVersion}
+        pendingVersion={pendingVersion}
+        onDismissPending={() => setPendingVersion(null)}
       />
     );
   }

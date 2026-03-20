@@ -326,13 +326,13 @@ async function enrichWithFrames(
       return;
     }
 
-    const data = (await res.json()) as { frames?: { timestamp: number; data: string }[] };
+    const data = (await res.json()) as { frames?: { timestamp: number; base64: string }[] };
     if (!data.frames || !Array.isArray(data.frames)) return;
 
     // Build a lookup by timestamp
     const frameMap = new Map<number, string>();
     for (const f of data.frames) {
-      if (f.data) frameMap.set(f.timestamp, f.data);
+      if (f.base64) frameMap.set(f.timestamp, f.base64);
     }
 
     // Merge back into blocks
@@ -381,6 +381,10 @@ RULES:
 - Sections must cover the entire video chronologically with no timestamp gaps
 - endSeconds of one step should equal startSeconds of the next step
 - In HTML content, use <strong> for bold, <code> for inline code, <em> for emphasis
+- Be editorially opinionated: after a section's factual content, add a brief "tldr" or "concept" block with your honest take when appropriate. If a video shows a convoluted setup process, note that it's unnecessarily complex. If a technique is genuinely clever, say so.
+- Call out when something shown in the video is outdated, has better alternatives, or is considered bad practice in the current landscape.
+- When a section is filler or padding (creator repeating themselves, stretching runtime), condense it to its actual substance rather than faithfully transcribing fluff.
+- Keep editorial voice concise - one sentence opinions, not paragraphs of commentary. The tutorial should still be primarily factual.
 
 OUTPUT FORMAT (return ONLY valid JSON):
 {

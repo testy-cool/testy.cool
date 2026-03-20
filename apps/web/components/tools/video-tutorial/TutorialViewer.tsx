@@ -27,6 +27,8 @@ interface Props {
   versions?: TutorialVersion[];
   onSelectVersion?: (version: number) => void;
   currentVersion?: number;
+  pendingVersion?: number | null;
+  onDismissPending?: () => void;
 }
 
 function formatTime(seconds: number): string {
@@ -295,7 +297,7 @@ function RegenerateButton({ onRegenerate, isRegenerating }: { onRegenerate: () =
   );
 }
 
-export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegenerating, versions, onSelectVersion, currentVersion }: Props) {
+export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegenerating, versions, onSelectVersion, currentVersion, pendingVersion, onDismissPending }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -303,6 +305,15 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
   const scrollTimeoutRef = useRef<number>(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [playerReady, setPlayerReady] = useState(false);
+
+  // Auto-dismiss pending version toast after 30s
+  useEffect(() => {
+    if (!pendingVersion) return;
+    const timer = setTimeout(() => {
+      onDismissPending?.();
+    }, 30000);
+    return () => clearTimeout(timer);
+  }, [pendingVersion, onDismissPending]);
 
   // Load YouTube IFrame API and create player
   useEffect(() => {
@@ -392,9 +403,10 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
         return time >= s.startSeconds && (next ? time < next.startSeconds : true);
       });
 
-      if (idx >= 0 && idx !== activeIndex) {
-        setActiveIndex(idx);
-        stepRefs.current[idx]?.scrollIntoView({
+      const resolved = idx >= 0 ? idx : 0;
+      if (resolved !== activeIndex) {
+        setActiveIndex(resolved);
+        stepRefs.current[resolved]?.scrollIntoView({
           behavior: "smooth",
           block: "center",
         });
@@ -416,6 +428,18 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
 
     const container = scrollRef.current;
     if (!container) return;
+
+    // If scrolled to the very top, force first section active
+    if (container.scrollTop <= 10) {
+      if (activeIndex !== 0) {
+        setActiveIndex(0);
+        playerRef.current.seekTo(tutorial.steps[0].startSeconds, true);
+      }
+      scrollTimeoutRef.current = window.setTimeout(() => {
+        userScrollingRef.current = false;
+      }, 150);
+      return;
+    }
 
     const center =
       container.getBoundingClientRect().top + container.clientHeight / 2;
@@ -502,6 +526,37 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
               style={{ width: `${progressPct}%` }}
             />
           </div>
+
+          {/* Regenerating banner */}
+          {isRegenerating && (
+            <div className="flex items-center gap-2 px-5 lg:px-8 py-2 border-b border-fd-border/20 shrink-0 text-[13px] text-fd-muted-foreground/70">
+              <span className="h-3 w-3 rounded-full border-[1.5px] border-current border-t-transparent animate-spin shrink-0" />
+              Regenerating with Gemini...
+            </div>
+          )}
+
+          {/* New version ready toast */}
+          {pendingVersion && !isRegenerating && (
+            <div className="flex items-center justify-between px-5 lg:px-8 py-2 border-b border-fd-border/20 shrink-0 text-[13px]">
+              <div className="flex items-center gap-2 text-fd-muted-foreground/70">
+                New version ready
+                <button
+                  onClick={() => onSelectVersion?.(pendingVersion)}
+                  className="text-fd-primary font-medium hover:opacity-80 transition-opacity"
+                >
+                  Switch to v{pendingVersion}
+                </button>
+              </div>
+              <button
+                onClick={onDismissPending}
+                className="text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors p-0.5"
+              >
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                  <path d="M4 4l8 8M12 4l-8 8" />
+                </svg>
+              </button>
+            </div>
+          )}
 
           {/* Top bar */}
           <div className="flex items-center justify-between px-5 lg:px-8 py-3 border-b border-fd-border/30 shrink-0">

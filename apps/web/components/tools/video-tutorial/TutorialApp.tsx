@@ -410,14 +410,17 @@ export default function TutorialApp() {
                     <div className="p-4 text-fd-muted-foreground/50 text-base">Loading...</div>
                   ) : (
                     <>
-                      <textarea
-                        value={promptText}
-                        onChange={(e) => setPromptText(e.target.value)}
-                        readOnly={!promptEditing}
-                        className={`w-full p-4 bg-fd-card text-fd-foreground text-base font-mono leading-relaxed resize-y min-h-[200px] focus:outline-none ${
-                          !promptEditing ? "opacity-70" : ""
-                        }`}
-                      />
+                      {promptEditing ? (
+                        <textarea
+                          value={promptText}
+                          onChange={(e) => setPromptText(e.target.value)}
+                          className="w-full p-4 bg-fd-card text-fd-foreground text-base font-mono leading-relaxed resize-y min-h-[200px] focus:outline-none"
+                        />
+                      ) : (
+                        <div className="w-full p-4 bg-fd-card text-fd-foreground text-base font-mono leading-relaxed min-h-[200px] opacity-70 whitespace-pre-wrap overflow-auto max-h-[60vh]">
+                          {promptText}
+                        </div>
+                      )}
                       <div className="flex items-center gap-3 px-4 py-3 border-t border-fd-border/50 bg-fd-card">
                         {!promptEditing ? (
                           <button

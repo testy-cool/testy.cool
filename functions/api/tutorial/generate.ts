@@ -41,7 +41,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
   if (action === "prompt") {
     const stored = await kv.get(PROMPT_KEY);
-    return json({ prompt: stored || null });
+    return json({ prompt: stored || buildPrompt("{videoTitle}") });
   }
 
   if (action === "versions" && videoId) {

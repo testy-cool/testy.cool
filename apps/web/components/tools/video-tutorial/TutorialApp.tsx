@@ -17,6 +17,9 @@ import {
   updatePrompt,
 } from "@/lib/tools/video-tutorial/tutorialService";
 import TutorialViewer from "./TutorialViewer";
+import dynamic from "next/dynamic";
+
+const MonacoEditor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
 function timeAgo(timestamp: number): string {
   const diff = Date.now() - timestamp;
@@ -427,17 +430,27 @@ export default function TutorialApp() {
                     <div className="p-4 text-fd-muted-foreground/50 text-base">Loading...</div>
                   ) : (
                     <>
-                      {promptEditing ? (
-                        <textarea
+                      <div className="h-[60vh]">
+                        <MonacoEditor
                           value={promptText}
-                          onChange={(e) => setPromptText(e.target.value)}
-                          className="w-full p-4 bg-fd-card text-fd-foreground text-base font-mono leading-relaxed resize-y min-h-[200px] focus:outline-none"
+                          onChange={(v) => promptEditing && setPromptText(v || "")}
+                          language="markdown"
+                          theme="vs-dark"
+                          options={{
+                            readOnly: !promptEditing,
+                            minimap: { enabled: false },
+                            fontSize: 13,
+                            lineNumbers: "off",
+                            wordWrap: "on",
+                            scrollBeyondLastLine: false,
+                            padding: { top: 16, bottom: 16 },
+                            renderLineHighlight: "none",
+                            overviewRulerLanes: 0,
+                            hideCursorInOverviewRuler: true,
+                            scrollbar: { verticalScrollbarSize: 8 },
+                          }}
                         />
-                      ) : (
-                        <div className="w-full p-4 bg-fd-card text-fd-foreground text-base font-mono leading-relaxed min-h-[200px] opacity-70 whitespace-pre-wrap overflow-auto max-h-[60vh]">
-                          {promptText}
-                        </div>
-                      )}
+                      </div>
                       <div className="flex items-center gap-3 px-4 py-3 border-t border-fd-border/50 bg-fd-card">
                         {!promptEditing ? (
                           <button

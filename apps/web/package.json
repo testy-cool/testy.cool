@@ -15,6 +15,7 @@
     "postbuild": "pnpm sitemap"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "@next/third-parties": "^15.3.0",
     "@radix-ui/react-slot": "^1.2.0",
     "@repo/fumadocs-blog": "workspace:*",

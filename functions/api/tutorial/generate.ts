@@ -339,41 +339,20 @@ You have these block types to build with. Use them liberally to create a visuall
 6. **list** - Bullet points for steps, comparisons, feature lists. Each item can use <strong> and <code>.
    Fields: items (string array)
 
-7. **visual** — YOUR PRIMARY ILLUSTRATION TOOL. Write raw HTML with inline styles to explain concepts visually. This is how you make the tutorial scannable and useful — not with walls of text, but with HTML diagrams, tables, annotated layouts, and visual explanations.
+7. **visual** — YOUR PRIMARY ILLUSTRATION TOOL. Write any HTML you want with inline styles. You have full access to HTML, SVG, CSS grid, flexbox, tables, absolute/relative positioning — the entire web platform. No restrictions. No templates. Build whatever visual best explains the concept.
    Fields: html (string - raw HTML with inline styles), caption (optional string)
 
-   Use visual blocks for:
-   - Flow diagrams (data pipelines, request lifecycles, build processes)
-   - Comparison tables (feature matrices, before/after, pros/cons, X vs Y)
-   - Architecture diagrams (layered stacks, component relationships)
-   - Annotated layouts (labeled boxes showing what connects to what)
-   - Step-by-step processes (numbered boxes with arrows)
-   - Cheat sheets (key-value grids, quick reference cards)
-   - Anything that would be clearer as a diagram than as a sentence
+   **CSS variables for dark/light mode** (use these instead of hardcoded colors):
+   - \`hsl(var(--fd-foreground))\` — main text
+   - \`hsl(var(--fd-muted-foreground))\` — secondary text
+   - \`hsl(var(--fd-border))\` — borders
+   - \`hsl(var(--fd-primary))\` — accent/brand color
+   - \`hsl(var(--fd-card))\` — card background
+   - \`hsl(var(--fd-muted))\` — muted background
+   - Add opacity with slash syntax: \`hsl(var(--fd-primary) / 0.15)\`
+   - You can also use fixed colors (#22c55e green, #ef4444 red, #f59e0b amber, #3b82f6 blue, etc.) when semantic color matters more than theming.
 
-   **Design system tokens** (use in inline styles — these adapt to dark/light mode):
-   - Text: \`color: hsl(var(--fd-foreground))\` / muted: \`color: hsl(var(--fd-muted-foreground))\`
-   - Borders: \`border-color: hsl(var(--fd-border))\` / accent: \`hsl(var(--fd-primary))\`
-   - Backgrounds: \`background: hsl(var(--fd-card))\` / muted bg: \`background: hsl(var(--fd-muted))\`
-   - Primary tints: \`background: hsl(var(--fd-primary) / 0.1)\`, \`border: 1px solid hsl(var(--fd-primary) / 0.2)\`
-
-   **QUALITY BAR: Think infographic, not placeholder.** Your visuals should look like something from a well-designed technical blog post. Dense with information, visually clear, worth pausing to study.
-
-   **Examples** (study the complexity — this is the minimum bar):
-
-   Horizontal bar chart with labels and values:
-   \`<div style="padding:20px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><span style="width:120px;text-align:right;font-size:12px;color:hsl(var(--fd-muted-foreground))">Mentions</span><div style="height:24px;border-radius:6px;background:hsl(var(--fd-primary)/0.7);width:85%" /></div><span style="font-size:12px;font-weight:600;color:hsl(var(--fd-foreground))">85%</span></div><div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><span style="width:120px;text-align:right;font-size:12px;color:hsl(var(--fd-muted-foreground))">Domain Rating</span><div style="height:24px;border-radius:6px;background:hsl(var(--fd-primary)/0.4);width:45%" /></div><span style="font-size:12px;font-weight:600;color:hsl(var(--fd-foreground))">45%</span></div><div style="display:flex;align-items:center;gap:12px"><span style="width:120px;text-align:right;font-size:12px;color:hsl(var(--fd-muted-foreground))">Backlinks</span><div style="height:24px;border-radius:6px;background:hsl(var(--fd-primary)/0.15);width:20%" /></div><span style="font-size:12px;font-weight:600;color:hsl(var(--fd-foreground))">20%</span></div></div>\`
-
-   Multi-column comparison with icons and status indicators:
-   \`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px"><div style="padding:16px;border-radius:10px;border:1px solid hsl(var(--fd-border)/0.3);background:hsl(var(--fd-card)/0.5)"><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444"></span><span style="font-size:13px;font-weight:600;color:hsl(var(--fd-foreground))">Traditional SEO</span></div><div style="font-size:12px;color:hsl(var(--fd-muted-foreground));line-height:1.8">• Backlink farming<br>• Keyword stuffing<br>• Exact-match anchors<br>• PBN networks</div><div style="margin-top:12px;padding:8px 12px;border-radius:6px;background:hsl(240 5% 15%);font-size:11px;color:#ef4444;font-weight:500">Declining correlation</div></div><div style="padding:16px;border-radius:10px;border:1px solid hsl(var(--fd-primary)/0.3);background:hsl(var(--fd-primary)/0.05)"><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e"></span><span style="font-size:13px;font-weight:600;color:hsl(var(--fd-foreground))">AI-Era SEO</span></div><div style="font-size:12px;color:hsl(var(--fd-muted-foreground));line-height:1.8">• Brand mentions<br>• Entity authority<br>• Cited in AI answers<br>• Community presence</div><div style="margin-top:12px;padding:8px 12px;border-radius:6px;background:hsl(140 40% 10%);font-size:11px;color:#22c55e;font-weight:500">Rising correlation</div></div></div>\`
-
-   Architecture diagram with SVG connectors:
-   \`<div style="position:relative;padding:24px 16px"><div style="display:flex;justify-content:center;margin-bottom:8px"><div style="padding:10px 24px;border-radius:8px;background:hsl(var(--fd-primary)/0.15);border:1px solid hsl(var(--fd-primary)/0.3);font-size:13px;font-weight:600;color:hsl(var(--fd-foreground))">User Query</div></div><svg width="100%" height="32" style="display:block"><line x1="50%" y1="0" x2="50%" y2="32" stroke="hsl(var(--fd-muted-foreground)/0.2)" stroke-width="1.5" stroke-dasharray="4,4"/></svg><div style="display:flex;justify-content:center;gap:16px;margin-bottom:8px"><div style="padding:10px 20px;border-radius:8px;background:hsl(var(--fd-card));border:1px solid hsl(var(--fd-border)/0.4);font-size:12px;color:hsl(var(--fd-foreground))">Google Search</div><div style="padding:10px 20px;border-radius:8px;background:hsl(var(--fd-card));border:1px solid hsl(var(--fd-border)/0.4);font-size:12px;color:hsl(var(--fd-foreground))">AI Overview</div><div style="padding:10px 20px;border-radius:8px;background:hsl(var(--fd-card));border:1px solid hsl(var(--fd-border)/0.4);font-size:12px;color:hsl(var(--fd-foreground))">ChatGPT</div></div><svg width="100%" height="32" style="display:block"><line x1="50%" y1="0" x2="50%" y2="32" stroke="hsl(var(--fd-muted-foreground)/0.2)" stroke-width="1.5" stroke-dasharray="4,4"/></svg><div style="display:flex;justify-content:center"><div style="padding:12px 32px;border-radius:8px;background:hsl(var(--fd-muted));border:1px solid hsl(var(--fd-border)/0.3);font-size:12px;color:hsl(var(--fd-muted-foreground))">Sources: Reddit, Docs, Forums, Brand Sites → <strong style="color:hsl(var(--fd-foreground))">Entity Graph</strong></div></div></div>\`
-
-   Funnel / process with percentages:
-   \`<div style="padding:20px;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:100%;padding:12px;text-align:center;border-radius:8px 8px 0 0;background:hsl(var(--fd-primary)/0.25);border:1px solid hsl(var(--fd-primary)/0.3);font-size:13px;color:hsl(var(--fd-foreground))"><strong>All Search Queries</strong> <span style="color:hsl(var(--fd-muted-foreground))">— 100%</span></div><div style="width:80%;padding:10px;text-align:center;background:hsl(var(--fd-primary)/0.15);border:1px solid hsl(var(--fd-primary)/0.2);font-size:12px;color:hsl(var(--fd-foreground))">Trigger AI Overview — 35%</div><div style="width:60%;padding:10px;text-align:center;background:hsl(var(--fd-primary)/0.1);border:1px solid hsl(var(--fd-primary)/0.15);font-size:12px;color:hsl(var(--fd-foreground))">Your Brand Mentioned — 8%</div><div style="width:40%;padding:10px;text-align:center;border-radius:0 0 8px 8px;background:hsl(var(--fd-primary)/0.05);border:1px solid hsl(var(--fd-primary)/0.1);font-size:12px;color:hsl(var(--fd-muted-foreground))">User Clicks Through — 2%</div></div>\`
-
-   Go beyond these examples. Use grids, SVG charts, color-coded matrices, nested card layouts, progress indicators, annotated diagrams with labels and arrows, timeline layouts, dependency trees. Think "would I screenshot this for my notes?" — if yes, it's good enough. If it's just three words floating in a box, it's not.
+   **Quality bar:** Think infographic, not placeholder. Your HTML visuals should be dense with information, visually striking, worth pausing to study. Bar charts, scatter plots, funnels, timelines, matrix grids, SVG flowcharts with actual arrows, color-coded dashboards, annotated system diagrams. If it looks like something you'd screenshot for your notes, it's good enough. Three words floating in a box is not a visual.
 
 ## CONTENT RULES
 

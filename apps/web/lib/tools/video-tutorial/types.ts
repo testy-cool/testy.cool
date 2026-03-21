@@ -14,9 +14,7 @@ export type TutorialBlock =
   | { type: "concept"; title: string; html: string }
   | { type: "list"; items: string[] }
   | { type: "screenshot"; timestamp: number; caption: string; frameData?: string }
-  | { type: "flow"; caption?: string; steps: string[] }
-  | { type: "comparison"; caption?: string; headers: string[]; rows: string[][] }
-  | { type: "architecture"; caption?: string; layers: { name: string; items: string[] }[] };
+  | { type: "visual"; html: string; caption?: string };
 
 export interface Tutorial {
   videoId: string;

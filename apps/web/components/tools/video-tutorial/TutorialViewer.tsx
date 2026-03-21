@@ -4,6 +4,10 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import DOMPurify from "dompurify";
 
 const SANITIZE_CFG = { ALLOWED_TAGS: ['strong', 'code', 'em', 'ul', 'ol', 'li', 'br', 'p', 'span'] };
+const VISUAL_SANITIZE_CFG = {
+  ALLOWED_TAGS: ['div', 'span', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'svg', 'path', 'rect', 'circle', 'line', 'text', 'strong', 'code', 'em', 'ul', 'ol', 'li', 'br', 'p', 'h3', 'h4'],
+  ALLOWED_ATTR: ['style', 'class', 'viewBox', 'width', 'height', 'd', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'text-anchor', 'dominant-baseline', 'font-size', 'xmlns', 'colspan', 'rowspan'],
+};
 import type {
   Tutorial,
   TutorialStep,
@@ -159,7 +163,7 @@ function BlockRenderer({
           ))}
         </ul>
       );
-    case "flow":
+    case "visual":
       return (
         <div className="mb-5">
           {block.caption && (
@@ -167,85 +171,10 @@ function BlockRenderer({
               {block.caption}
             </span>
           )}
-          <div className="flex flex-wrap items-center gap-1 p-4 rounded-xl border border-fd-border/30 bg-fd-card/50">
-            {block.steps.map((step, i) => (
-              <div key={i} className="flex items-center gap-1">
-                <span className="px-3 py-1.5 rounded-lg bg-fd-primary/10 border border-fd-primary/20 text-[13px] font-medium text-fd-foreground whitespace-nowrap">
-                  {step}
-                </span>
-                {i < block.steps.length - 1 && (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-fd-muted-foreground/30 shrink-0">
-                    <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    case "comparison":
-      return (
-        <div className="mb-5">
-          {block.caption && (
-            <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-2 block">
-              {block.caption}
-            </span>
-          )}
-          <div className="rounded-xl border border-fd-border/30 overflow-hidden">
-            <table className="w-full text-[13px]">
-              <thead>
-                <tr className="bg-fd-card">
-                  {block.headers.map((h, i) => (
-                    <th key={i} className="px-4 py-2.5 text-left font-semibold text-fd-foreground border-b border-fd-border/30">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {block.rows.map((row, i) => (
-                  <tr key={i} className={i % 2 === 0 ? "bg-fd-card/30" : ""}>
-                    {row.map((cell, j) => (
-                      <td key={j} className="px-4 py-2 text-fd-muted-foreground border-b border-fd-border/15">
-                        {cell}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      );
-    case "architecture":
-      return (
-        <div className="mb-5">
-          {block.caption && (
-            <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-2 block">
-              {block.caption}
-            </span>
-          )}
-          <div className="space-y-2 p-4 rounded-xl border border-fd-border/30 bg-fd-card/50">
-            {block.layers.map((layer, i) => (
-              <div key={i}>
-                <span className="text-[11px] font-medium text-fd-muted-foreground/50 mb-1.5 block">{layer.name}</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {layer.items.map((item, j) => (
-                    <span key={j} className="px-2.5 py-1 rounded-md bg-fd-primary/8 border border-fd-primary/15 text-[12px] text-fd-foreground">
-                      {item}
-                    </span>
-                  ))}
-                </div>
-                {i < block.layers.length - 1 && (
-                  <div className="flex justify-center my-1.5">
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="text-fd-muted-foreground/25">
-                      <path d="M8 4v8M5 9l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <div
+            className="visual-block rounded-xl border border-fd-border/30 bg-fd-card/50 overflow-hidden [&_table]:w-full [&_table]:text-[13px] [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_td]:px-4 [&_td]:py-2"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.html, VISUAL_SANITIZE_CFG) }}
+          />
         </div>
       );
     default:

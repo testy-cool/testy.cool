@@ -384,7 +384,7 @@ You have these block types to build with. Use them liberally to create a visuall
 
 1. **paragraph** - Running text. Use HTML: <strong>, <code>, <em>. Keep paragraphs SHORT (2-4 sentences max). Break up ideas into multiple paragraphs rather than one long one.
 
-2. **screenshot** - Visual reference from the video. Use these HEAVILY (8-15 per tutorial). Every time the video shows something visual - a UI, a diagram, terminal output, a code editor, a browser, a config screen, an architecture diagram, a comparison, a result - add a screenshot block. These get auto-populated with actual video frames. The reader should be able to understand the tutorial just by scanning the screenshots and their captions.
+2. **screenshot** - Visual reference from the video. Use when the video shows something genuinely worth seeing - a UI, terminal output, a code editor, a result, a demo. These get auto-populated with actual video frames. Don't force them - use 3-8 per tutorial, only when the visual adds real value.
    Fields: timestamp (integer seconds), caption (what's shown - be specific)
 
 3. **code** - Code blocks for any code shown or mentioned.
@@ -399,25 +399,29 @@ You have these block types to build with. Use them liberally to create a visuall
 6. **list** - Bullet points for steps, comparisons, feature lists. Each item can use <strong> and <code>.
    Fields: items (string array)
 
-7. **flow** - Visual pipeline/data flow diagram. Use whenever the video describes a sequence, pipeline, data flow, or process. Shows steps as boxes connected by arrows.
-   Fields: steps (string array - each step is a short label), caption (optional string)
-   Example: { "type": "flow", "caption": "Request lifecycle", "steps": ["Client", "CDN", "Load Balancer", "API Server", "Database"] }
+7. **visual** - Custom HTML visual to illustrate a concept. Write raw HTML with inline styles. Use this for flow diagrams, comparison tables, architecture layouts, process diagrams, or any visual explanation. You have FULL creative freedom - build whatever visual best explains the concept.
+   Fields: html (string - raw HTML with inline styles), caption (optional string)
 
-8. **comparison** - Visual comparison table. Use for feature comparisons, before/after, trade-offs, pros/cons, "X vs Y" discussions.
-   Fields: headers (string array), rows (array of string arrays), caption (optional string)
-   Example: { "type": "comparison", "caption": "SSR vs SSG", "headers": ["", "SSR", "SSG"], "rows": [["Speed", "Slower TTFB", "Instant"], ["SEO", "Full", "Full"], ["Data", "Real-time", "Build-time"]] }
+   **Design system tokens** (use these in inline styles for dark/light mode compatibility):
+   - Text: \`color: hsl(var(--fd-foreground))\` / muted: \`color: hsl(var(--fd-muted-foreground))\`
+   - Borders: \`border-color: hsl(var(--fd-border))\` / accent: \`hsl(var(--fd-primary))\`
+   - Backgrounds: \`background: hsl(var(--fd-card))\` / muted bg: \`background: hsl(var(--fd-muted))\`
+   - Primary with opacity: \`background: hsl(var(--fd-primary) / 0.1)\`
 
-9. **architecture** - Layered architecture diagram. Use when the video discusses system architecture, tech stacks, or how components relate across layers. Shows layers top-to-bottom with items in each.
-   Fields: layers (array of { name: string, items: string[] }), caption (optional string)
-   Example: { "type": "architecture", "caption": "Full stack", "layers": [{ "name": "Frontend", "items": ["React", "TailwindCSS"] }, { "name": "API", "items": ["Express", "GraphQL"] }, { "name": "Storage", "items": ["PostgreSQL", "Redis", "S3"] }] }
+   Examples:
+   - Flow: \`<div style="display:flex;align-items:center;gap:8px;padding:16px"><div style="padding:6px 12px;border-radius:8px;background:hsl(var(--fd-primary)/0.1);border:1px solid hsl(var(--fd-primary)/0.2);color:hsl(var(--fd-foreground));font-size:13px">Client</div><span style="color:hsl(var(--fd-muted-foreground)/0.3)">→</span><div style="padding:6px 12px;border-radius:8px;background:hsl(var(--fd-primary)/0.1);border:1px solid hsl(var(--fd-primary)/0.2);color:hsl(var(--fd-foreground));font-size:13px">Server</div><span style="color:hsl(var(--fd-muted-foreground)/0.3)">→</span><div style="padding:6px 12px;border-radius:8px;background:hsl(var(--fd-primary)/0.1);border:1px solid hsl(var(--fd-primary)/0.2);color:hsl(var(--fd-foreground));font-size:13px">DB</div></div>\`
+   - Table: \`<table style="width:100%;font-size:13px;border-collapse:collapse"><thead><tr style="background:hsl(var(--fd-card))"><th style="padding:10px 16px;text-align:left;font-weight:600;color:hsl(var(--fd-foreground));border-bottom:1px solid hsl(var(--fd-border)/0.3)">Feature</th><th style="padding:10px 16px;text-align:left;font-weight:600;color:hsl(var(--fd-foreground));border-bottom:1px solid hsl(var(--fd-border)/0.3)">Before</th><th style="padding:10px 16px;text-align:left;font-weight:600;color:hsl(var(--fd-foreground));border-bottom:1px solid hsl(var(--fd-border)/0.3)">After</th></tr></thead><tbody><tr><td style="padding:8px 16px;color:hsl(var(--fd-muted-foreground))">Speed</td><td style="padding:8px 16px;color:hsl(var(--fd-muted-foreground))">Slow</td><td style="padding:8px 16px;color:hsl(var(--fd-muted-foreground))">Fast</td></tr></tbody></table>\`
+   - Architecture: \`<div style="display:flex;flex-direction:column;gap:8px;padding:16px"><div><div style="font-size:11px;color:hsl(var(--fd-muted-foreground)/0.5);margin-bottom:6px">Frontend</div><div style="display:flex;gap:6px"><span style="padding:4px 10px;border-radius:6px;background:hsl(var(--fd-primary)/0.08);border:1px solid hsl(var(--fd-primary)/0.15);font-size:12px;color:hsl(var(--fd-foreground))">React</span><span style="padding:4px 10px;border-radius:6px;background:hsl(var(--fd-primary)/0.08);border:1px solid hsl(var(--fd-primary)/0.15);font-size:12px;color:hsl(var(--fd-foreground))">Tailwind</span></div></div><div style="text-align:center;color:hsl(var(--fd-muted-foreground)/0.25)">↓</div><div><div style="font-size:11px;color:hsl(var(--fd-muted-foreground)/0.5);margin-bottom:6px">Backend</div><div style="display:flex;gap:6px"><span style="padding:4px 10px;border-radius:6px;background:hsl(var(--fd-primary)/0.08);border:1px solid hsl(var(--fd-primary)/0.15);font-size:12px;color:hsl(var(--fd-foreground))">Node.js</span><span style="padding:4px 10px;border-radius:6px;background:hsl(var(--fd-primary)/0.08);border:1px solid hsl(var(--fd-primary)/0.15);font-size:12px;color:hsl(var(--fd-foreground))">Redis</span></div></div></div>\`
+
+   Be creative. SVGs for arrows, color-coded boxes, nested layouts - whatever communicates the idea best.
 
 ## CONTENT RULES
 
 - Group into 5-15 logical sections depending on video length
 - Each section = ONE topic, step, or concept
 - Extract ALL technical details, steps, code, and explanations - don't summarize away the substance
-- ILLUSTRATE don't narrate. Use flow, comparison, and architecture blocks to SHOW relationships and processes instead of describing them in paragraphs. If the video says "data flows from X to Y to Z", use a flow block. If it compares options, use a comparison table. If it shows a tech stack, use an architecture block.
-- Use screenshots HEAVILY (8-15 per tutorial) for anything shown on screen.
+- ILLUSTRATE don't narrate. Use visual blocks to SHOW relationships and processes instead of describing them in paragraphs. If the video says "data flows from X to Y to Z", build a flow diagram in a visual block. If it compares options, build a comparison table. If it shows a tech stack, build a layered architecture visual. You have full HTML - get creative.
+- Use screenshots when the video shows something genuinely worth seeing (3-8 per tutorial). Don't force screenshots of talking heads or static slides.
 - Alternate block types constantly. Never have 3+ paragraphs in a row. Break them up with visual blocks, screenshots, lists, concepts, code. The reader's eye should bounce between text and visuals.
 - tagType must be exactly one of: "intro", "concept", "setup", "action"
 - startSeconds/endSeconds must be integers matching the actual video timeline
@@ -459,10 +463,8 @@ No diplomacy. No "overall this is a great video." Be real.
         { "type": "paragraph", "html": "Short paragraph with <strong>bold</strong> and <code>code</code>" },
         { "type": "screenshot", "timestamp": 18, "caption": "Another visual from the video" },
         { "type": "concept", "title": "Why This Matters", "html": "Explanation of the key idea" },
-        { "type": "flow", "caption": "Pipeline", "steps": ["Input", "Process", "Output"] },
+        { "type": "visual", "caption": "Pipeline", "html": "<div style='display:flex;align-items:center;gap:8px;padding:16px'>...</div>" },
         { "type": "code", "language": "bash", "code": "actual code from the video" },
-        { "type": "comparison", "headers": ["Feature", "Before", "After"], "rows": [["Speed", "Slow", "Fast"]] },
-        { "type": "architecture", "layers": [{ "name": "Frontend", "items": ["React"] }, { "name": "Backend", "items": ["Node.js", "Redis"] }] },
         { "type": "tldr", "html": "Your honest take on this section" },
         { "type": "list", "items": ["<strong>Item 1:</strong> detail", "Item 2: detail"] }
       ]

@@ -628,8 +628,8 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
               {tutorial.title}
             </h1>
             {tutorial.summary && (
-              <p className="text-[14px] text-fd-muted-foreground/70 leading-relaxed mb-5 italic line-clamp-3">
-                {tutorial.summary}
+              <p className="text-base text-fd-muted-foreground/70 leading-relaxed mb-5">
+                {tutorial.summary.length > 200 ? tutorial.summary.slice(0, 200).trimEnd() + '…' : tutorial.summary}
               </p>
             )}
             <p className="text-[12px] text-fd-muted-foreground/40 mb-8">

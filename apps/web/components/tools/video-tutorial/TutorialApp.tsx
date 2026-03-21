@@ -184,6 +184,7 @@ export default function TutorialApp() {
     setError(null);
     setIsLoading(true);
     setPendingVersion(null);
+    const t0 = Date.now();
     try {
       const result = await generateTutorial(current.videoId, true);
       setTutorial(result);
@@ -198,6 +199,9 @@ export default function TutorialApp() {
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to regenerate");
     } finally {
+      // Prevent banner flash when API errors instantly (e.g. rate limit)
+      const elapsed = Date.now() - t0;
+      if (elapsed < 600) await new Promise((r) => setTimeout(r, 600 - elapsed));
       setIsLoading(false);
     }
   }, []);

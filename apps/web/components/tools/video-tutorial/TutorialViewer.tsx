@@ -4,10 +4,8 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import DOMPurify from "dompurify";
 
 const SANITIZE_CFG = { ALLOWED_TAGS: ['strong', 'code', 'em', 'ul', 'ol', 'li', 'br', 'p', 'span'] };
-const VISUAL_SANITIZE_CFG = {
-  ALLOWED_TAGS: ['div', 'span', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'svg', 'path', 'rect', 'circle', 'line', 'text', 'strong', 'code', 'em', 'ul', 'ol', 'li', 'br', 'p', 'h3', 'h4'],
-  ALLOWED_ATTR: ['style', 'class', 'viewBox', 'width', 'height', 'd', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'text-anchor', 'dominant-baseline', 'font-size', 'xmlns', 'colspan', 'rowspan'],
-};
+// Visual blocks: allow all HTML/SVG, just strip scripts and event handlers
+const VISUAL_SANITIZE_CFG = { ADD_TAGS: ['svg', 'path', 'rect', 'circle', 'line', 'text', 'g', 'defs', 'marker', 'polygon', 'polyline', 'ellipse', 'use', 'symbol', 'clipPath', 'linearGradient', 'radialGradient', 'stop', 'foreignObject', 'tspan'], ADD_ATTR: ['style', 'viewBox', 'xmlns', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray', 'stroke-dashoffset', 'd', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height', 'transform', 'text-anchor', 'dominant-baseline', 'font-size', 'font-weight', 'opacity', 'marker-end', 'marker-start', 'points', 'offset', 'stop-color', 'stop-opacity', 'gradientUnits', 'gradientTransform', 'clip-path', 'colspan', 'rowspan'] };
 import type {
   Tutorial,
   TutorialStep,

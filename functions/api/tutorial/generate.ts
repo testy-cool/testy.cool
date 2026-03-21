@@ -138,9 +138,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const rateLimitKey = `ratelimit:${ip}`;
   const rateLimitRaw = await kv.get(rateLimitKey);
   const rateLimitCount = rateLimitRaw ? parseInt(rateLimitRaw, 10) : 0;
-  if (rateLimitCount >= 10) {
+  if (rateLimitCount >= 30) {
     return json(
-      { error: "Rate limit exceeded. Max 10 generations per hour." },
+      { error: "Rate limit exceeded. Max 30 generations per hour." },
       429,
     );
   }

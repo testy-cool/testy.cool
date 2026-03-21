@@ -374,30 +374,66 @@ function buildPrompt(videoTitle: string): string {
 
 Video title: "${videoTitle}"
 
-Watch this video and create a structured, highly detailed tutorial from it.
+Watch this video and create a structured, richly illustrated tutorial from it.
 
-RULES:
-- Group the video into logical sections (5-15 sections depending on video length)
-- Each section covers ONE topic, step, or concept
-- Do NOT summarize heavily - extract ALL technical details, steps, explanations, and code shown or mentioned
-- Format any code shown or mentioned as code blocks with the correct language tag
-- Add a "tldr" block for sections that are conceptually dense
-- Add "concept" blocks for important ideas or notions that deserve a callout box
-- Add "screenshot" blocks whenever the video shows something visually important that the reader should SEE: diagrams, UI screenshots, architecture visuals, terminal output, code on screen, comparison demos, dashboards, graphs, workflow illustrations, etc. Include at least 2-5 screenshots per tutorial. Place them right where the visual appears in the video timeline.
+## DESIGN SYSTEM
+
+You have these block types to build with. Use them liberally to create a visually rich, scannable experience - NOT walls of text.
+
+### Block types (use in the "blocks" array):
+
+1. **paragraph** - Running text. Use HTML: <strong>, <code>, <em>. Keep paragraphs SHORT (2-4 sentences max). Break up ideas into multiple paragraphs rather than one long one.
+
+2. **screenshot** - Visual reference from the video. Use these HEAVILY (8-15 per tutorial). Every time the video shows something visual - a UI, a diagram, terminal output, a code editor, a browser, a config screen, an architecture diagram, a comparison, a result - add a screenshot block. These get auto-populated with actual video frames. The reader should be able to understand the tutorial just by scanning the screenshots and their captions.
+   Fields: timestamp (integer seconds), caption (what's shown - be specific)
+
+3. **code** - Code blocks for any code shown or mentioned.
+   Fields: language (string), code (string)
+
+4. **concept** - Callout box for important ideas, warnings, or "here's how this actually works" explanations. Use for architecture decisions, trade-offs, gotchas.
+   Fields: title (string), html (string with <strong>, <code>, <em>)
+
+5. **tldr** - Your editorial opinion on a section. Cynical, honest, useful. "This part matters because..." or "Skip this, it's filler." or "The creator is wrong here, actually..."
+   Fields: html (string)
+
+6. **list** - Bullet points for steps, comparisons, feature lists. Each item can use <strong> and <code>.
+   Fields: items (string array)
+
+## CONTENT RULES
+
+- Group into 5-15 logical sections depending on video length
+- Each section = ONE topic, step, or concept
+- Extract ALL technical details, steps, code, and explanations - don't summarize away the substance
+- ILLUSTRATE with screenshots. Think of this like a comic book version of the video - heavy on visuals, text explains what the visuals show. If in doubt, add a screenshot.
+- Alternate block types constantly. Never have 3+ paragraphs in a row. Break them up with screenshots, lists, concepts, code. The reader's eye should bounce between text and visuals.
 - tagType must be exactly one of: "intro", "concept", "setup", "action"
-- startSeconds and endSeconds must be integers matching the actual video timeline
+- startSeconds/endSeconds must be integers matching the actual video timeline
 - Sections must cover the entire video chronologically with no timestamp gaps
-- endSeconds of one step should equal startSeconds of the next step
-- In HTML content, use <strong> for bold, <code> for inline code, <em> for emphasis
-- Be cynical and honest. If a section is bullshit, say so. If the creator is wrong, say so. If there's a better way, name it. If something is genuinely good, give credit — but don't be nice for the sake of being nice.
-- Call out outdated techniques, bad practices, marketing disguised as education, and claims that don't hold up. Use grounding to fact-check when possible.
-- Filler gets gutted. If the creator spends 3 minutes saying what could be said in 2 sentences, compress it. Don't faithfully transcribe padding.
-- Your opinions go in "tldr" or "concept" blocks where they naturally fit. Keep them sharp and concise — the tutorial is still primarily factual.
+- endSeconds of one step = startSeconds of the next
 
-OUTPUT FORMAT (return ONLY valid JSON):
+## EDITORIAL VOICE
+
+- Be cynical and honest. If a section is bullshit, say so. If the creator is wrong, say so. If there's a better way, name it.
+- Call out outdated techniques, bad practices, marketing disguised as education, and claims that don't hold up. Fact-check with grounding when possible.
+- Filler gets gutted. If 3 minutes could be 2 sentences, compress it.
+- If something is genuinely good, give credit - but don't be nice for the sake of it.
+- Your opinions go in "tldr" or "concept" blocks. Keep them sharp.
+
+## SUMMARY (the "summary" field)
+
+Write 5-10 sentences. This is the reader's "should I spend my time on this?" filter. Be specific and cynical:
+- What is this video actually about (not what the title claims)?
+- Is the creator competent or winging it?
+- What's genuinely useful vs filler/marketing?
+- What's the ONE thing worth taking away?
+- Who should watch this and who should skip it?
+- Are there better alternatives for learning this topic?
+No diplomacy. No "overall this is a great video." Be real.
+
+## OUTPUT FORMAT (return ONLY valid JSON):
 {
   "title": "Tutorial title",
-  "summary": "Your honest, cynical take on this video. Is it worth anyone's time? Is the creator full of shit or actually onto something? What claims are true vs marketing fluff? What's the one thing worth remembering if you close this tab right now? Be real, be blunt, be useful. No corporate diplomacy.",
+  "summary": "5-10 sentence cynical assessment...",
   "steps": [
     {
       "startSeconds": 0,
@@ -406,11 +442,12 @@ OUTPUT FORMAT (return ONLY valid JSON):
       "tagType": "intro",
       "title": "Section heading",
       "blocks": [
-        { "type": "paragraph", "html": "Text with <strong>bold</strong> and <code>code</code>" },
+        { "type": "screenshot", "timestamp": 5, "caption": "What the viewer sees on screen at this moment" },
+        { "type": "paragraph", "html": "Short paragraph with <strong>bold</strong> and <code>code</code>" },
+        { "type": "screenshot", "timestamp": 18, "caption": "Another visual from the video" },
+        { "type": "concept", "title": "Why This Matters", "html": "Explanation of the key idea" },
         { "type": "code", "language": "bash", "code": "actual code from the video" },
-        { "type": "screenshot", "timestamp": 25, "caption": "Brief description of what is shown on screen" },
-        { "type": "tldr", "html": "Quick summary of this section" },
-        { "type": "concept", "title": "Concept Name", "html": "Explanation of the key idea" },
+        { "type": "tldr", "html": "Your honest take on this section" },
         { "type": "list", "items": ["<strong>Item 1:</strong> detail", "Item 2: detail"] }
       ]
     }

@@ -399,13 +399,26 @@ You have these block types to build with. Use them liberally to create a visuall
 6. **list** - Bullet points for steps, comparisons, feature lists. Each item can use <strong> and <code>.
    Fields: items (string array)
 
+7. **flow** - Visual pipeline/data flow diagram. Use whenever the video describes a sequence, pipeline, data flow, or process. Shows steps as boxes connected by arrows.
+   Fields: steps (string array - each step is a short label), caption (optional string)
+   Example: { "type": "flow", "caption": "Request lifecycle", "steps": ["Client", "CDN", "Load Balancer", "API Server", "Database"] }
+
+8. **comparison** - Visual comparison table. Use for feature comparisons, before/after, trade-offs, pros/cons, "X vs Y" discussions.
+   Fields: headers (string array), rows (array of string arrays), caption (optional string)
+   Example: { "type": "comparison", "caption": "SSR vs SSG", "headers": ["", "SSR", "SSG"], "rows": [["Speed", "Slower TTFB", "Instant"], ["SEO", "Full", "Full"], ["Data", "Real-time", "Build-time"]] }
+
+9. **architecture** - Layered architecture diagram. Use when the video discusses system architecture, tech stacks, or how components relate across layers. Shows layers top-to-bottom with items in each.
+   Fields: layers (array of { name: string, items: string[] }), caption (optional string)
+   Example: { "type": "architecture", "caption": "Full stack", "layers": [{ "name": "Frontend", "items": ["React", "TailwindCSS"] }, { "name": "API", "items": ["Express", "GraphQL"] }, { "name": "Storage", "items": ["PostgreSQL", "Redis", "S3"] }] }
+
 ## CONTENT RULES
 
 - Group into 5-15 logical sections depending on video length
 - Each section = ONE topic, step, or concept
 - Extract ALL technical details, steps, code, and explanations - don't summarize away the substance
-- ILLUSTRATE with screenshots. Think of this like a comic book version of the video - heavy on visuals, text explains what the visuals show. If in doubt, add a screenshot.
-- Alternate block types constantly. Never have 3+ paragraphs in a row. Break them up with screenshots, lists, concepts, code. The reader's eye should bounce between text and visuals.
+- ILLUSTRATE don't narrate. Use flow, comparison, and architecture blocks to SHOW relationships and processes instead of describing them in paragraphs. If the video says "data flows from X to Y to Z", use a flow block. If it compares options, use a comparison table. If it shows a tech stack, use an architecture block.
+- Use screenshots HEAVILY (8-15 per tutorial) for anything shown on screen.
+- Alternate block types constantly. Never have 3+ paragraphs in a row. Break them up with visual blocks, screenshots, lists, concepts, code. The reader's eye should bounce between text and visuals.
 - tagType must be exactly one of: "intro", "concept", "setup", "action"
 - startSeconds/endSeconds must be integers matching the actual video timeline
 - Sections must cover the entire video chronologically with no timestamp gaps
@@ -446,7 +459,10 @@ No diplomacy. No "overall this is a great video." Be real.
         { "type": "paragraph", "html": "Short paragraph with <strong>bold</strong> and <code>code</code>" },
         { "type": "screenshot", "timestamp": 18, "caption": "Another visual from the video" },
         { "type": "concept", "title": "Why This Matters", "html": "Explanation of the key idea" },
+        { "type": "flow", "caption": "Pipeline", "steps": ["Input", "Process", "Output"] },
         { "type": "code", "language": "bash", "code": "actual code from the video" },
+        { "type": "comparison", "headers": ["Feature", "Before", "After"], "rows": [["Speed", "Slow", "Fast"]] },
+        { "type": "architecture", "layers": [{ "name": "Frontend", "items": ["React"] }, { "name": "Backend", "items": ["Node.js", "Redis"] }] },
         { "type": "tldr", "html": "Your honest take on this section" },
         { "type": "list", "items": ["<strong>Item 1:</strong> detail", "Item 2: detail"] }
       ]

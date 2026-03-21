@@ -13,7 +13,10 @@ export type TutorialBlock =
   | { type: "tldr"; html: string }
   | { type: "concept"; title: string; html: string }
   | { type: "list"; items: string[] }
-  | { type: "screenshot"; timestamp: number; caption: string; frameData?: string };
+  | { type: "screenshot"; timestamp: number; caption: string; frameData?: string }
+  | { type: "flow"; caption?: string; steps: string[] }
+  | { type: "comparison"; caption?: string; headers: string[]; rows: string[][] }
+  | { type: "architecture"; caption?: string; layers: { name: string; items: string[] }[] };
 
 export interface Tutorial {
   videoId: string;

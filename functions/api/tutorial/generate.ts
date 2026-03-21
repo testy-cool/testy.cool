@@ -10,7 +10,9 @@ const PROMPT_KEY = "config:tutorial_prompt";
 interface Env {
   GEMINI_API_KEY: string;
   PANTRY_CACHE: KVNamespace;
-
+  LANGFUSE_SECRET_KEY?: string;
+  LANGFUSE_PUBLIC_KEY?: string;
+  LANGFUSE_BASE_URL?: string;
 }
 
 interface VersionMeta {
@@ -178,6 +180,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     // 3. Send YouTube video directly to Gemini for analysis
     const ai = new GoogleGenAI({ apiKey });
+    const genStartTime = new Date().toISOString();
 
     const response = await ai.models.generateContent({
       model: MODEL,
@@ -204,8 +207,27 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       },
     });
 
+    const genEndTime = new Date().toISOString();
     const text = response.text;
     if (!text) return json({ error: "Empty response from Gemini" }, 502);
+
+    // Langfuse trace (fire-and-forget)
+    const usageMeta = response.usageMetadata;
+    context.waitUntil(langfuseTrace(context.env, {
+      traceId: `tut-${videoId}-${Date.now()}`,
+      name: `tutorial:${videoId}`,
+      input: { videoId, videoTitle, promptLength: finalPrompt.length },
+      output: { responseLength: text.length },
+      model: MODEL,
+      startTime: genStartTime,
+      endTime: genEndTime,
+      metadata: { videoTitle, force: !!force },
+      usage: usageMeta ? {
+        input: usageMeta.promptTokenCount,
+        output: usageMeta.candidatesTokenCount,
+        total: usageMeta.totalTokenCount,
+      } : undefined,
+    }));
 
     let tutorialData: { title?: string; steps?: unknown[] };
     try {
@@ -296,6 +318,68 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 };
 
+
+function langfuseTrace(
+  env: Env,
+  opts: {
+    traceId: string;
+    name: string;
+    input: unknown;
+    output: unknown;
+    model: string;
+    startTime: string;
+    endTime: string;
+    metadata?: Record<string, unknown>;
+    usage?: { input?: number; output?: number; total?: number };
+  },
+): Promise<void> {
+  const { LANGFUSE_SECRET_KEY, LANGFUSE_PUBLIC_KEY, LANGFUSE_BASE_URL } = env;
+  if (!LANGFUSE_SECRET_KEY || !LANGFUSE_PUBLIC_KEY || !LANGFUSE_BASE_URL) return Promise.resolve();
+
+  const genId = `gen-${opts.traceId}`;
+  return fetch(`${LANGFUSE_BASE_URL}/api/public/ingestion`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Basic ${btoa(`${LANGFUSE_PUBLIC_KEY}:${LANGFUSE_SECRET_KEY}`)}`,
+    },
+    body: JSON.stringify({
+      batch: [
+        {
+          id: crypto.randomUUID(),
+          type: "trace-create",
+          timestamp: opts.startTime,
+          body: {
+            id: opts.traceId,
+            name: opts.name,
+            input: opts.input,
+            output: opts.output,
+            metadata: opts.metadata,
+          },
+        },
+        {
+          id: crypto.randomUUID(),
+          type: "generation-create",
+          timestamp: opts.startTime,
+          body: {
+            id: genId,
+            traceId: opts.traceId,
+            name: `${opts.model} generation`,
+            model: opts.model,
+            input: opts.input,
+            output: opts.output,
+            startTime: opts.startTime,
+            endTime: opts.endTime,
+            usage: opts.usage,
+            metadata: opts.metadata,
+          },
+        },
+      ],
+    }),
+  }).then(() => {}).catch((err) => {
+    console.error("Langfuse trace failed:", err instanceof Error ? err.message : err);
+  });
+}
 
 async function getVideoTitle(videoId: string): Promise<string> {
   try {

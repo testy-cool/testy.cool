@@ -46,41 +46,21 @@ function formatTime(seconds: number): string {
 function TimestampChip({
   timestamp,
   caption,
-  frameData,
   onSeek,
 }: {
   timestamp: number;
   caption: string;
-  frameData?: string;
   onSeek: (s: number) => void;
 }) {
   return (
     <div className="mb-3">
-      {frameData && (
-        <button
-          onClick={() => onSeek(timestamp)}
-          className="block mb-1.5 cursor-pointer group/frame"
-        >
-          <img
-            src={`data:image/jpeg;base64,${frameData}`}
-            alt={caption}
-            className="w-full rounded-lg border border-fd-border/30 group-hover/frame:border-fd-primary/40 transition-all duration-200"
-          />
-        </button>
-      )}
       <button
         onClick={() => onSeek(timestamp)}
         className="group flex items-center gap-2.5 w-full text-left px-3 py-2 rounded-lg border border-fd-border/50 hover:border-fd-primary/40 bg-fd-card/50 hover:bg-fd-card transition-all duration-200 cursor-pointer"
       >
-        {/* Film frame icon */}
+        {/* Play icon */}
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="shrink-0 text-fd-muted-foreground/50 group-hover:text-fd-primary transition-colors">
-          <rect x="1" y="3" width="14" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
-          <rect x="3" y="1" width="2" height="3" rx="0.5" fill="currentColor" />
-          <rect x="7" y="1" width="2" height="3" rx="0.5" fill="currentColor" />
-          <rect x="11" y="1" width="2" height="3" rx="0.5" fill="currentColor" />
-          <rect x="3" y="12" width="2" height="3" rx="0.5" fill="currentColor" />
-          <rect x="7" y="12" width="2" height="3" rx="0.5" fill="currentColor" />
-          <rect x="11" y="12" width="2" height="3" rx="0.5" fill="currentColor" />
+          <path d="M5 3l8 5-8 5V3z" fill="currentColor" />
         </svg>
         {/* Timestamp badge */}
         <span className="shrink-0 px-1.5 py-0.5 rounded text-[11px] font-mono font-semibold bg-fd-primary/10 text-fd-primary">
@@ -108,7 +88,6 @@ function BlockRenderer({
         <TimestampChip
           timestamp={block.timestamp}
           caption={block.caption}
-          frameData={block.frameData}
           onSeek={onSeek}
         />
       );

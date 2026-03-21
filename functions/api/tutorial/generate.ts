@@ -10,7 +10,7 @@ const PROMPT_KEY = "config:tutorial_prompt";
 interface Env {
   GEMINI_API_KEY: string;
   PANTRY_CACHE: KVNamespace;
-  FRAME_EXTRACTOR_URL?: string;
+
 }
 
 interface VersionMeta {
@@ -232,9 +232,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       );
     }
 
-    // 3b. Extract frames for screenshot blocks (non-blocking)
-    await enrichWithFrames(tutorial, context.env.FRAME_EXTRACTOR_URL);
-
     // 4. Version history: store versioned entry and update metadata
     const metaRaw = await kv.get(`tutorial:${videoId}:meta`);
     const meta: VersionMeta = metaRaw
@@ -299,63 +296,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 };
 
-async function enrichWithFrames(
-  tutorial: { videoId: string; steps: { blocks: { type: string; timestamp?: number; frameData?: string }[] }[] },
-  frameExtractorUrl?: string,
-): Promise<void> {
-  try {
-    // Collect all screenshot timestamps
-    const screenshotBlocks: { stepIdx: number; blockIdx: number; timestamp: number }[] = [];
-    for (let si = 0; si < tutorial.steps.length; si++) {
-      const step = tutorial.steps[si];
-      for (let bi = 0; bi < step.blocks.length; bi++) {
-        const block = step.blocks[bi];
-        if (block.type === "screenshot" && typeof block.timestamp === "number") {
-          screenshotBlocks.push({ stepIdx: si, blockIdx: bi, timestamp: block.timestamp });
-        }
-      }
-    }
-
-    if (screenshotBlocks.length === 0) return;
-
-    const baseUrl = (frameExtractorUrl || "https://frames.voidxd.cloud").replace(/\/$/, "");
-    const res = await fetch(`${baseUrl}/extract-frames`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        videoId: tutorial.videoId,
-        timestamps: screenshotBlocks.map((b) => b.timestamp),
-      }),
-      signal: AbortSignal.timeout(90_000),
-    });
-
-    if (!res.ok) {
-      console.error(`Frame extractor returned ${res.status}: ${await res.text().catch(() => "")}`);
-      return;
-    }
-
-    const data = (await res.json()) as { frames?: { timestamp: number; base64: string }[] };
-    if (!data.frames || !Array.isArray(data.frames)) return;
-
-    // Build a lookup by timestamp
-    const frameMap = new Map<number, string>();
-    for (const f of data.frames) {
-      if (f.base64) frameMap.set(f.timestamp, f.base64);
-    }
-
-    // Merge back into blocks
-    for (const sb of screenshotBlocks) {
-      const frameData = frameMap.get(sb.timestamp);
-      if (frameData) {
-        tutorial.steps[sb.stepIdx].blocks[sb.blockIdx].frameData = frameData;
-      }
-    }
-
-    console.log(`Enriched ${frameMap.size}/${screenshotBlocks.length} screenshot blocks with frames`);
-  } catch (err) {
-    console.error("Frame extraction failed (non-fatal):", err instanceof Error ? err.message : err);
-  }
-}
 
 async function getVideoTitle(videoId: string): Promise<string> {
   try {
@@ -384,7 +324,7 @@ You have these block types to build with. Use them liberally to create a visuall
 
 1. **paragraph** - Running text. Use HTML: <strong>, <code>, <em>. Keep paragraphs SHORT (2-4 sentences max). Break up ideas into multiple paragraphs rather than one long one.
 
-2. **screenshot** - Visual reference from the video. Use when the video shows something genuinely worth seeing - a UI, terminal output, a code editor, a result, a demo. These get auto-populated with actual video frames. Don't force them - use 3-8 per tutorial, only when the visual adds real value.
+2. **screenshot** - Timestamp-linked seek button. The reader clicks it to jump the video to that moment. NO image is shown - it's just a clickable timestamp with a caption. Use sparingly (3-6 per tutorial) for key moments the reader might want to rewatch: a live demo, a critical config step, a before/after result. Don't use for static content that you can represent better with a visual block.
    Fields: timestamp (integer seconds), caption (what's shown - be specific)
 
 3. **code** - Code blocks for any code shown or mentioned.
@@ -459,10 +399,9 @@ No diplomacy. No "overall this is a great video." Be real.
       "tagType": "intro",
       "title": "Section heading",
       "blocks": [
-        { "type": "screenshot", "timestamp": 5, "caption": "What the viewer sees on screen at this moment" },
         { "type": "paragraph", "html": "Short paragraph with <strong>bold</strong> and <code>code</code>" },
-        { "type": "screenshot", "timestamp": 18, "caption": "Another visual from the video" },
         { "type": "concept", "title": "Why This Matters", "html": "Explanation of the key idea" },
+        { "type": "screenshot", "timestamp": 18, "caption": "Key moment worth rewatching" },
         { "type": "visual", "caption": "Pipeline", "html": "<div style='display:flex;align-items:center;gap:8px;padding:16px'>...</div>" },
         { "type": "code", "language": "bash", "code": "actual code from the video" },
         { "type": "tldr", "html": "Your honest take on this section" },

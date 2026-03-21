@@ -36,6 +36,35 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   const action = url.searchParams.get("action");
   const videoId = url.searchParams.get("videoId");
 
+  if (action === "langfuse-test") {
+    const { LANGFUSE_SECRET_KEY, LANGFUSE_PUBLIC_KEY, LANGFUSE_BASE_URL } = context.env;
+    const hasKeys = { secret: !!LANGFUSE_SECRET_KEY, public: !!LANGFUSE_PUBLIC_KEY, url: !!LANGFUSE_BASE_URL };
+    if (!LANGFUSE_SECRET_KEY || !LANGFUSE_PUBLIC_KEY || !LANGFUSE_BASE_URL) {
+      return json({ error: "Missing env vars", hasKeys });
+    }
+    try {
+      const res = await fetch(`${LANGFUSE_BASE_URL}/api/public/ingestion`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Basic ${btoa(`${LANGFUSE_PUBLIC_KEY}:${LANGFUSE_SECRET_KEY}`)}`,
+        },
+        body: JSON.stringify({
+          batch: [{
+            id: crypto.randomUUID(),
+            type: "trace-create",
+            timestamp: new Date().toISOString(),
+            body: { id: `diag-${Date.now()}`, name: "diagnostic-ping", input: { test: true } },
+          }],
+        }),
+      });
+      const body = await res.text();
+      return json({ status: res.status, body: JSON.parse(body), hasKeys });
+    } catch (err) {
+      return json({ error: err instanceof Error ? err.message : String(err), hasKeys });
+    }
+  }
+
   if (action === "recent") {
     const raw = await kv.get(RECENT_KEY);
     return json({ tutorials: raw ? JSON.parse(raw) : [] });

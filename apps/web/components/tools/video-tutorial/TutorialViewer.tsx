@@ -628,9 +628,14 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
               {tutorial.title}
             </h1>
             {tutorial.summary && (
-              <p className="text-base text-fd-muted-foreground/70 leading-relaxed mb-5">
-                {tutorial.summary.length > 200 ? tutorial.summary.slice(0, 200).trimEnd() + '…' : tutorial.summary}
-              </p>
+              <div className="mb-6 pl-4 border-l-2 border-fd-border/40">
+                <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1.5 block">
+                  tl;dr
+                </span>
+                <p className="text-base text-fd-muted-foreground leading-relaxed">
+                  {tutorial.summary}
+                </p>
+              </div>
             )}
             <p className="text-[12px] text-fd-muted-foreground/40 mb-8">
               Scroll to scrub the video, or play to auto-scroll.

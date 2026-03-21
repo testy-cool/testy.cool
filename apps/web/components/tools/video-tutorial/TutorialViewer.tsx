@@ -149,7 +149,7 @@ function BlockRenderer({
             </span>
           )}
           <div
-            className="visual-block rounded-xl border border-fd-border/30 bg-fd-card/50 overflow-hidden [&_table]:w-full [&_table]:text-[13px] [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_td]:px-4 [&_td]:py-2"
+            className="visual-block rounded-xl border border-fd-border/30 bg-fd-card/50 overflow-hidden font-sans text-[13px] [&_*]:font-sans [&_table]:w-full [&_table]:text-[13px] [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_td]:px-4 [&_td]:py-2"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.html, VISUAL_SANITIZE_CFG) }}
           />
         </div>

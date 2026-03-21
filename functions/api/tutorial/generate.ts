@@ -339,30 +339,45 @@ You have these block types to build with. Use them liberally to create a visuall
 6. **list** - Bullet points for steps, comparisons, feature lists. Each item can use <strong> and <code>.
    Fields: items (string array)
 
-7. **visual** - Custom HTML visual to illustrate a concept. Write raw HTML with inline styles. Use this for flow diagrams, comparison tables, architecture layouts, process diagrams, or any visual explanation. You have FULL creative freedom - build whatever visual best explains the concept.
+7. **visual** — YOUR PRIMARY ILLUSTRATION TOOL. Write raw HTML with inline styles to explain concepts visually. This is how you make the tutorial scannable and useful — not with walls of text, but with HTML diagrams, tables, annotated layouts, and visual explanations.
    Fields: html (string - raw HTML with inline styles), caption (optional string)
 
-   **Design system tokens** (use these in inline styles for dark/light mode compatibility):
+   Use visual blocks for:
+   - Flow diagrams (data pipelines, request lifecycles, build processes)
+   - Comparison tables (feature matrices, before/after, pros/cons, X vs Y)
+   - Architecture diagrams (layered stacks, component relationships)
+   - Annotated layouts (labeled boxes showing what connects to what)
+   - Step-by-step processes (numbered boxes with arrows)
+   - Cheat sheets (key-value grids, quick reference cards)
+   - Anything that would be clearer as a diagram than as a sentence
+
+   **Design system tokens** (use in inline styles — these adapt to dark/light mode):
    - Text: \`color: hsl(var(--fd-foreground))\` / muted: \`color: hsl(var(--fd-muted-foreground))\`
    - Borders: \`border-color: hsl(var(--fd-border))\` / accent: \`hsl(var(--fd-primary))\`
    - Backgrounds: \`background: hsl(var(--fd-card))\` / muted bg: \`background: hsl(var(--fd-muted))\`
-   - Primary with opacity: \`background: hsl(var(--fd-primary) / 0.1)\`
+   - Primary tints: \`background: hsl(var(--fd-primary) / 0.1)\`, \`border: 1px solid hsl(var(--fd-primary) / 0.2)\`
 
-   Examples:
-   - Flow: \`<div style="display:flex;align-items:center;gap:8px;padding:16px"><div style="padding:6px 12px;border-radius:8px;background:hsl(var(--fd-primary)/0.1);border:1px solid hsl(var(--fd-primary)/0.2);color:hsl(var(--fd-foreground));font-size:13px">Client</div><span style="color:hsl(var(--fd-muted-foreground)/0.3)">→</span><div style="padding:6px 12px;border-radius:8px;background:hsl(var(--fd-primary)/0.1);border:1px solid hsl(var(--fd-primary)/0.2);color:hsl(var(--fd-foreground));font-size:13px">Server</div><span style="color:hsl(var(--fd-muted-foreground)/0.3)">→</span><div style="padding:6px 12px;border-radius:8px;background:hsl(var(--fd-primary)/0.1);border:1px solid hsl(var(--fd-primary)/0.2);color:hsl(var(--fd-foreground));font-size:13px">DB</div></div>\`
-   - Table: \`<table style="width:100%;font-size:13px;border-collapse:collapse"><thead><tr style="background:hsl(var(--fd-card))"><th style="padding:10px 16px;text-align:left;font-weight:600;color:hsl(var(--fd-foreground));border-bottom:1px solid hsl(var(--fd-border)/0.3)">Feature</th><th style="padding:10px 16px;text-align:left;font-weight:600;color:hsl(var(--fd-foreground));border-bottom:1px solid hsl(var(--fd-border)/0.3)">Before</th><th style="padding:10px 16px;text-align:left;font-weight:600;color:hsl(var(--fd-foreground));border-bottom:1px solid hsl(var(--fd-border)/0.3)">After</th></tr></thead><tbody><tr><td style="padding:8px 16px;color:hsl(var(--fd-muted-foreground))">Speed</td><td style="padding:8px 16px;color:hsl(var(--fd-muted-foreground))">Slow</td><td style="padding:8px 16px;color:hsl(var(--fd-muted-foreground))">Fast</td></tr></tbody></table>\`
-   - Architecture: \`<div style="display:flex;flex-direction:column;gap:8px;padding:16px"><div><div style="font-size:11px;color:hsl(var(--fd-muted-foreground)/0.5);margin-bottom:6px">Frontend</div><div style="display:flex;gap:6px"><span style="padding:4px 10px;border-radius:6px;background:hsl(var(--fd-primary)/0.08);border:1px solid hsl(var(--fd-primary)/0.15);font-size:12px;color:hsl(var(--fd-foreground))">React</span><span style="padding:4px 10px;border-radius:6px;background:hsl(var(--fd-primary)/0.08);border:1px solid hsl(var(--fd-primary)/0.15);font-size:12px;color:hsl(var(--fd-foreground))">Tailwind</span></div></div><div style="text-align:center;color:hsl(var(--fd-muted-foreground)/0.25)">↓</div><div><div style="font-size:11px;color:hsl(var(--fd-muted-foreground)/0.5);margin-bottom:6px">Backend</div><div style="display:flex;gap:6px"><span style="padding:4px 10px;border-radius:6px;background:hsl(var(--fd-primary)/0.08);border:1px solid hsl(var(--fd-primary)/0.15);font-size:12px;color:hsl(var(--fd-foreground))">Node.js</span><span style="padding:4px 10px;border-radius:6px;background:hsl(var(--fd-primary)/0.08);border:1px solid hsl(var(--fd-primary)/0.15);font-size:12px;color:hsl(var(--fd-foreground))">Redis</span></div></div></div>\`
+   **Examples:**
 
-   Be creative. SVGs for arrows, color-coded boxes, nested layouts - whatever communicates the idea best.
+   Flow diagram:
+   \`<div style="display:flex;align-items:center;gap:8px;padding:16px;flex-wrap:wrap"><div style="padding:6px 12px;border-radius:8px;background:hsl(var(--fd-primary)/0.1);border:1px solid hsl(var(--fd-primary)/0.2);color:hsl(var(--fd-foreground));font-size:13px">Client</div><span style="color:hsl(var(--fd-muted-foreground)/0.3)">→</span><div style="padding:6px 12px;border-radius:8px;background:hsl(var(--fd-primary)/0.1);border:1px solid hsl(var(--fd-primary)/0.2);color:hsl(var(--fd-foreground));font-size:13px">Server</div><span style="color:hsl(var(--fd-muted-foreground)/0.3)">→</span><div style="padding:6px 12px;border-radius:8px;background:hsl(var(--fd-primary)/0.1);border:1px solid hsl(var(--fd-primary)/0.2);color:hsl(var(--fd-foreground));font-size:13px">DB</div></div>\`
+
+   Comparison table:
+   \`<table style="width:100%;font-size:13px;border-collapse:collapse"><thead><tr style="background:hsl(var(--fd-card))"><th style="padding:10px 16px;text-align:left;font-weight:600;color:hsl(var(--fd-foreground));border-bottom:1px solid hsl(var(--fd-border)/0.3)">Feature</th><th style="padding:10px 16px;text-align:left;font-weight:600;color:hsl(var(--fd-foreground));border-bottom:1px solid hsl(var(--fd-border)/0.3)">Before</th><th style="padding:10px 16px;text-align:left;font-weight:600;color:hsl(var(--fd-foreground));border-bottom:1px solid hsl(var(--fd-border)/0.3)">After</th></tr></thead><tbody><tr><td style="padding:8px 16px;color:hsl(var(--fd-muted-foreground))">Speed</td><td style="padding:8px 16px;color:hsl(var(--fd-muted-foreground))">Slow</td><td style="padding:8px 16px;color:hsl(var(--fd-muted-foreground))">Fast</td></tr></tbody></table>\`
+
+   Architecture stack:
+   \`<div style="display:flex;flex-direction:column;gap:8px;padding:16px"><div><div style="font-size:11px;color:hsl(var(--fd-muted-foreground)/0.5);margin-bottom:6px">Frontend</div><div style="display:flex;gap:6px;flex-wrap:wrap"><span style="padding:4px 10px;border-radius:6px;background:hsl(var(--fd-primary)/0.08);border:1px solid hsl(var(--fd-primary)/0.15);font-size:12px;color:hsl(var(--fd-foreground))">React</span><span style="padding:4px 10px;border-radius:6px;background:hsl(var(--fd-primary)/0.08);border:1px solid hsl(var(--fd-primary)/0.15);font-size:12px;color:hsl(var(--fd-foreground))">Tailwind</span></div></div><div style="text-align:center;color:hsl(var(--fd-muted-foreground)/0.25)">↓</div><div><div style="font-size:11px;color:hsl(var(--fd-muted-foreground)/0.5);margin-bottom:6px">Backend</div><div style="display:flex;gap:6px;flex-wrap:wrap"><span style="padding:4px 10px;border-radius:6px;background:hsl(var(--fd-primary)/0.08);border:1px solid hsl(var(--fd-primary)/0.15);font-size:12px;color:hsl(var(--fd-foreground))">Node.js</span><span style="padding:4px 10px;border-radius:6px;background:hsl(var(--fd-primary)/0.08);border:1px solid hsl(var(--fd-primary)/0.15);font-size:12px;color:hsl(var(--fd-foreground))">Redis</span></div></div></div>\`
+
+   Be creative and thorough. Every concept that can be drawn SHOULD be drawn. SVGs for arrows, color-coded boxes, nested layouts, grids — whatever communicates the idea best. A tutorial with zero visual blocks is a bad tutorial.
 
 ## CONTENT RULES
 
 - Group into 5-15 logical sections depending on video length
 - Each section = ONE topic, step, or concept
 - Extract ALL technical details, steps, code, and explanations - don't summarize away the substance
-- ILLUSTRATE don't narrate. Use visual blocks to SHOW relationships and processes instead of describing them in paragraphs. If the video says "data flows from X to Y to Z", build a flow diagram in a visual block. If it compares options, build a comparison table. If it shows a tech stack, build a layered architecture visual. You have full HTML - get creative.
-- Use screenshots when the video shows something genuinely worth seeing (3-8 per tutorial). Don't force screenshots of talking heads or static slides.
-- Alternate block types constantly. Never have 3+ paragraphs in a row. Break them up with visual blocks, screenshots, lists, concepts, code. The reader's eye should bounce between text and visuals.
+- ILLUSTRATE don't narrate. Visual blocks are your primary tool. If the video says "data flows from X to Y to Z", draw a flow diagram. If it compares options, build a comparison table. If it shows a tech stack, build a layered architecture visual. If it explains a process, draw numbered steps with arrows. Every section should have at least one visual block. Aim for 8-15 visual blocks per tutorial.
+- Screenshots are just seek buttons (no images). Use 3-6 per tutorial, only for moments the reader might want to rewatch in the video player.
+- Alternate block types constantly. Never have 3+ paragraphs in a row. Break them up with visual blocks, lists, concepts, code. The reader's eye should bounce between text and HTML illustrations.
 - tagType must be exactly one of: "intro", "concept", "setup", "action"
 - startSeconds/endSeconds must be integers matching the actual video timeline
 - Sections must cover the entire video chronologically with no timestamp gaps

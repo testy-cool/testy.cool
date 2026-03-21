@@ -84,6 +84,10 @@ export const onRequestPut: PagesFunction<Env> = async (context) => {
     if (body.password !== "penis") {
       return json({ error: "Invalid password" }, 403);
     }
+    if (body.prompt === "__reset__") {
+      await kv.delete(PROMPT_KEY);
+      return json({ success: true, reset: true });
+    }
     if (!body.prompt || typeof body.prompt !== "string") {
       return json({ error: "Missing prompt" }, 400);
     }

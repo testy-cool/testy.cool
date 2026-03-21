@@ -319,7 +319,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 };
 
 
-function langfuseTrace(
+async function langfuseTrace(
   env: Env,
   opts: {
     traceId: string;
@@ -334,7 +334,7 @@ function langfuseTrace(
   },
 ): Promise<void> {
   const { LANGFUSE_SECRET_KEY, LANGFUSE_PUBLIC_KEY, LANGFUSE_BASE_URL } = env;
-  if (!LANGFUSE_SECRET_KEY || !LANGFUSE_PUBLIC_KEY || !LANGFUSE_BASE_URL) return Promise.resolve();
+  if (!LANGFUSE_SECRET_KEY || !LANGFUSE_PUBLIC_KEY || !LANGFUSE_BASE_URL) return;
 
   const genId = `gen-${opts.traceId}`;
   const payload = {

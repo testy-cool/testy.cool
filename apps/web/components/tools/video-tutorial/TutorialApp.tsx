@@ -310,6 +310,7 @@ export default function TutorialApp() {
         onBack={handleBack}
         onRegenerate={handleRegenerate}
         isRegenerating={isLoading}
+        regenerateError={error}
         versions={versions}
         currentVersion={currentVersion}
         onSelectVersion={handleSelectVersion}

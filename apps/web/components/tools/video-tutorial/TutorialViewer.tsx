@@ -24,6 +24,7 @@ interface Props {
   onBack: () => void;
   onRegenerate?: () => void;
   isRegenerating?: boolean;
+  regenerateError?: string | null;
   versions?: TutorialVersion[];
   onSelectVersion?: (version: number) => void;
   currentVersion?: number;
@@ -297,7 +298,7 @@ function RegenerateButton({ onRegenerate, isRegenerating }: { onRegenerate: () =
   );
 }
 
-export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegenerating, versions, onSelectVersion, currentVersion, pendingVersion, onDismissPending }: Props) {
+export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegenerating, regenerateError, versions, onSelectVersion, currentVersion, pendingVersion, onDismissPending }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -567,8 +568,19 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
             </div>
           )}
 
+          {/* Regeneration error banner */}
+          {regenerateError && !isRegenerating && (
+            <div className="flex items-center gap-2 px-5 lg:px-8 py-2.5 border-b border-red-300/20 dark:border-red-900/20 shrink-0 text-[13px] text-red-500">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="shrink-0">
+                <circle cx="8" cy="8" r="6.5" />
+                <path d="M8 5v3M8 10.5v.5" />
+              </svg>
+              {regenerateError}
+            </div>
+          )}
+
           {/* Regenerated success banner */}
-          {pendingVersion && !isRegenerating && (
+          {pendingVersion && !isRegenerating && !regenerateError && (
             <div className="flex items-center justify-between px-5 lg:px-8 py-2 border-b border-fd-border/20 shrink-0 text-[13px] text-fd-muted-foreground">
               Switched to v{pendingVersion}. Previous versions in the dropdown.
               <button
@@ -626,7 +638,7 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
 
             {tutorial.steps.map((step, i) => (
               <StepCard
-                key={i}
+                key={`${tutorial.generatedAt}-${i}`}
                 step={step}
                 active={i === activeIndex}
                 onSeek={seekTo}

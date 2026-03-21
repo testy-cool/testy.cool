@@ -211,9 +211,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const text = response.text;
     if (!text) return json({ error: "Empty response from Gemini" }, 502);
 
-    // Langfuse trace (fire-and-forget)
+    // Langfuse trace
     const usageMeta = response.usageMetadata;
-    context.waitUntil(langfuseTrace(context.env, {
+    await langfuseTrace(context.env, {
       traceId: `tut-${videoId}-${Date.now()}`,
       name: `tutorial:${videoId}`,
       input: { videoId, videoTitle, promptLength: finalPrompt.length },
@@ -227,7 +227,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         output: usageMeta.candidatesTokenCount,
         total: usageMeta.totalTokenCount,
       } : undefined,
-    }));
+    });
 
     let tutorialData: { title?: string; steps?: unknown[] };
     try {
@@ -337,48 +337,54 @@ function langfuseTrace(
   if (!LANGFUSE_SECRET_KEY || !LANGFUSE_PUBLIC_KEY || !LANGFUSE_BASE_URL) return Promise.resolve();
 
   const genId = `gen-${opts.traceId}`;
-  return fetch(`${LANGFUSE_BASE_URL}/api/public/ingestion`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Basic ${btoa(`${LANGFUSE_PUBLIC_KEY}:${LANGFUSE_SECRET_KEY}`)}`,
-    },
-    body: JSON.stringify({
-      batch: [
-        {
-          id: crypto.randomUUID(),
-          type: "trace-create",
-          timestamp: opts.startTime,
-          body: {
-            id: opts.traceId,
-            name: opts.name,
-            input: opts.input,
-            output: opts.output,
-            metadata: opts.metadata,
-          },
+  const payload = {
+    batch: [
+      {
+        id: crypto.randomUUID(),
+        type: "trace-create",
+        timestamp: opts.startTime,
+        body: {
+          id: opts.traceId,
+          name: opts.name,
+          input: opts.input,
+          output: opts.output,
+          metadata: opts.metadata,
         },
-        {
-          id: crypto.randomUUID(),
-          type: "generation-create",
-          timestamp: opts.startTime,
-          body: {
-            id: genId,
-            traceId: opts.traceId,
-            name: `${opts.model} generation`,
-            model: opts.model,
-            input: opts.input,
-            output: opts.output,
-            startTime: opts.startTime,
-            endTime: opts.endTime,
-            usage: opts.usage,
-            metadata: opts.metadata,
-          },
+      },
+      {
+        id: crypto.randomUUID(),
+        type: "generation-create",
+        timestamp: opts.startTime,
+        body: {
+          id: genId,
+          traceId: opts.traceId,
+          name: `${opts.model} generation`,
+          model: opts.model,
+          input: opts.input,
+          output: opts.output,
+          startTime: opts.startTime,
+          endTime: opts.endTime,
+          usage: opts.usage,
+          metadata: opts.metadata,
         },
-      ],
-    }),
-  }).then(() => {}).catch((err) => {
+      },
+    ],
+  };
+
+  try {
+    const res = await fetch(`${LANGFUSE_BASE_URL}/api/public/ingestion`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Basic ${btoa(`${LANGFUSE_PUBLIC_KEY}:${LANGFUSE_SECRET_KEY}`)}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    const body = await res.text();
+    console.log(`Langfuse trace ${res.status}: ${body}`);
+  } catch (err) {
     console.error("Langfuse trace failed:", err instanceof Error ? err.message : err);
-  });
+  }
 }
 
 async function getVideoTitle(videoId: string): Promise<string> {

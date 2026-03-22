@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 
-const MODEL = "gemini-3-flash-preview";
+const DEFAULT_MODEL = "gemini-3-flash-preview";
+const ALLOWED_MODELS = ["gemini-3-flash-preview", "gemini-3.1-pro-preview"];
 const TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
 const MAX_RECENT = 20;
 const MAX_VERSIONS = 20;
@@ -106,7 +107,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const kv = context.env.PANTRY_CACHE;
   if (!kv) return json({ error: "KV not configured" }, 502);
 
-  let body: { videoId: string; force?: boolean };
+  let body: { videoId: string; force?: boolean; model?: string };
   try {
     body = await context.request.json();
   } catch {
@@ -114,6 +115,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 
   const { videoId, force } = body;
+  const model = body.model && ALLOWED_MODELS.includes(body.model) ? body.model : DEFAULT_MODEL;
   if (!videoId || typeof videoId !== "string") {
     return json({ error: "Missing videoId" }, 400);
   }
@@ -187,7 +189,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const genStartTime = new Date().toISOString();
 
     const response = await ai.models.generateContent({
-      model: MODEL,
+      model,
       contents: [
         {
           parts: [
@@ -222,7 +224,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       name: `tutorial:${videoId}`,
       input: finalPrompt,
       output: text,
-      model: MODEL,
+      model,
       startTime: genStartTime,
       endTime: genEndTime,
       metadata: { videoId, videoTitle, force: !!force },

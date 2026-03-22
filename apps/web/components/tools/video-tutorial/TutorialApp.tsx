@@ -116,6 +116,9 @@ export default function TutorialApp() {
   const [promptPassword, setPromptPassword] = useState("");
   const [promptShowPassword, setPromptShowPassword] = useState(false);
   const [promptStatus, setPromptStatus] = useState<string | null>(null);
+  const [godMode, setGodMode] = useState(false);
+  const [selectedModel, setSelectedModel] = useState("gemini-3-flash-preview");
+  const godBuffer = useRef("");
 
   const previewId = useMemo(() => parseVideoId(input), [input]);
   const tutorialRef = useRef(tutorial);
@@ -137,7 +140,8 @@ export default function TutorialApp() {
     }
 
     try {
-      const result = await generateTutorial(videoId);
+      const model = godMode ? selectedModel : undefined;
+      const result = await generateTutorial(videoId, false, model);
       setTutorial(result);
       const slug = slugify(result.title || result.videoTitle || "");
       const url = slug ? `?v=${videoId}&t=${slug}` : `?v=${videoId}`;
@@ -156,7 +160,7 @@ export default function TutorialApp() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [godMode, selectedModel]);
 
   useEffect(() => {
     const v = new URLSearchParams(window.location.search).get("v");
@@ -176,6 +180,19 @@ export default function TutorialApp() {
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      godBuffer.current = (godBuffer.current + e.key).slice(-5);
+      if (godBuffer.current === "iddqd") {
+        setGodMode((prev) => !prev);
+        godBuffer.current = "";
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   const handleSubmit = () => {
@@ -200,7 +217,8 @@ export default function TutorialApp() {
     setPendingVersion(null);
     const t0 = Date.now();
     try {
-      const result = await generateTutorial(current.videoId, true);
+      const model = godMode ? selectedModel : undefined;
+      const result = await generateTutorial(current.videoId, true, model);
       setTutorial(result);
       const v = await getVersions(current.videoId);
       setVersions(v);
@@ -218,7 +236,7 @@ export default function TutorialApp() {
       if (elapsed < 600) await new Promise((r) => setTimeout(r, 600 - elapsed));
       setIsLoading(false);
     }
-  }, []);
+  }, [godMode, selectedModel]);
 
   const handleSelectVersion = useCallback(async (version: number) => {
     if (!tutorial) return;
@@ -426,6 +444,28 @@ export default function TutorialApp() {
                 )}
               </button>
             </div>
+
+            {/* God mode model selector */}
+            {godMode && (
+              <div className="mt-3 flex items-center gap-2">
+                <span className="text-[11px] font-mono text-green-500/80 uppercase tracking-wider">IDDQD</span>
+                <div className="flex rounded-lg border border-green-500/30 overflow-hidden">
+                  {["gemini-3-flash-preview", "gemini-3.1-pro-preview"].map((m) => (
+                    <button
+                      key={m}
+                      onClick={() => setSelectedModel(m)}
+                      className={`px-3 py-1.5 text-[12px] font-mono transition-colors ${
+                        selectedModel === m
+                          ? "bg-green-500/20 text-green-400"
+                          : "text-fd-muted-foreground/50 hover:text-green-400/70"
+                      }`}
+                    >
+                      {m.replace("gemini-", "").replace("-preview", "")}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* View Prompt */}
             <div className="mt-3">

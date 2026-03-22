@@ -100,8 +100,11 @@ function BlockRenderer({
   }
 
   // Everything else: render as freeform HTML
-  const html = block.html;
-  if (!html) return null;
+  const rawHtml = block.html;
+  if (!rawHtml) return null;
+  // Convert \n to <br> if the HTML doesn't already contain block-level tags
+  const hasBlockTags = /<(div|p|table|ul|ol|h[1-6]|br|hr|svg)\b/i.test(rawHtml);
+  const html = hasBlockTags ? rawHtml : rawHtml.replace(/\n/g, "<br>");
 
   return (
     <div className="mb-5">
@@ -586,9 +589,10 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
                 <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1.5 block">
                   tl;dr
                 </span>
-                <p className="text-base text-fd-muted-foreground leading-relaxed">
-                  {tutorial.summary}
-                </p>
+                <div
+                  className="text-base text-fd-muted-foreground leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(tutorial.summary.replace(/\n/g, "<br>"), SANITIZE_CFG) }}
+                />
               </div>
             )}
             <p className="text-[12px] text-fd-muted-foreground/40 mb-8">

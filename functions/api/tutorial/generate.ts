@@ -407,59 +407,34 @@ async function getVideoTitle(videoId: string): Promise<string> {
 }
 
 function buildPrompt(videoTitle: string): string {
-  return `Watch this video and create an illustrated, scannable breakdown.
+  return `You're a cynical tech writer who values people's time. Someone sent you a video. You don't want to watch it either, but you did, and now you're going to save everyone else the trouble.
+
+Your job: rip through the video, extract what's actually useful, call out the bullshit, and present it as a visual, scannable breakdown that takes 2 minutes to read instead of 20 minutes to watch.
 
 Video title: "${videoTitle}"
 
-## HOW IT WORKS
+## FORMAT
 
-Each step has a "blocks" array. Each block has a "type" (any string you want) and an "html" field with your content. You write raw HTML with inline styles. You control all the layout, typography, and visuals. There are no predefined components — you decide how to present each piece of information.
+Each block: { type: "any string", html: "raw HTML with inline styles", caption?: "optional" }
+Special: { type: "code", language: "...", code: "..." } for code blocks.
+Special: { type: "screenshot", timestamp: 123, caption: "..." } for video seek buttons.
 
-Two special block types:
-- **code** — { type: "code", language: "...", code: "..." } — rendered as a syntax-highlighted code block
-- **screenshot** — { type: "screenshot", timestamp: 123, caption: "..." } — rendered as a clickable seek button (no image)
+Everything else is your HTML. No templates, no components. You decide the layout.
 
-Everything else: { type: "anything", html: "your HTML here", caption?: "optional label above" }
+## COLORS (CSS vars for dark/light mode)
 
-## DESIGN TOKENS
+hsl(var(--fd-foreground)), hsl(var(--fd-muted-foreground)), hsl(var(--fd-border)), hsl(var(--fd-primary)), hsl(var(--fd-card)), hsl(var(--fd-muted)). Opacity: hsl(var(--fd-primary) / 0.15). Fixed colors fine: #22c55e #ef4444 #f59e0b #3b82f6.
 
-Use these CSS variables in inline styles for dark/light mode:
-- \`hsl(var(--fd-foreground))\` text, \`hsl(var(--fd-muted-foreground))\` secondary
-- \`hsl(var(--fd-border))\` borders, \`hsl(var(--fd-primary))\` accent
-- \`hsl(var(--fd-card))\` card bg, \`hsl(var(--fd-muted))\` muted bg
-- Opacity: \`hsl(var(--fd-primary) / 0.15)\`
-- Fixed colors when semantic: #22c55e green, #ef4444 red, #f59e0b amber, #3b82f6 blue
+## STRUCTURE
 
-You have full HTML, SVG, CSS grid, flexbox, tables, positioning. Build bar charts, flow diagrams, comparison grids, architecture layouts, annotated visuals — whatever explains the concept best.
-
-## RULES
-
-- 5-15 sections, each one topic. Cover the entire video chronologically, no gaps.
+- 5-15 sections chronologically, no timestamp gaps. endSeconds = next startSeconds.
 - tagType: "intro" | "concept" | "setup" | "action"
-- endSeconds of one step = startSeconds of the next
-- Extract all substance — code, config, commands, architecture.
-- Be cynical, honest, sharp. Gut the filler. Fact-check. Credit what's good.
+- summary: 2-3 sentences. Is this worth my time? What's the actual point? Don't be polite.
 
-## OUTPUT FORMAT (return ONLY valid JSON):
+## OUTPUT (return ONLY valid JSON):
 {
-  "title": "Tutorial title",
-  "summary": "3-5 sentences. Worth watching? What's useful? Who should skip?",
-  "steps": [
-    {
-      "startSeconds": 0,
-      "endSeconds": 120,
-      "tag": "Label",
-      "tagType": "intro",
-      "title": "Section heading",
-      "blocks": [
-        { "type": "text", "html": "<p style='...'>Your content</p>" },
-        { "type": "diagram", "html": "<div style='...'>SVG or HTML diagram</div>", "caption": "How it works" },
-        { "type": "code", "language": "bash", "code": "npm install ..." },
-        { "type": "comparison", "html": "<table style='...'>...</table>" },
-        { "type": "opinion", "html": "<p style='...'>Your honest take</p>" },
-        { "type": "screenshot", "timestamp": 45, "caption": "Key moment" }
-      ]
-    }
-  ]
+  "title": "...",
+  "summary": "...",
+  "steps": [{ "startSeconds": 0, "endSeconds": 120, "tag": "Label", "tagType": "intro", "title": "...", "blocks": [{ "type": "...", "html": "..." }] }]
 }`;
 }

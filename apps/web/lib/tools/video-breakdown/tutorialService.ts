@@ -43,7 +43,11 @@ export async function getVersions(videoId: string): Promise<TutorialVersion[]> {
   try {
     const res = await fetch(`/api/tutorial/generate?action=versions&videoId=${videoId}`);
     const data = await res.json();
-    return data.versions || [];
+    return (data.versions || []).map((v: { version: number; generatedAt: number }) => ({
+      version: v.version,
+      timestamp: v.generatedAt,
+      stepCount: 0,
+    }));
   } catch {
     return [];
   }

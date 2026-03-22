@@ -117,8 +117,9 @@ export default function TutorialApp() {
   const [promptShowPassword, setPromptShowPassword] = useState(false);
   const [promptStatus, setPromptStatus] = useState<string | null>(null);
   const [godMode, setGodMode] = useState(false);
+  const [spoonMode, setSpoonMode] = useState(false);
   const [selectedModel, setSelectedModel] = useState("gemini-3-flash-preview");
-  const godBuffer = useRef("");
+  const cheatBuffer = useRef("");
 
   const previewId = useMemo(() => parseVideoId(input), [input]);
   const tutorialRef = useRef(tutorial);
@@ -185,10 +186,14 @@ export default function TutorialApp() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      godBuffer.current = (godBuffer.current + e.key).slice(-5);
-      if (godBuffer.current === "iddqd") {
+      cheatBuffer.current = (cheatBuffer.current + e.key).slice(-14);
+      const buf = cheatBuffer.current;
+      if (buf.endsWith("iddqd")) {
         setGodMode((prev) => !prev);
-        godBuffer.current = "";
+        cheatBuffer.current = "";
+      } else if (buf.endsWith("thereisnospoon")) {
+        setSpoonMode((prev) => !prev);
+        cheatBuffer.current = "";
       }
     };
     window.addEventListener("keydown", onKey);
@@ -467,14 +472,16 @@ export default function TutorialApp() {
               </div>
             )}
 
-            {/* View Prompt */}
+            {/* View Prompt (hidden behind thereisnospoon) */}
             <div className="mt-3">
+              {spoonMode && (
               <button
                 onClick={handleTogglePrompt}
                 className="text-[13px] text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors"
               >
                 {showPromptEditor ? "Hide prompt" : "View prompt"}
               </button>
+              )}
               {showPromptEditor && (
                 <div className="mt-3 border border-fd-border rounded-xl overflow-hidden">
                   {promptLoading ? (

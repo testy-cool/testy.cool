@@ -3,9 +3,8 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import DOMPurify from "dompurify";
 
-const SANITIZE_CFG = { ALLOWED_TAGS: ['strong', 'code', 'em', 'ul', 'ol', 'li', 'br', 'p', 'span'] };
-// Visual blocks: allow all HTML/SVG, just strip scripts and event handlers
-const VISUAL_SANITIZE_CFG = { ADD_TAGS: ['svg', 'path', 'rect', 'circle', 'line', 'text', 'g', 'defs', 'marker', 'polygon', 'polyline', 'ellipse', 'use', 'symbol', 'clipPath', 'linearGradient', 'radialGradient', 'stop', 'foreignObject', 'tspan'], ADD_ATTR: ['style', 'viewBox', 'xmlns', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray', 'stroke-dashoffset', 'd', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height', 'transform', 'text-anchor', 'dominant-baseline', 'font-size', 'font-weight', 'opacity', 'marker-end', 'marker-start', 'points', 'offset', 'stop-color', 'stop-opacity', 'gradientUnits', 'gradientTransform', 'clip-path', 'colspan', 'rowspan'] };
+// Allow all HTML/SVG, just strip scripts and event handlers
+const SANITIZE_CFG = { ADD_TAGS: ['svg', 'path', 'rect', 'circle', 'line', 'text', 'g', 'defs', 'marker', 'polygon', 'polyline', 'ellipse', 'use', 'symbol', 'clipPath', 'linearGradient', 'radialGradient', 'stop', 'foreignObject', 'tspan'], ADD_ATTR: ['style', 'viewBox', 'xmlns', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray', 'stroke-dashoffset', 'd', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height', 'transform', 'text-anchor', 'dominant-baseline', 'font-size', 'font-weight', 'opacity', 'marker-end', 'marker-start', 'points', 'offset', 'stop-color', 'stop-opacity', 'gradientUnits', 'gradientTransform', 'clip-path', 'colspan', 'rowspan'] };
 import type {
   Tutorial,
   TutorialStep,
@@ -80,83 +79,43 @@ function BlockRenderer({
   block: TutorialBlock;
   onSeek: (s: number) => void;
 }) {
-  switch (block.type) {
-    case "screenshot":
-      return (
-        <TimestampChip
-          timestamp={block.timestamp}
-          caption={block.caption}
-          onSeek={onSeek}
-        />
-      );
-    case "paragraph":
-      return (
-        <p
-          className="text-fd-muted-foreground text-[15px] leading-[1.75] mb-4 [&_strong]:text-fd-foreground [&_strong]:font-semibold [&_code]:bg-fd-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:text-[13px] [&_code]:font-mono [&_code]:border [&_code]:border-fd-border/50"
-          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.html, SANITIZE_CFG) }}
-        />
-      );
-    case "code":
-      return (
-        <pre className="bg-zinc-950 text-zinc-300 p-5 rounded-xl text-[13px] leading-relaxed overflow-x-auto mb-4 border border-zinc-800 font-mono">
-          <code>{block.code}</code>
-        </pre>
-      );
-    case "tldr":
-      return (
-        <div className="mb-5 pl-4 border-l border-fd-border/40">
-          <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1 block">
-            tl;dr
-          </span>
-          <div
-            className="text-fd-foreground text-[15px] leading-relaxed italic"
-            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.html, SANITIZE_CFG) }}
-          />
-        </div>
-      );
-    case "concept":
-      return (
-        <div className="mb-5 pl-4 border-l border-fd-border/40">
-          <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1 block">
-            {block.title}
-          </span>
-          <div
-            className="text-fd-muted-foreground text-[15px] leading-relaxed [&_strong]:text-fd-foreground"
-            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.html, SANITIZE_CFG) }}
-          />
-        </div>
-      );
-    case "list":
-      return (
-        <ul className="space-y-2 mb-4 pl-1">
-          {block.items.map((item, i) => (
-            <li
-              key={i}
-              className="flex gap-2.5 text-fd-muted-foreground text-[15px] leading-relaxed [&_strong]:text-fd-foreground"
-            >
-              <span className="text-fd-primary mt-1.5 shrink-0 text-[8px]">&#9679;</span>
-              <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item, SANITIZE_CFG) }} />
-            </li>
-          ))}
-        </ul>
-      );
-    case "visual":
-      return (
-        <div className="mb-5">
-          {block.caption && (
-            <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-2 block">
-              {block.caption}
-            </span>
-          )}
-          <div
-            className="visual-block rounded-xl border border-fd-border/30 bg-fd-card/50 overflow-hidden font-sans text-[13px] [&_*]:font-sans [&_table]:w-full [&_table]:text-[13px] [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_td]:px-4 [&_td]:py-2"
-            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.html, VISUAL_SANITIZE_CFG) }}
-          />
-        </div>
-      );
-    default:
-      return null;
+  // Screenshot: seek button
+  if (block.type === "screenshot" && typeof block.timestamp === "number") {
+    return (
+      <TimestampChip
+        timestamp={block.timestamp}
+        caption={block.caption || ""}
+        onSeek={onSeek}
+      />
+    );
   }
+
+  // Code: syntax block
+  if (block.type === "code" && block.code) {
+    return (
+      <pre className="bg-zinc-950 text-zinc-300 p-5 rounded-xl text-[13px] leading-relaxed overflow-x-auto mb-4 border border-zinc-800 font-mono">
+        <code>{block.code}</code>
+      </pre>
+    );
+  }
+
+  // Everything else: render as freeform HTML
+  const html = block.html;
+  if (!html) return null;
+
+  return (
+    <div className="mb-5">
+      {block.caption && (
+        <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-2 block">
+          {block.caption}
+        </span>
+      )}
+      <div
+        className="visual-block font-sans text-[15px] leading-relaxed text-fd-muted-foreground [&_*]:font-sans [&_strong]:text-fd-foreground [&_strong]:font-semibold [&_code]:bg-fd-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:text-[13px] [&_code]:font-mono [&_code]:border [&_code]:border-fd-border/50 [&_table]:w-full [&_table]:text-[13px] [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_td]:px-4 [&_td]:py-2"
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html, SANITIZE_CFG) }}
+      />
+    </div>
+  );
 }
 
 function StepCard({

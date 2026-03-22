@@ -404,69 +404,57 @@ async function getVideoTitle(videoId: string): Promise<string> {
 }
 
 function buildPrompt(videoTitle: string): string {
-  return `You are an expert technical writer creating an interactive scroll-synced video tutorial.
+  return `Watch this video and create an illustrated, scannable breakdown.
 
 Video title: "${videoTitle}"
 
-Watch this video and create a structured, richly illustrated tutorial from it.
+## HOW IT WORKS
 
-## BLOCK TYPES
+Each step has a "blocks" array. Each block has a "type" (any string you want) and an "html" field with your content. You write raw HTML with inline styles. You control all the layout, typography, and visuals. There are no predefined components — you decide how to present each piece of information.
 
-Each step has a "blocks" array. Available types:
+Two special block types:
+- **code** — { type: "code", language: "...", code: "..." } — rendered as a syntax-highlighted code block
+- **screenshot** — { type: "screenshot", timestamp: 123, caption: "..." } — rendered as a clickable seek button (no image)
 
-- **paragraph** — { type, html }. Use <strong>, <code>, <em>. Keep short (2-4 sentences).
-- **code** — { type, language, code }
-- **list** — { type, items: string[] }. Items can use <strong>/<code>.
-- **concept** — { type, title, html }. Callout box.
-- **tldr** — { type, html }. One sharp sentence. Your take, not a summary.
-- **screenshot** — { type, timestamp: int, caption }. Seek button only (no image). Use sparingly.
-- **visual** — { type, html, caption? }. Raw HTML with inline styles. Full HTML/SVG/CSS — no restrictions.
+Everything else: { type: "anything", html: "your HTML here", caption?: "optional label above" }
 
-## DESIGN TOKENS (for visual blocks)
+## DESIGN TOKENS
 
-Use these CSS variables in inline styles so visuals work in dark and light mode:
-- \`hsl(var(--fd-foreground))\` text, \`hsl(var(--fd-muted-foreground))\` secondary text
+Use these CSS variables in inline styles for dark/light mode:
+- \`hsl(var(--fd-foreground))\` text, \`hsl(var(--fd-muted-foreground))\` secondary
 - \`hsl(var(--fd-border))\` borders, \`hsl(var(--fd-primary))\` accent
 - \`hsl(var(--fd-card))\` card bg, \`hsl(var(--fd-muted))\` muted bg
 - Opacity: \`hsl(var(--fd-primary) / 0.15)\`
-- Fixed colors fine when semantic: #22c55e green, #ef4444 red, #f59e0b amber, #3b82f6 blue
+- Fixed colors when semantic: #22c55e green, #ef4444 red, #f59e0b amber, #3b82f6 blue
+
+You have full HTML, SVG, CSS grid, flexbox, tables, positioning. Build bar charts, flow diagrams, comparison grids, architecture layouts, annotated visuals — whatever explains the concept best.
 
 ## RULES
 
 - 5-15 sections, each one topic. Cover the entire video chronologically, no gaps.
 - tagType: "intro" | "concept" | "setup" | "action"
 - endSeconds of one step = startSeconds of the next
-- Never 3+ paragraphs in a row. Alternate with visuals, code, lists.
-- Visual blocks are your main illustration tool. Use them heavily and ambitiously.
-- Extract all substance — code, config, commands, architecture. Don't summarize away the details.
-
-## VOICE
-
-Cynical, honest, sharp. If something is bullshit, say so. If the creator is wrong, correct them. Gut the filler. Fact-check with grounding. Credit what's genuinely good.
-
-## SUMMARY FIELD
-
-3-5 sentences max. Is this video worth watching? What's actually useful? Who should skip it? No diplomacy.
+- Extract all substance — code, config, commands, architecture.
+- Be cynical, honest, sharp. Gut the filler. Fact-check. Credit what's good.
 
 ## OUTPUT FORMAT (return ONLY valid JSON):
 {
   "title": "Tutorial title",
-  "summary": "5-10 sentence cynical assessment...",
+  "summary": "3-5 sentences. Worth watching? What's useful? Who should skip?",
   "steps": [
     {
       "startSeconds": 0,
-      "endSeconds": 33,
-      "tag": "Short Label",
+      "endSeconds": 120,
+      "tag": "Label",
       "tagType": "intro",
       "title": "Section heading",
       "blocks": [
-        { "type": "paragraph", "html": "Short paragraph with <strong>bold</strong> and <code>code</code>" },
-        { "type": "concept", "title": "Why This Matters", "html": "Explanation of the key idea" },
-        { "type": "screenshot", "timestamp": 18, "caption": "Key moment worth rewatching" },
-        { "type": "visual", "caption": "Pipeline", "html": "<div style='display:flex;align-items:center;gap:8px;padding:16px'>...</div>" },
-        { "type": "code", "language": "bash", "code": "actual code from the video" },
-        { "type": "tldr", "html": "Your honest take on this section" },
-        { "type": "list", "items": ["<strong>Item 1:</strong> detail", "Item 2: detail"] }
+        { "type": "text", "html": "<p style='...'>Your content</p>" },
+        { "type": "diagram", "html": "<div style='...'>SVG or HTML diagram</div>", "caption": "How it works" },
+        { "type": "code", "language": "bash", "code": "npm install ..." },
+        { "type": "comparison", "html": "<table style='...'>...</table>" },
+        { "type": "opinion", "html": "<p style='...'>Your honest take</p>" },
+        { "type": "screenshot", "timestamp": 45, "caption": "Key moment" }
       ]
     }
   ]

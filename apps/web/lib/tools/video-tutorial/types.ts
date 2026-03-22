@@ -7,14 +7,15 @@ export interface TutorialStep {
   blocks: TutorialBlock[];
 }
 
-export type TutorialBlock =
-  | { type: "paragraph"; html: string }
-  | { type: "code"; language: string; code: string }
-  | { type: "tldr"; html: string }
-  | { type: "concept"; title: string; html: string }
-  | { type: "list"; items: string[] }
-  | { type: "screenshot"; timestamp: number; caption: string }
-  | { type: "visual"; html: string; caption?: string };
+export type TutorialBlock = {
+  type: string;
+  html?: string;
+  code?: string;
+  language?: string;
+  timestamp?: number;
+  caption?: string;
+  [key: string]: unknown;
+};
 
 export interface Tutorial {
   videoId: string;

@@ -491,14 +491,6 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
           background: hsl(var(--fd-border));
           border-radius: 99px;
         }
-        @keyframes vtg-shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        @keyframes vtg-pulse-bg {
-          0%, 100% { opacity: 0.6; }
-          50% { opacity: 1; }
-        }
       `}</style>
 
       <div
@@ -527,17 +519,9 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
 
           {/* Regenerating banner */}
           {isRegenerating && (
-            <div className="relative flex items-center gap-2.5 px-5 lg:px-8 py-3 border-b border-fd-primary/30 shrink-0 text-[13px] text-fd-foreground/80 overflow-hidden">
-              <div className="absolute inset-0 bg-fd-primary/10" style={{ animation: "vtg-pulse-bg 2s ease-in-out infinite" }} />
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: "linear-gradient(90deg, transparent 20%, hsl(var(--fd-primary) / 0.15) 50%, transparent 80%)",
-                  animation: "vtg-shimmer 1.5s ease-in-out infinite",
-                }}
-              />
-              <span className="relative h-3.5 w-3.5 rounded-full border-[1.5px] border-fd-primary border-t-transparent animate-spin shrink-0" />
-              <span className="relative">Regenerating with Gemini - you'll be switched automatically when ready</span>
+            <div className="relative flex items-center gap-2.5 px-5 lg:px-8 py-3 border-b border-fd-primary/30 shrink-0 text-[13px] text-fd-foreground/80 overflow-hidden bg-fd-primary/10 animate-pulse">
+              <span className="h-3.5 w-3.5 rounded-full border-[1.5px] border-fd-primary border-t-transparent animate-spin shrink-0" />
+              Regenerating with Gemini - you'll be switched automatically when ready
             </div>
           )}
 

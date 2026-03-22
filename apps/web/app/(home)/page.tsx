@@ -16,7 +16,7 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
   year: "numeric",
 });
 
-const featuredSlugs = ["video-tutorial", "llm-price-calculator", "clamp-calculator"];
+const featuredSlugs = ["video-breakdown", "llm-price-calculator", "clamp-calculator"];
 const featuredTools = featuredSlugs
   .map((slug) => allTools.find((t) => t.slug === slug))
   .filter(Boolean)

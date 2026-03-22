@@ -10,7 +10,7 @@ import type {
   TutorialStep,
   TutorialBlock,
   TutorialVersion,
-} from "@/lib/tools/video-tutorial/types";
+} from "@/lib/tools/video-breakdown/types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare global {
@@ -316,7 +316,7 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
   // Update document title + inject client-side JSON-LD
   useEffect(() => {
     const prevTitle = document.title;
-    document.title = `${tutorial.title} — Interactive Tutorial | testy.cool`;
+    document.title = `${tutorial.title} — Video Breakdown | testy.cool`;
 
     // Inject JSON-LD if not already present from server
     if (!document.querySelector('script[data-vtg-jsonld]')) {
@@ -331,7 +331,7 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
           {
             "@type": "Article",
             headline: tutorial.title,
-            description: `${tutorial.steps.length}-chapter interactive tutorial`,
+            description: `${tutorial.steps.length}-chapter video breakdown`,
             image: `https://img.youtube.com/vi/${tutorial.videoId}/maxresdefault.jpg`,
             datePublished: new Date(tutorial.generatedAt).toISOString(),
             publisher: { "@type": "Organization", name: "testy.cool", url: "https://testy.cool" },
@@ -491,6 +491,14 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
           background: hsl(var(--fd-border));
           border-radius: 99px;
         }
+        .vtg-indeterminate {
+          width: 40%;
+          animation: vtg-slide 1.4s ease-in-out infinite;
+        }
+        @keyframes vtg-slide {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(350%); }
+        }
       `}</style>
 
       <div
@@ -519,9 +527,14 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
 
           {/* Regenerating banner */}
           {isRegenerating && (
-            <div className="relative flex items-center gap-2.5 px-5 lg:px-8 py-3 border-b border-fd-primary/30 shrink-0 text-[13px] text-fd-foreground/80 overflow-hidden bg-fd-primary/10 animate-pulse">
-              <span className="h-3.5 w-3.5 rounded-full border-[1.5px] border-fd-primary border-t-transparent animate-spin shrink-0" />
-              Regenerating with Gemini - you'll be switched automatically when ready
+            <div className="shrink-0">
+              <div className="flex items-center gap-2.5 px-5 lg:px-8 py-3 text-[13px] text-fd-foreground/80">
+                <span className="h-3.5 w-3.5 rounded-full border-[1.5px] border-fd-primary border-t-transparent animate-spin shrink-0" />
+                Regenerating with Gemini - you'll be switched automatically when ready
+              </div>
+              <div className="h-[2px] w-full bg-fd-border/30 overflow-hidden">
+                <div className="vtg-indeterminate h-full bg-fd-primary rounded-full" />
+              </div>
             </div>
           )}
 

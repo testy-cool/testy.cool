@@ -6,7 +6,7 @@ import type {
   Tutorial,
   TutorialSummary,
   TutorialVersion,
-} from "@/lib/tools/video-tutorial/types";
+} from "@/lib/tools/video-breakdown/types";
 import {
   parseVideoId,
   generateTutorial,
@@ -15,7 +15,7 @@ import {
   getVersion,
   getPrompt,
   updatePrompt,
-} from "@/lib/tools/video-tutorial/tutorialService";
+} from "@/lib/tools/video-breakdown/tutorialService";
 import TutorialViewer from "./TutorialViewer";
 import dynamic from "next/dynamic";
 
@@ -408,18 +408,18 @@ export default function TutorialApp() {
             <span className="opacity-40">/</span>
             <Link href="/tools" className="hover:text-fd-foreground transition-colors">Tools</Link>
             <span className="opacity-40">/</span>
-            <span className="text-fd-muted-foreground">Video Tutorial Generator</span>
+            <span className="text-fd-muted-foreground">Video Breakdown</span>
           </nav>
 
           {/* Hero */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-fd-foreground tracking-tight leading-[1.1]">
-            Video Tutorial
+            Video
             <br />
-            <span className="text-fd-muted-foreground/40">Generator</span>
+            <span className="text-fd-muted-foreground/40">Breakdown</span>
           </h1>
           <p className="mt-4 text-base sm:text-lg text-fd-muted-foreground/70 max-w-md leading-relaxed">
-            Paste a YouTube URL. Gemini watches the video and writes an interactive,
-            scroll-synced text tutorial.
+            Paste a YouTube URL. AI watches the video and writes a scroll-synced
+            text breakdown.
           </p>
 
           {/* Input */}

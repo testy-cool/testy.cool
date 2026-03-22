@@ -40,12 +40,12 @@ export const allTools: Tool[] = [
     type: "Tutorial",
   },
   {
-    slug: "video-tutorial",
-    title: "Video Tutorial Generator",
+    slug: "video-breakdown",
+    title: "Video Breakdown",
     description:
-      "Turn any YouTube video into an interactive, scroll-synced text tutorial.",
-    screenshot: "/images/tools/video-tutorial.png",
-    tags: ["YouTube", "AI", "Tutorial"],
+      "Paste a YouTube URL. AI watches the video and writes a scroll-synced text breakdown.",
+    screenshot: "/images/tools/video-breakdown.png",
+    tags: ["YouTube", "AI"],
     type: "Tool",
   },
   {

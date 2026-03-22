@@ -491,14 +491,6 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
           background: hsl(var(--fd-border));
           border-radius: 99px;
         }
-        .vtg-indeterminate {
-          width: 40%;
-          animation: vtg-slide 1.4s ease-in-out infinite;
-        }
-        @keyframes vtg-slide {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(350%); }
-        }
       `}</style>
 
       <div
@@ -528,12 +520,18 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
           {/* Regenerating banner */}
           {isRegenerating && (
             <div className="shrink-0">
+              <style dangerouslySetInnerHTML={{ __html: `
+                @keyframes vtg-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
+              `}} />
               <div className="flex items-center gap-2.5 px-5 lg:px-8 py-3 text-[13px] text-fd-foreground/80">
                 <span className="h-3.5 w-3.5 rounded-full border-[1.5px] border-fd-primary border-t-transparent animate-spin shrink-0" />
                 Regenerating with Gemini - you'll be switched automatically when ready
               </div>
               <div className="h-[2px] w-full bg-fd-border/30 overflow-hidden">
-                <div className="vtg-indeterminate h-full bg-fd-primary rounded-full" />
+                <div
+                  className="h-full bg-fd-primary rounded-full"
+                  style={{ width: "40%", animation: "vtg-slide 1.4s ease-in-out infinite" }}
+                />
               </div>
             </div>
           )}

@@ -23,6 +23,7 @@ export interface Tutorial {
   title: string;
   summary?: string;
   category?: string;
+  transcript?: string;
   steps: TutorialStep[];
   generatedAt: number;
 }

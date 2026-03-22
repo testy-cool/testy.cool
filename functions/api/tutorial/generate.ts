@@ -107,11 +107,16 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const kv = context.env.PANTRY_CACHE;
   if (!kv) return json({ error: "KV not configured" }, 502);
 
-  let body: { videoId: string; force?: boolean; model?: string; customNote?: string };
+  let body: { action?: string; videoId: string; force?: boolean; model?: string; customNote?: string; message?: string; history?: { role: string; text: string }[] };
   try {
     body = await context.request.json();
   } catch {
     return json({ error: "Invalid JSON" }, 400);
+  }
+
+  // Chat action
+  if (body.action === "chat") {
+    return handleChat(context.env, body.videoId, body.message || "", body.history || []);
   }
 
   const { videoId, force } = body;
@@ -253,6 +258,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       title: tutorialData.title || videoTitle,
       summary: (tutorialData as any).summary || "",
       category: (tutorialData as any).category || "",
+      transcript: (tutorialData as any).transcript || "",
       steps: tutorialData.steps || [],
       generatedAt: Date.now(),
     };
@@ -330,6 +336,58 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     return json({ error: msg }, 500);
   }
 };
+
+async function handleChat(
+  env: Env,
+  videoId: string,
+  message: string,
+  history: { role: string; text: string }[],
+): Promise<Response> {
+  if (!videoId || !message) return json({ error: "Missing videoId or message" }, 400);
+
+  const apiKey = env.GEMINI_API_KEY;
+  if (!apiKey) return json({ error: "Gemini API key not configured" }, 502);
+
+  const kv = env.PANTRY_CACHE;
+  if (!kv) return json({ error: "KV not configured" }, 502);
+
+  // Load cached tutorial for context
+  const raw = await kv.get(`tutorial:${videoId}`);
+  if (!raw) return json({ error: "No tutorial found for this video. Generate one first." }, 404);
+
+  const tutorial = JSON.parse(raw);
+  const context = [
+    `Video: "${tutorial.videoTitle}"`,
+    `Breakdown title: "${tutorial.title}"`,
+    tutorial.summary ? `Summary: ${tutorial.summary}` : "",
+    tutorial.transcript ? `\nTRANSCRIPT:\n${tutorial.transcript}` : "",
+    `\nBREAKDOWN CONTENT:\n${tutorial.steps.map((s: any, i: number) => `[${i + 1}] ${s.tag}: ${s.title}\n${s.blocks.map((b: any) => b.html || b.code || "").join("\n")}`).join("\n\n")}`,
+  ].filter(Boolean).join("\n");
+
+  const systemPrompt = `You have access to a video breakdown and its full transcript. Answer the user's question based on this content. Be direct and specific. Reference timestamps when relevant. If the answer isn't in the content, say so.\n\n${context}`;
+
+  const ai = new GoogleGenAI({ apiKey });
+  const contents = [
+    { role: "user" as const, parts: [{ text: systemPrompt }] },
+    { role: "model" as const, parts: [{ text: "Understood. I have the full breakdown and transcript. Ask me anything about this video." }] },
+    ...history.map((h) => ({
+      role: (h.role === "user" ? "user" : "model") as "user" | "model",
+      parts: [{ text: h.text }],
+    })),
+    { role: "user" as const, parts: [{ text: message }] },
+  ];
+
+  try {
+    const response = await ai.models.generateContent({
+      model: DEFAULT_MODEL,
+      contents,
+    });
+
+    return json({ reply: response.text || "No response generated." });
+  } catch (e: unknown) {
+    return json({ error: e instanceof Error ? e.message : "Chat failed" }, 500);
+  }
+}
 
 
 async function langfuseTrace(
@@ -440,12 +498,14 @@ Use hsl(var(--fd-foreground)) for body text (NOT --fd-muted-foreground, that's t
 - title: SHORT (under 60 chars). Descriptive, not meta. Never mention "breakdown", "cynical", "honest", "brutal" in the title. Just say what the video is about.
 - summary: 2-4 SHORT sentences. Use <br> between sentences for line breaks. Is this worth my time? What's the actual point? Don't be polite.
 - category: ONE word for the topic niche. Pick from existing: "AI", "Web Dev", "DevOps", "Design", "Data", "Security", "Mobile", "Gaming", "Hardware", "Cooking", "Finance", "Music", "Science", "Productivity". Only create a new category if none fit. Be conservative.
+- transcript: Full transcript of what's said in the video. Include timestamps. Format: "0:00 - Speaker says this thing.\n0:45 - Then they explain that." Capture ALL dialogue, not just highlights.
 
 ## OUTPUT (return ONLY valid JSON):
 {
   "title": "Short Descriptive Title About The Topic",
   "category": "AI",
   "summary": "First sentence about what this is.<br>Second sentence about whether it's worth watching.<br>Third sentence with the cynical take.",
+  "transcript": "0:00 - Full transcript with timestamps...",
   "steps": [{ "startSeconds": 0, "endSeconds": 120, "tag": "Label", "tagType": "intro", "title": "...", "blocks": [{ "type": "...", "html": "..." }] }]
 }`;
 }

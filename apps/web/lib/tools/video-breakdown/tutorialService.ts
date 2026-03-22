@@ -67,6 +67,21 @@ export async function getPrompt(): Promise<string> {
   return data.prompt || "";
 }
 
+export async function chatWithTutorial(
+  videoId: string,
+  message: string,
+  history: { role: string; text: string }[],
+): Promise<string> {
+  const res = await fetch("/api/tutorial/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "chat", videoId, message, history }),
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.reply;
+}
+
 export async function updatePrompt(prompt: string, password: string): Promise<void> {
   const res = await fetch("/api/tutorial/generate", {
     method: "PUT",

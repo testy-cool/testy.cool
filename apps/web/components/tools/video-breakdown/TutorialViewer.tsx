@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import DOMPurify from "dompurify";
+import { chatWithTutorial } from "@/lib/tools/video-breakdown/tutorialService";
 
 // Allow all HTML/SVG, just strip scripts and event handlers
 const SANITIZE_CFG = { ADD_TAGS: ['svg', 'path', 'rect', 'circle', 'line', 'text', 'g', 'defs', 'marker', 'polygon', 'polyline', 'ellipse', 'use', 'symbol', 'clipPath', 'linearGradient', 'radialGradient', 'stop', 'foreignObject', 'tspan'], ADD_ATTR: ['style', 'viewBox', 'xmlns', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray', 'stroke-dashoffset', 'd', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height', 'transform', 'text-anchor', 'dominant-baseline', 'font-size', 'font-weight', 'opacity', 'marker-end', 'marker-start', 'points', 'offset', 'stop-color', 'stop-opacity', 'gradientUnits', 'gradientTransform', 'clip-path', 'colspan', 'rowspan'] };
@@ -117,6 +118,100 @@ function BlockRenderer({
         className="visual-block font-sans text-[15px] leading-relaxed text-fd-foreground/80 [&_*]:font-sans [&_strong]:text-fd-foreground [&_strong]:font-semibold [&_code]:bg-fd-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:text-[13px] [&_code]:font-mono [&_code]:border [&_code]:border-fd-border/50 [&_table]:w-full [&_table]:text-[13px] [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_td]:px-4 [&_td]:py-2"
         dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html, SANITIZE_CFG) }}
       />
+    </div>
+  );
+}
+
+function ChatPanel({ videoId }: { videoId: string }) {
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState<{ role: string; text: string }[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const send = async () => {
+    const msg = input.trim();
+    if (!msg || loading) return;
+    setInput("");
+    const newMessages = [...messages, { role: "user", text: msg }];
+    setMessages(newMessages);
+    setLoading(true);
+    try {
+      const reply = await chatWithTutorial(videoId, msg, messages);
+      setMessages([...newMessages, { role: "model", text: reply }]);
+    } catch (e: unknown) {
+      setMessages([...newMessages, { role: "model", text: `Error: ${e instanceof Error ? e.message : "Failed"}` }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="w-full mt-4 mb-8 py-3 rounded-xl border border-fd-border/50 text-[13px] text-fd-muted-foreground/60 hover:text-fd-foreground hover:border-fd-border transition-colors flex items-center justify-center gap-2"
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M2 3h12v8H5l-3 3V3z" />
+        </svg>
+        Ask a question about this video
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-4 mb-8 rounded-xl border border-fd-border/50 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-fd-border/30 bg-fd-card">
+        <span className="text-[12px] font-medium text-fd-muted-foreground/60 uppercase tracking-wider">Chat</span>
+        <button onClick={() => setOpen(false)} className="text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 4l8 8M12 4l-8 8" /></svg>
+        </button>
+      </div>
+      <div className="max-h-[300px] overflow-y-auto px-4 py-3 space-y-3">
+        {messages.length === 0 && (
+          <p className="text-[13px] text-fd-muted-foreground/40 text-center py-4">
+            Ask anything about the video content or transcript.
+          </p>
+        )}
+        {messages.map((m, i) => (
+          <div key={i} className={`text-[14px] leading-relaxed ${m.role === "user" ? "text-fd-foreground" : "text-fd-foreground/70"}`}>
+            <span className="text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground/40 block mb-1">
+              {m.role === "user" ? "You" : "AI"}
+            </span>
+            <div className="whitespace-pre-wrap">{m.text}</div>
+          </div>
+        ))}
+        {loading && (
+          <div className="flex items-center gap-2 text-[13px] text-fd-muted-foreground/50">
+            <span className="h-3 w-3 rounded-full border-[1.5px] border-fd-primary border-t-transparent animate-spin" />
+            Thinking...
+          </div>
+        )}
+        <div ref={chatEndRef} />
+      </div>
+      <div className="flex items-stretch border-t border-fd-border/30">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && send()}
+          placeholder="Ask about the video..."
+          disabled={loading}
+          className="flex-1 px-4 py-3 text-[14px] bg-transparent text-fd-foreground placeholder:text-fd-muted-foreground/30 focus:outline-none disabled:opacity-50"
+        />
+        <button
+          onClick={send}
+          disabled={loading || !input.trim()}
+          className="px-4 py-3 text-fd-primary text-[13px] font-medium hover:opacity-80 disabled:opacity-20 transition-opacity"
+        >
+          Send
+        </button>
+      </div>
     </div>
   );
 }
@@ -628,6 +723,9 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
                 }}
               />
             ))}
+
+            {/* Chat */}
+            <ChatPanel videoId={tutorial.videoId} />
           </div>
         </div>
       </div>

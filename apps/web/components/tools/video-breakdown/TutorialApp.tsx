@@ -127,7 +127,6 @@ export default function TutorialApp() {
   const [spoonMode, setSpoonMode] = useState(false);
   const [selectedModel, setSelectedModel] = useState("gemini-3-flash-preview");
   const [customNote, setCustomNote] = useState("");
-  const [showNoteInput, setShowNoteInput] = useState(false);
   const [noteHistory, setNoteHistory] = useState<string[]>([]);
   const cheatBuffer = useRef("");
 
@@ -475,49 +474,35 @@ export default function TutorialApp() {
               </button>
             </div>
 
-            {/* Custom note */}
-            <div className="mt-3 flex items-center gap-2">
-              <button
-                onClick={() => setShowNoteInput(!showNoteInput)}
-                className="text-[13px] text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors"
-              >
-                {showNoteInput ? "Hide note" : "+ Add note"}
-              </button>
-              {customNote.trim() && !showNoteInput && (
-                <span className="text-[12px] text-fd-muted-foreground/30 truncate max-w-[300px]">
-                  ({customNote.trim().slice(0, 50)}{customNote.trim().length > 50 ? "..." : ""})
-                </span>
-              )}
-            </div>
-            {showNoteInput && (
-              <div className="mt-2 space-y-2">
-                <textarea
-                  value={customNote}
-                  onChange={(e) => setCustomNote(e.target.value)}
-                  placeholder="Custom instructions for this video, e.g. 'focus on the code' or 'skip the intro'..."
-                  maxLength={500}
-                  rows={2}
-                  className="w-full px-4 py-3 text-[14px] bg-fd-card border border-fd-border rounded-xl text-fd-foreground placeholder:text-fd-muted-foreground/30 focus:outline-none focus:border-fd-primary/50 resize-none"
-                />
-                {noteHistory.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {noteHistory.slice(0, 8).map((note, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setCustomNote(note)}
-                        className={`px-2.5 py-1 text-[11px] rounded-lg border transition-colors truncate max-w-[200px] ${
-                          customNote === note
-                            ? "border-fd-primary/50 text-fd-primary bg-fd-primary/10"
-                            : "border-fd-border/50 text-fd-muted-foreground/50 hover:text-fd-muted-foreground hover:border-fd-border"
-                        }`}
-                      >
-                        {note.slice(0, 40)}{note.length > 40 ? "..." : ""}
-                      </button>
+            {/* Custom instructions */}
+            <div className="mt-3 space-y-2">
+              <textarea
+                value={customNote}
+                onChange={(e) => setCustomNote(e.target.value)}
+                placeholder="Extra instructions, e.g. 'focus on the code' or 'skip the sponsor segment'..."
+                maxLength={500}
+                rows={2}
+                className="w-full px-4 py-3 text-[14px] bg-fd-card border border-fd-border rounded-xl text-fd-foreground placeholder:text-fd-muted-foreground/30 focus:outline-none focus:border-fd-primary/50 resize-none"
+              />
+              {noteHistory.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="text-[11px] text-fd-muted-foreground/30 self-center mr-1">Previous:</span>
+                  {noteHistory.slice(0, 8).map((note, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCustomNote(note)}
+                      className={`px-2.5 py-1 text-[11px] rounded-lg border transition-colors truncate max-w-[200px] ${
+                        customNote === note
+                          ? "border-fd-primary/50 text-fd-primary bg-fd-primary/10"
+                          : "border-fd-border/50 text-fd-muted-foreground/50 hover:text-fd-muted-foreground hover:border-fd-border"
+                      }`}
+                    >
+                      {note.slice(0, 40)}{note.length > 40 ? "..." : ""}
+                    </button>
                     ))}
                   </div>
                 )}
-              </div>
-            )}
+            </div>
 
             {/* God mode model selector */}
             {godMode && (

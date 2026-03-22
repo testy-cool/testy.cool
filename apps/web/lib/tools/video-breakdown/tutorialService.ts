@@ -15,10 +15,11 @@ export function parseVideoId(input: string): string | null {
   return null;
 }
 
-export async function generateTutorial(videoId: string, force?: boolean, model?: string): Promise<Tutorial> {
+export async function generateTutorial(videoId: string, force?: boolean, model?: string, customNote?: string): Promise<Tutorial> {
   const body: Record<string, unknown> = { videoId };
   if (force) body.force = true;
   if (model) body.model = model;
+  if (customNote) body.customNote = customNote;
   const res = await fetch("/api/tutorial/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

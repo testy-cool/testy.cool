@@ -22,6 +22,7 @@ export interface Tutorial {
   videoTitle: string;
   title: string;
   summary?: string;
+  category?: string;
   steps: TutorialStep[];
   generatedAt: number;
 }
@@ -29,6 +30,7 @@ export interface Tutorial {
 export interface TutorialSummary {
   videoId: string;
   title: string;
+  category?: string;
   stepCount: number;
   timestamp: number;
 }

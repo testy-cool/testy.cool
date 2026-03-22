@@ -592,6 +592,11 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
             className="vtg-scroll flex-1 overflow-y-auto px-5 lg:px-8 pt-6"
             style={{ paddingBottom: "50vh" }}
           >
+            {tutorial.category && (
+              <span className="inline-block text-[11px] font-medium uppercase tracking-[0.1em] text-fd-primary/70 bg-fd-primary/10 px-2 py-0.5 rounded-md mb-2">
+                {tutorial.category}
+              </span>
+            )}
             <h1 className="text-xl lg:text-2xl font-extrabold text-fd-foreground mb-1.5 tracking-tight leading-snug">
               {tutorial.title}
             </h1>

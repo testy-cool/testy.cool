@@ -107,7 +107,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const kv = context.env.PANTRY_CACHE;
   if (!kv) return json({ error: "KV not configured" }, 502);
 
-  let body: { videoId: string; force?: boolean; model?: string };
+  let body: { videoId: string; force?: boolean; model?: string; customNote?: string };
   try {
     body = await context.request.json();
   } catch {
@@ -115,6 +115,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 
   const { videoId, force } = body;
+  const customNote = typeof body.customNote === "string" ? body.customNote.slice(0, 500) : "";
   const model = body.model && ALLOWED_MODELS.includes(body.model) ? body.model : DEFAULT_MODEL;
   if (!videoId || typeof videoId !== "string") {
     return json({ error: "Missing videoId" }, 400);
@@ -180,9 +181,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const storedPrompt = await kv.get(PROMPT_KEY);
     const prompt = storedPrompt || buildPrompt(videoTitle);
     // If using stored prompt, inject the video title
-    const finalPrompt = storedPrompt
+    let finalPrompt = storedPrompt
       ? storedPrompt.replace(/\{videoTitle\}/g, videoTitle)
       : prompt;
+    if (customNote) {
+      finalPrompt += `\n\n## ADDITIONAL INSTRUCTIONS FROM USER\n${customNote}`;
+    }
 
     // 3. Send YouTube video directly to Gemini for analysis
     const ai = new GoogleGenAI({ apiKey });
@@ -248,6 +252,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       videoTitle,
       title: tutorialData.title || videoTitle,
       summary: (tutorialData as any).summary || "",
+      category: (tutorialData as any).category || "",
       steps: tutorialData.steps || [],
       generatedAt: Date.now(),
     };
@@ -308,6 +313,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const summary = {
       videoId,
       title: tutorial.title,
+      category: tutorial.category,
       stepCount: (tutorial.steps as unknown[]).length,
       timestamp: Date.now(),
     };
@@ -433,10 +439,12 @@ Use hsl(var(--fd-foreground)) for body text (NOT --fd-muted-foreground, that's t
 - tagType: "intro" | "concept" | "setup" | "action"
 - title: SHORT (under 60 chars). Descriptive, not meta. Never mention "breakdown", "cynical", "honest", "brutal" in the title. Just say what the video is about.
 - summary: 2-4 SHORT sentences. Use <br> between sentences for line breaks. Is this worth my time? What's the actual point? Don't be polite.
+- category: ONE word for the topic niche. Pick from existing: "AI", "Web Dev", "DevOps", "Design", "Data", "Security", "Mobile", "Gaming", "Hardware", "Cooking", "Finance", "Music", "Science", "Productivity". Only create a new category if none fit. Be conservative.
 
 ## OUTPUT (return ONLY valid JSON):
 {
   "title": "Short Descriptive Title About The Topic",
+  "category": "AI",
   "summary": "First sentence about what this is.<br>Second sentence about whether it's worth watching.<br>Third sentence with the cynical take.",
   "steps": [{ "startSeconds": 0, "endSeconds": 120, "tag": "Label", "tagType": "intro", "title": "...", "blocks": [{ "type": "...", "html": "..." }] }]
 }`;

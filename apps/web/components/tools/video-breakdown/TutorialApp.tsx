@@ -89,9 +89,16 @@ function RecentCard({
       </div>
       {/* Meta bar */}
       <div className="flex items-center justify-between px-3.5 py-2.5 bg-fd-card border border-t-0 border-fd-border/50 rounded-b-2xl">
-        <span className="text-[11px] text-fd-muted-foreground/60 font-medium">
-          {timeAgo(tutorial.timestamp)}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-fd-muted-foreground/60 font-medium">
+            {timeAgo(tutorial.timestamp)}
+          </span>
+          {tutorial.category && (
+            <span className="text-[10px] font-medium uppercase tracking-wider text-fd-primary/60">
+              {tutorial.category}
+            </span>
+          )}
+        </div>
         <span className="text-[11px] text-fd-primary/70 font-semibold tracking-wide uppercase group-hover:text-fd-primary transition-colors">
           Open
         </span>
@@ -119,7 +126,18 @@ export default function TutorialApp() {
   const [godMode, setGodMode] = useState(false);
   const [spoonMode, setSpoonMode] = useState(false);
   const [selectedModel, setSelectedModel] = useState("gemini-3-flash-preview");
+  const [customNote, setCustomNote] = useState("");
+  const [showNoteInput, setShowNoteInput] = useState(false);
+  const [noteHistory, setNoteHistory] = useState<string[]>([]);
   const cheatBuffer = useRef("");
+
+  // Load note history from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("vtg-note-history");
+      if (saved) setNoteHistory(JSON.parse(saved));
+    } catch {}
+  }, []);
 
   const previewId = useMemo(() => parseVideoId(input), [input]);
   const tutorialRef = useRef(tutorial);
@@ -142,7 +160,13 @@ export default function TutorialApp() {
 
     try {
       const model = godMode ? selectedModel : undefined;
-      const result = await generateTutorial(videoId, false, model);
+      const note = customNote.trim();
+      if (note) {
+        const updated = [note, ...noteHistory.filter((n) => n !== note)].slice(0, 20);
+        setNoteHistory(updated);
+        try { localStorage.setItem("vtg-note-history", JSON.stringify(updated)); } catch {}
+      }
+      const result = await generateTutorial(videoId, false, model, note || undefined);
       setTutorial(result);
       const slug = slugify(result.title || result.videoTitle || "");
       const url = slug ? `?v=${videoId}&t=${slug}` : `?v=${videoId}`;
@@ -223,7 +247,8 @@ export default function TutorialApp() {
     const t0 = Date.now();
     try {
       const model = godMode ? selectedModel : undefined;
-      const result = await generateTutorial(current.videoId, true, model);
+      const note = customNote.trim() || undefined;
+      const result = await generateTutorial(current.videoId, true, model, note);
       setTutorial(result);
       const v = await getVersions(current.videoId);
       setVersions(v);
@@ -241,7 +266,7 @@ export default function TutorialApp() {
       if (elapsed < 600) await new Promise((r) => setTimeout(r, 600 - elapsed));
       setIsLoading(false);
     }
-  }, [godMode, selectedModel]);
+  }, [godMode, selectedModel, customNote]);
 
   const handleSelectVersion = useCallback(async (version: number) => {
     if (!tutorial) return;
@@ -449,6 +474,50 @@ export default function TutorialApp() {
                 )}
               </button>
             </div>
+
+            {/* Custom note */}
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                onClick={() => setShowNoteInput(!showNoteInput)}
+                className="text-[13px] text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors"
+              >
+                {showNoteInput ? "Hide note" : "+ Add note"}
+              </button>
+              {customNote.trim() && !showNoteInput && (
+                <span className="text-[12px] text-fd-muted-foreground/30 truncate max-w-[300px]">
+                  ({customNote.trim().slice(0, 50)}{customNote.trim().length > 50 ? "..." : ""})
+                </span>
+              )}
+            </div>
+            {showNoteInput && (
+              <div className="mt-2 space-y-2">
+                <textarea
+                  value={customNote}
+                  onChange={(e) => setCustomNote(e.target.value)}
+                  placeholder="Custom instructions for this video, e.g. 'focus on the code' or 'skip the intro'..."
+                  maxLength={500}
+                  rows={2}
+                  className="w-full px-4 py-3 text-[14px] bg-fd-card border border-fd-border rounded-xl text-fd-foreground placeholder:text-fd-muted-foreground/30 focus:outline-none focus:border-fd-primary/50 resize-none"
+                />
+                {noteHistory.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {noteHistory.slice(0, 8).map((note, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCustomNote(note)}
+                        className={`px-2.5 py-1 text-[11px] rounded-lg border transition-colors truncate max-w-[200px] ${
+                          customNote === note
+                            ? "border-fd-primary/50 text-fd-primary bg-fd-primary/10"
+                            : "border-fd-border/50 text-fd-muted-foreground/50 hover:text-fd-muted-foreground hover:border-fd-border"
+                        }`}
+                      >
+                        {note.slice(0, 40)}{note.length > 40 ? "..." : ""}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* God mode model selector */}
             {godMode && (

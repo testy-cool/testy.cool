@@ -109,12 +109,12 @@ function BlockRenderer({
   return (
     <div className="mb-5">
       {block.caption && (
-        <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-2 block">
+        <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/60 mb-2 block">
           {block.caption}
         </span>
       )}
       <div
-        className="visual-block font-sans text-[15px] leading-relaxed text-fd-muted-foreground [&_*]:font-sans [&_strong]:text-fd-foreground [&_strong]:font-semibold [&_code]:bg-fd-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:text-[13px] [&_code]:font-mono [&_code]:border [&_code]:border-fd-border/50 [&_table]:w-full [&_table]:text-[13px] [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_td]:px-4 [&_td]:py-2"
+        className="visual-block font-sans text-[15px] leading-relaxed text-fd-foreground/80 [&_*]:font-sans [&_strong]:text-fd-foreground [&_strong]:font-semibold [&_code]:bg-fd-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:text-[13px] [&_code]:font-mono [&_code]:border [&_code]:border-fd-border/50 [&_table]:w-full [&_table]:text-[13px] [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_td]:px-4 [&_td]:py-2"
         dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html, SANITIZE_CFG) }}
       />
     </div>
@@ -142,7 +142,7 @@ function StepCard({
       data-start={step.startSeconds}
       data-end={step.endSeconds}
       className={`vtg-step mb-8 transition-all duration-500 ${
-        active ? "opacity-100" : "opacity-30"
+        active ? "opacity-100" : "opacity-50"
       }`}
     >
       {/* Header row */}
@@ -153,10 +153,10 @@ function StepCard({
         >
           {formatTime(step.startSeconds)}
         </button>
-        <span className="text-[11px] uppercase tracking-[0.06em] text-fd-muted-foreground/40">
+        <span className="text-[11px] uppercase tracking-[0.06em] text-fd-muted-foreground/60">
           {step.tag}
         </span>
-        <span className="ml-auto text-[11px] text-fd-muted-foreground/25 font-mono tabular-nums">
+        <span className="ml-auto text-[11px] text-fd-muted-foreground/40 font-mono tabular-nums">
           {index + 1}/{total}
         </span>
       </div>
@@ -590,7 +590,7 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
                   tl;dr
                 </span>
                 <div
-                  className="text-base text-fd-muted-foreground leading-relaxed"
+                  className="text-base text-fd-foreground/70 leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(tutorial.summary.replace(/\n/g, "<br>"), SANITIZE_CFG) }}
                 />
               </div>

@@ -423,13 +423,13 @@ Everything else is your HTML. No templates, no components. You decide the layout
 
 ## COLORS (CSS vars for dark/light mode)
 
-hsl(var(--fd-foreground)), hsl(var(--fd-muted-foreground)), hsl(var(--fd-border)), hsl(var(--fd-primary)), hsl(var(--fd-card)), hsl(var(--fd-muted)). Opacity: hsl(var(--fd-primary) / 0.15). Fixed colors fine: #22c55e #ef4444 #f59e0b #3b82f6.
+Use hsl(var(--fd-foreground)) for body text (NOT --fd-muted-foreground, that's too faded). Use hsl(var(--fd-muted-foreground)) ONLY for labels/captions. Other vars: hsl(var(--fd-border)), hsl(var(--fd-primary)), hsl(var(--fd-card)), hsl(var(--fd-muted)). Opacity: hsl(var(--fd-primary) / 0.15). Fixed colors fine: #22c55e #ef4444 #f59e0b #3b82f6.
 
 ## STRUCTURE
 
 - 5-15 sections chronologically, no timestamp gaps. endSeconds = next startSeconds.
 - tagType: "intro" | "concept" | "setup" | "action"
-- summary: 2-3 sentences. Is this worth my time? What's the actual point? Don't be polite.
+- summary: 2-4 sentences separated by \\n newlines. Is this worth my time? What's the actual point? Don't be polite.
 
 ## OUTPUT (return ONLY valid JSON):
 {

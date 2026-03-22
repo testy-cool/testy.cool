@@ -21,6 +21,15 @@ import dynamic from "next/dynamic";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 60)
+    .replace(/-$/, "");
+}
+
 function timeAgo(timestamp: number): string {
   const diff = Date.now() - timestamp;
   const mins = Math.floor(diff / 60000);
@@ -130,7 +139,9 @@ export default function TutorialApp() {
     try {
       const result = await generateTutorial(videoId);
       setTutorial(result);
-      window.history.pushState(null, "", `?v=${videoId}`);
+      const slug = slugify(result.title || result.videoTitle || "");
+      const url = slug ? `?v=${videoId}&t=${slug}` : `?v=${videoId}`;
+      window.history.pushState(null, "", url);
       getRecentTutorials().then(setRecentTutorials);
       getVersions(videoId).then((v) => {
         setVersions(v);

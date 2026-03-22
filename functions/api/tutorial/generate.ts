@@ -220,12 +220,13 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     await langfuseTrace(context.env, {
       traceId: `tut-${videoId}-${Date.now()}`,
       name: `tutorial:${videoId}`,
-      input: { videoId, videoTitle, promptLength: finalPrompt.length },
-      output: { responseLength: text.length },
+      input: finalPrompt,
+      output: text,
       model: MODEL,
       startTime: genStartTime,
       endTime: genEndTime,
-      metadata: { videoTitle, force: !!force },
+      metadata: { videoId, videoTitle, force: !!force },
+      modelParameters: { responseMimeType: "application/json", thinkingBudget: 2048 },
       usage: usageMeta ? {
         input: usageMeta.promptTokenCount,
         output: usageMeta.candidatesTokenCount,
@@ -334,6 +335,7 @@ async function langfuseTrace(
     startTime: string;
     endTime: string;
     metadata?: Record<string, unknown>;
+    modelParameters?: Record<string, unknown>;
     usage?: { input?: number; output?: number; total?: number };
   },
 ): Promise<void> {
@@ -369,6 +371,7 @@ async function langfuseTrace(
           startTime: opts.startTime,
           endTime: opts.endTime,
           usage: opts.usage,
+          modelParameters: opts.modelParameters,
           metadata: opts.metadata,
         },
       },

@@ -431,12 +431,12 @@ Use hsl(var(--fd-foreground)) for body text (NOT --fd-muted-foreground, that's t
 
 - 5-15 sections chronologically, no timestamp gaps. endSeconds = next startSeconds.
 - tagType: "intro" | "concept" | "setup" | "action"
-- summary: 2-4 SHORT sentences. MUST contain literal \\n between each sentence for line breaks. Is this worth my time? What's the actual point? Don't be polite.
+- summary: 2-4 SHORT sentences. Use <br> between sentences for line breaks. Is this worth my time? What's the actual point? Don't be polite.
 
 ## OUTPUT (return ONLY valid JSON):
 {
   "title": "...",
-  "summary": "First sentence about what this is.\\nSecond sentence about whether it's worth watching.\\nThird sentence with the cynical take.",
+  "summary": "First sentence about what this is.<br>Second sentence about whether it's worth watching.<br>Third sentence with the cynical take.",
   "steps": [{ "startSeconds": 0, "endSeconds": 120, "tag": "Label", "tagType": "intro", "title": "...", "blocks": [{ "type": "...", "html": "..." }] }]
 }`;
 }

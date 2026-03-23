@@ -289,22 +289,18 @@ function ChatPanel({ videoId }: { videoId: string }) {
           </div>
         ))}
         {loading && (
-          <div className="flex items-center gap-1.5 text-[13px] text-fd-muted-foreground/50 py-1">
-            <span className="flex gap-1">
-              {[0, 1, 2].map((d) => (
-                <span
-                  key={d}
-                  className="w-1.5 h-1.5 rounded-full bg-fd-primary/60"
-                  style={{
-                    animationName: "vtg-bounce",
-                    animationDuration: "0.6s",
-                    animationTimingFunction: "ease-in-out",
-                    animationIterationCount: "infinite",
-                    animationDelay: `${d * 0.15}s`,
-                  }}
-                />
-              ))}
-            </span>
+          <div className="py-1">
+            <svg width="40" height="16" viewBox="0 0 40 16">
+              <circle cx="8" cy="8" r="3" fill="hsl(var(--fd-primary))">
+                <animate attributeName="opacity" values="1;0.3;1" dur="0.8s" repeatCount="indefinite" begin="0s" />
+              </circle>
+              <circle cx="20" cy="8" r="3" fill="hsl(var(--fd-primary))">
+                <animate attributeName="opacity" values="1;0.3;1" dur="0.8s" repeatCount="indefinite" begin="0.2s" />
+              </circle>
+              <circle cx="32" cy="8" r="3" fill="hsl(var(--fd-primary))">
+                <animate attributeName="opacity" values="1;0.3;1" dur="0.8s" repeatCount="indefinite" begin="0.4s" />
+              </circle>
+            </svg>
           </div>
         )}
         <div ref={chatEndRef} />
@@ -690,7 +686,6 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: `@keyframes vtg-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}` }} />
       <style jsx global>{`
         .vtg-step {
           will-change: opacity, transform;
@@ -739,7 +734,6 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
             <div className="shrink-0">
               <style dangerouslySetInnerHTML={{ __html: `
                 @keyframes vtg-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
-                @keyframes vtg-bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
               `}} />
               <div className="flex items-center gap-2.5 px-5 lg:px-8 py-3 text-[13px] text-fd-foreground/80">
                 <span className="h-3.5 w-3.5 rounded-full border-[1.5px] border-fd-primary border-t-transparent animate-spin shrink-0" />

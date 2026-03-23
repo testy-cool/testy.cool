@@ -263,7 +263,8 @@ function ChatPanel({ videoId }: { videoId: string }) {
         ))}
         {loading && (
           <div className="flex items-center gap-2 text-[13px] text-fd-muted-foreground/50">
-            <span className="inline-block h-3 w-3 rounded-full border-[1.5px] border-fd-primary border-t-transparent" style={{ animation: "spin 1s linear infinite" }} />
+            <style dangerouslySetInnerHTML={{ __html: `@keyframes vtg-spin{to{transform:rotate(360deg)}}` }} />
+            <span className="inline-block h-3 w-3 rounded-full border-[1.5px] border-fd-primary border-t-transparent" style={{ animation: "vtg-spin 1s linear infinite" }} />
             Thinking...
           </div>
         )}

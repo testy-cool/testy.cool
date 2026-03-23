@@ -14,6 +14,26 @@ import type {
   TutorialVersion,
 } from "@/lib/tools/video-breakdown/types";
 
+function simpleMarkdown(text: string): string {
+  return text
+    .replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => `<pre><code class="language-${lang}">${code.replace(/</g, "&lt;")}</code></pre>`)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
+    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+    .replace(/^# (.+)$/gm, "<h1>$1</h1>")
+    .replace(/^- (.+)$/gm, "<li>$1</li>")
+    .replace(/(<li>.*<\/li>\n?)+/g, (m) => `<ul>${m}</ul>`)
+    .replace(/^\d+\. (.+)$/gm, "<li>$1</li>")
+    .replace(/\n\n/g, "</p><p>")
+    .replace(/\n/g, "<br>")
+    .replace(/^/, "<p>")
+    .replace(/$/, "</p>")
+    .replace(/<p><(h[123]|ul|ol|pre)/g, "<$1")
+    .replace(/<\/(h[123]|ul|ol|pre)><\/p>/g, "</$1>");
+}
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare global {
   interface Window {
@@ -258,14 +278,33 @@ function ChatPanel({ videoId }: { videoId: string }) {
             <span className="text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground/40 block mb-1">
               {m.role === "user" ? "You" : "AI"}
             </span>
-            <div className="whitespace-pre-wrap">{m.text}</div>
+            {m.role === "user" ? (
+              <div className="whitespace-pre-wrap">{m.text}</div>
+            ) : (
+              <div
+                className="vtg-chat-md prose prose-sm prose-invert max-w-none [&_p]:mb-2 [&_ul]:mb-2 [&_ol]:mb-2 [&_li]:mb-0.5 [&_code]:bg-fd-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-[13px] [&_pre]:bg-fd-muted [&_pre]:p-3 [&_pre]:rounded-lg [&_pre]:text-[13px] [&_strong]:text-fd-foreground [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(simpleMarkdown(m.text), SANITIZE_CFG) }}
+              />
+            )}
           </div>
         ))}
         {loading && (
-          <div className="flex items-center gap-2 text-[13px] text-fd-muted-foreground/50">
-            <style dangerouslySetInnerHTML={{ __html: `@keyframes vtg-spin{to{transform:rotate(360deg)}}` }} />
-            <span className="inline-block h-3 w-3 rounded-full border-[1.5px] border-fd-primary border-t-transparent" style={{ animation: "vtg-spin 1s linear infinite" }} />
-            Thinking...
+          <div className="flex items-center gap-1.5 text-[13px] text-fd-muted-foreground/50 py-1">
+            <span className="flex gap-1">
+              {[0, 1, 2].map((d) => (
+                <span
+                  key={d}
+                  className="w-1.5 h-1.5 rounded-full bg-fd-primary/60"
+                  style={{
+                    animationName: "vtg-bounce",
+                    animationDuration: "0.6s",
+                    animationTimingFunction: "ease-in-out",
+                    animationIterationCount: "infinite",
+                    animationDelay: `${d * 0.15}s`,
+                  }}
+                />
+              ))}
+            </span>
           </div>
         )}
         <div ref={chatEndRef} />
@@ -651,6 +690,7 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
 
   return (
     <>
+      <style dangerouslySetInnerHTML={{ __html: `@keyframes vtg-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}` }} />
       <style jsx global>{`
         .vtg-step {
           will-change: opacity, transform;
@@ -699,6 +739,7 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
             <div className="shrink-0">
               <style dangerouslySetInnerHTML={{ __html: `
                 @keyframes vtg-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
+                @keyframes vtg-bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
               `}} />
               <div className="flex items-center gap-2.5 px-5 lg:px-8 py-3 text-[13px] text-fd-foreground/80">
                 <span className="h-3.5 w-3.5 rounded-full border-[1.5px] border-fd-primary border-t-transparent animate-spin shrink-0" />

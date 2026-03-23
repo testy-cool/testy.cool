@@ -71,15 +71,56 @@ export async function chatWithTutorial(
   videoId: string,
   message: string,
   history: { role: string; text: string }[],
-): Promise<string> {
+  convId?: string,
+  parentId?: string,
+): Promise<{ reply: string; convId: string }> {
+  const body: Record<string, unknown> = { action: "chat", videoId, message, history };
+  if (convId) body.convId = convId;
+  if (parentId) body.parentId = parentId;
   const res = await fetch("/api/tutorial/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "chat", videoId, message, history }),
+    body: JSON.stringify(body),
   });
   const data = await res.json();
   if (data.error) throw new Error(data.error);
-  return data.reply;
+  return { reply: data.reply, convId: data.convId };
+}
+
+export interface ConversationSummary {
+  id: string;
+  preview: string;
+  messageCount: number;
+  createdAt: number;
+  parentId?: string;
+}
+
+export interface Conversation {
+  id: string;
+  videoId: string;
+  parentId?: string;
+  messages: { role: string; text: string }[];
+  createdAt: number;
+}
+
+export async function getConversations(videoId: string): Promise<ConversationSummary[]> {
+  try {
+    const res = await fetch(`/api/tutorial/generate?action=conversations&videoId=${videoId}`);
+    const data = await res.json();
+    return data.conversations || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getConversation(videoId: string, id: string): Promise<Conversation | null> {
+  try {
+    const res = await fetch(`/api/tutorial/generate?action=conversation&videoId=${videoId}&id=${id}`);
+    const data = await res.json();
+    return data.conversation || null;
+  } catch {
+    return null;
+  }
 }
 
 export async function updatePrompt(prompt: string, password: string): Promise<void> {

@@ -2,7 +2,8 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import DOMPurify from "dompurify";
-import { chatWithTutorial } from "@/lib/tools/video-breakdown/tutorialService";
+import { chatWithTutorial, getConversations, getConversation } from "@/lib/tools/video-breakdown/tutorialService";
+import type { ConversationSummary } from "@/lib/tools/video-breakdown/tutorialService";
 
 // Allow all HTML/SVG, just strip scripts and event handlers
 const SANITIZE_CFG = { ADD_TAGS: ['svg', 'path', 'rect', 'circle', 'line', 'text', 'g', 'defs', 'marker', 'polygon', 'polyline', 'ellipse', 'use', 'symbol', 'clipPath', 'linearGradient', 'radialGradient', 'stop', 'foreignObject', 'tspan'], ADD_ATTR: ['style', 'viewBox', 'xmlns', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray', 'stroke-dashoffset', 'd', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height', 'transform', 'text-anchor', 'dominant-baseline', 'font-size', 'font-weight', 'opacity', 'marker-end', 'marker-start', 'points', 'offset', 'stop-color', 'stop-opacity', 'gradientUnits', 'gradientTransform', 'clip-path', 'colspan', 'rowspan'] };
@@ -127,7 +128,16 @@ function ChatPanel({ videoId }: { videoId: string }) {
   const [messages, setMessages] = useState<{ role: string; text: string }[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [convId, setConvId] = useState<string | null>(null);
+  const [parentId, setParentId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [viewingConv, setViewingConv] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Load existing conversations
+  useEffect(() => {
+    getConversations(videoId).then(setConversations);
+  }, [videoId]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -137,12 +147,18 @@ function ChatPanel({ videoId }: { videoId: string }) {
     const msg = input.trim();
     if (!msg || loading) return;
     setInput("");
+    setViewingConv(null);
     const newMessages = [...messages, { role: "user", text: msg }];
     setMessages(newMessages);
     setLoading(true);
     try {
-      const reply = await chatWithTutorial(videoId, msg, messages);
+      const { reply, convId: returnedId } = await chatWithTutorial(
+        videoId, msg, messages, convId || undefined, parentId || undefined,
+      );
+      if (!convId) setConvId(returnedId);
+      if (parentId) setParentId(null); // clear after first branched message
       setMessages([...newMessages, { role: "model", text: reply }]);
+      getConversations(videoId).then(setConversations);
     } catch (e: unknown) {
       setMessages([...newMessages, { role: "model", text: `Error: ${e instanceof Error ? e.message : "Failed"}` }]);
     } finally {
@@ -150,29 +166,88 @@ function ChatPanel({ videoId }: { videoId: string }) {
     }
   };
 
+  const loadConversation = async (id: string) => {
+    const conv = await getConversation(videoId, id);
+    if (!conv) return;
+    setMessages(conv.messages);
+    setViewingConv(id);
+    setConvId(null); // viewing, not continuing yet
+    setParentId(null);
+    setOpen(true);
+  };
+
+  const branchConversation = () => {
+    if (!viewingConv) return;
+    setParentId(viewingConv);
+    setConvId(null); // new conv will be created on first send
+    setViewingConv(null);
+  };
+
+  const startNew = () => {
+    setMessages([]);
+    setConvId(null);
+    setParentId(null);
+    setViewingConv(null);
+    setOpen(true);
+  };
+
   if (!open) {
     return (
-      <button
-        onClick={() => setOpen(true)}
-        className="w-full mt-4 mb-8 py-3 rounded-xl border border-fd-border/50 text-[13px] text-fd-muted-foreground/60 hover:text-fd-foreground hover:border-fd-border transition-colors flex items-center justify-center gap-2"
-      >
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M2 3h12v8H5l-3 3V3z" />
-        </svg>
-        Ask a question about this video
-      </button>
+      <div className="mt-4 mb-8 space-y-3">
+        <button
+          onClick={startNew}
+          className="w-full py-3 rounded-xl border border-fd-border/50 text-[13px] text-fd-muted-foreground/60 hover:text-fd-foreground hover:border-fd-border transition-colors flex items-center justify-center gap-2"
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 3h12v8H5l-3 3V3z" />
+          </svg>
+          Ask a question about this video
+        </button>
+        {conversations.length > 0 && (
+          <div className="space-y-1">
+            <span className="text-[11px] text-fd-muted-foreground/30 uppercase tracking-wider">Previous conversations</span>
+            {conversations.slice(0, 5).map((c) => (
+              <button
+                key={c.id}
+                onClick={() => loadConversation(c.id)}
+                className="w-full text-left px-3 py-2 rounded-lg border border-fd-border/30 hover:border-fd-border/60 transition-colors flex items-center justify-between gap-2"
+              >
+                <span className="text-[13px] text-fd-muted-foreground/70 truncate">{c.preview}</span>
+                <span className="text-[11px] text-fd-muted-foreground/30 shrink-0">{c.messageCount} msgs</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     );
   }
 
   return (
     <div className="mt-4 mb-8 rounded-xl border border-fd-border/50 overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-fd-border/30 bg-fd-card">
-        <span className="text-[12px] font-medium text-fd-muted-foreground/60 uppercase tracking-wider">Chat</span>
-        <button onClick={() => setOpen(false)} className="text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors">
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 4l8 8M12 4l-8 8" /></svg>
-        </button>
+        <div className="flex items-center gap-2">
+          <span className="text-[12px] font-medium text-fd-muted-foreground/60 uppercase tracking-wider">Chat</span>
+          {viewingConv && (
+            <button
+              onClick={branchConversation}
+              className="text-[11px] text-fd-primary/70 hover:text-fd-primary transition-colors font-medium"
+            >
+              Continue (branch)
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {(messages.length > 0 || viewingConv) && (
+            <button onClick={startNew} className="text-[11px] text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors">
+              New
+            </button>
+          )}
+          <button onClick={() => setOpen(false)} className="text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 4l8 8M12 4l-8 8" /></svg>
+          </button>
+        </div>
       </div>
-      <div className="max-h-[300px] overflow-y-auto px-4 py-3 space-y-3">
+      <div className="max-h-[400px] overflow-y-auto px-4 py-3 space-y-3">
         {messages.length === 0 && (
           <p className="text-[13px] text-fd-muted-foreground/40 text-center py-4">
             Ask anything about the video content or transcript.
@@ -194,24 +269,30 @@ function ChatPanel({ videoId }: { videoId: string }) {
         )}
         <div ref={chatEndRef} />
       </div>
-      <div className="flex items-stretch border-t border-fd-border/30">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && send()}
-          placeholder="Ask about the video..."
-          disabled={loading}
-          className="flex-1 px-4 py-3 text-[14px] bg-transparent text-fd-foreground placeholder:text-fd-muted-foreground/30 focus:outline-none disabled:opacity-50"
-        />
-        <button
-          onClick={send}
-          disabled={loading || !input.trim()}
-          className="px-4 py-3 text-fd-primary text-[13px] font-medium hover:opacity-80 disabled:opacity-20 transition-opacity"
-        >
-          Send
-        </button>
-      </div>
+      {viewingConv ? (
+        <div className="flex items-center justify-center px-4 py-3 border-t border-fd-border/30 text-[12px] text-fd-muted-foreground/40">
+          Viewing saved conversation. Click "Continue (branch)" to ask more.
+        </div>
+      ) : (
+        <div className="flex items-stretch border-t border-fd-border/30">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && send()}
+            placeholder="Ask about the video..."
+            disabled={loading}
+            className="flex-1 px-4 py-3 text-[14px] bg-transparent text-fd-foreground placeholder:text-fd-muted-foreground/30 focus:outline-none disabled:opacity-50"
+          />
+          <button
+            onClick={send}
+            disabled={loading || !input.trim()}
+            className="px-4 py-3 text-fd-primary text-[13px] font-medium hover:opacity-80 disabled:opacity-20 transition-opacity"
+          >
+            Send
+          </button>
+        </div>
+      )}
     </div>
   );
 }

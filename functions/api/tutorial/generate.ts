@@ -61,6 +61,18 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     return json({ tutorial: raw ? JSON.parse(raw) : null });
   }
 
+  if (action === "conversations" && videoId) {
+    const raw = await kv.get(`chat:${videoId}:index`);
+    return json({ conversations: raw ? JSON.parse(raw) : [] });
+  }
+
+  if (action === "conversation" && videoId) {
+    const id = url.searchParams.get("id");
+    if (!id) return json({ error: "Missing conversation id" }, 400);
+    const raw = await kv.get(`chat:${videoId}:${id}`);
+    return json({ conversation: raw ? JSON.parse(raw) : null });
+  }
+
   if (videoId) {
     const raw = await kv.get(`tutorial:${videoId}`);
     return json({ tutorial: raw ? JSON.parse(raw) : null });
@@ -107,7 +119,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const kv = context.env.PANTRY_CACHE;
   if (!kv) return json({ error: "KV not configured" }, 502);
 
-  let body: { action?: string; videoId: string; force?: boolean; model?: string; customNote?: string; message?: string; history?: { role: string; text: string }[] };
+  let body: { action?: string; videoId: string; force?: boolean; model?: string; customNote?: string; message?: string; history?: { role: string; text: string }[]; convId?: string; parentId?: string };
   try {
     body = await context.request.json();
   } catch {
@@ -116,7 +128,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   // Chat action
   if (body.action === "chat") {
-    return handleChat(context.env, body.videoId, body.message || "", body.history || []);
+    return handleChat(context.env, body.videoId, body.message || "", body.history || [], body.convId, body.parentId);
   }
 
   const { videoId, force } = body;
@@ -342,6 +354,8 @@ async function handleChat(
   videoId: string,
   message: string,
   history: { role: string; text: string }[],
+  convId?: string,
+  parentId?: string,
 ): Promise<Response> {
   if (!videoId || !message) return json({ error: "Missing videoId or message" }, 400);
 
@@ -383,7 +397,40 @@ async function handleChat(
       contents,
     });
 
-    return json({ reply: response.text || "No response generated." });
+    const reply = response.text || "No response generated.";
+
+    // Save conversation
+    const id = convId || crypto.randomUUID().slice(0, 8);
+    const allMessages = [...history, { role: "user", text: message }, { role: "model", text: reply }];
+    const conv = {
+      id,
+      videoId,
+      parentId: parentId || null,
+      messages: allMessages,
+      createdAt: Date.now(),
+    };
+    await kv.put(`chat:${videoId}:${id}`, JSON.stringify(conv), { expirationTtl: TTL_SECONDS });
+
+    // Update index
+    const indexRaw = await kv.get(`chat:${videoId}:index`);
+    const index: { id: string; preview: string; messageCount: number; createdAt: number; parentId?: string }[] =
+      indexRaw ? JSON.parse(indexRaw) : [];
+    const existing = index.findIndex((c) => c.id === id);
+    const entry = {
+      id,
+      preview: message.slice(0, 80),
+      messageCount: allMessages.length,
+      createdAt: existing >= 0 ? index[existing].createdAt : Date.now(),
+      parentId: parentId || undefined,
+    };
+    if (existing >= 0) {
+      index[existing] = entry;
+    } else {
+      index.unshift(entry);
+    }
+    await kv.put(`chat:${videoId}:index`, JSON.stringify(index.slice(0, 50)), { expirationTtl: TTL_SECONDS });
+
+    return json({ reply, convId: id });
   } catch (e: unknown) {
     return json({ error: e instanceof Error ? e.message : "Chat failed" }, 500);
   }

@@ -55,6 +55,7 @@ Content here.
 - `apps/web/app/layout.config.tsx` - Site title, description, nav config
 - `apps/web/blog-configuration.tsx` - Blog constants, categories, series definitions
 - `apps/web/lib/metadata.ts` - SEO metadata, OpenGraph config
+- `apps/web/lib/tools.ts` - Tools index (all tools listed here)
 - `apps/web/components/hero.tsx` - Homepage hero section
 - `apps/web/app/(home)/layout.tsx` - Footer social links
 - `packages/ui/src/components/social-icons.tsx` - Social icon components
@@ -63,7 +64,10 @@ Content here.
 ## Styling
 
 - Interactive components use fumadocs CSS tokens: `fd-card`, `fd-border`, `fd-background`, `fd-muted-foreground`, `fd-primary`, `fd-muted` — not raw Tailwind colors
-- Use `<style jsx global>` for component CSS that Tailwind can't express (custom animations, input spinner removal)
+- **CSS keyframes DO NOT WORK** via `<style jsx global>` in this project. Classes and transitions work, but custom `@keyframes` are silently dropped. For animations:
+  - Use Tailwind built-in animations (`animate-spin`, `animate-pulse`) when they fit
+  - For custom animations, inject via `<style dangerouslySetInnerHTML={{ __html: \`@keyframes ...\` }} />` (this works for the regen progress bar)
+  - For the most bulletproof approach, use SVG SMIL `<animate>` elements (used for chat loading dots) - these are self-contained and cannot be stripped
 - For animated table columns, always render in DOM and toggle with CSS transitions — conditional rendering (`{show && <td>}`) prevents smooth transitions
 
 ## Deployment
@@ -138,6 +142,38 @@ apps/web/app/(home)/tools/
      blogPath: "/blog/category/tool-name",
    }
    ```
+
+### Video Breakdown (`/tools/video-breakdown`)
+
+AI-powered video analysis tool. Paste a YouTube URL, Gemini watches it and writes a scroll-synced text breakdown.
+
+**Architecture:**
+- **Page**: `apps/web/app/(home)/tools/video-breakdown/page.tsx`
+- **Components**: `apps/web/components/tools/video-breakdown/` (TutorialApp.tsx, TutorialViewer.tsx)
+- **Service/Types**: `apps/web/lib/tools/video-breakdown/`
+- **API**: `functions/api/tutorial/generate.ts` (Cloudflare Worker - GET/POST/PUT)
+- **OG injection**: `functions/tools/video-breakdown.ts` (injects meta tags for social sharing)
+- **Redirect**: `functions/tools/video-tutorial.ts` (301 redirect from old URL)
+
+**Features:**
+- Scroll-synced split-screen (video left 60%, text right 40%)
+- Version history with regeneration
+- Custom instructions per video (saved to localStorage)
+- Auto-categorization (AI, Web Dev, Cooking, etc.)
+- Transcript extraction and storage
+- Chat with video content (Gemini, uses transcript + breakdown as context)
+- Saved conversations with branching (stored in KV, visible to all users)
+- Easter eggs: `iddqd` (model switcher), `thereisnospoon` (prompt editor)
+
+**Data storage** (Cloudflare KV - `PANTRY_CACHE`):
+- `tutorial:{videoId}` - cached tutorial JSON
+- `tutorial:{videoId}:v{n}` - versioned copies
+- `tutorial:{videoId}:meta` - version metadata
+- `chat:{videoId}:index` - conversation summaries (cap 50)
+- `chat:{videoId}:{convId}` - full conversation messages
+- `recent_tutorials` - recent list (cap 20)
+- `config:tutorial_prompt` - custom system prompt
+- Rate limit: 10 generations/hour per IP
 
 ## Tutorial Writing Guidelines
 

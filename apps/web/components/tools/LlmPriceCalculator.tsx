@@ -716,7 +716,7 @@ export function LlmPriceCalculator() {
   const controlLabelClass =
     "mb-2 flex items-center gap-1 text-sm font-medium text-fd-foreground/72";
   const headerCellClass =
-    "px-4 py-3 text-right text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62";
+    "px-4 py-3 text-right text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/62";
   const inputClass =
     "w-full rounded-lg border border-fd-border bg-fd-background px-3.5 py-2.5 text-sm font-medium tabular-nums text-fd-foreground shadow-sm transition-[border-color,box-shadow] focus-visible:border-fd-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20";
   const sortButtonClass =
@@ -1471,7 +1471,7 @@ export function LlmPriceCalculator() {
                 const isPinned = pinnedModels.has(model.name);
                 const barWidth = getCostBarWidth(model);
                 const isSelected = selectedModels.has(model.name);
-                return (
+                return (<>
                   <motion.tr
                     key={model.name}
                     initial={{ opacity: 0 }}
@@ -1490,8 +1490,8 @@ export function LlmPriceCalculator() {
                     } ${showCache && !isBudgetMode && !isChainMode ? "cursor-pointer" : ""}`}
                     style={isSelected ? { borderLeft: "3px solid var(--color-fd-primary)" } : isTop1 ? { borderLeft: "3px solid rgb(34 197 94)" } : isPinned ? { borderLeft: "3px solid var(--color-fd-primary)" } : undefined}
                   >
-                    <td className="px-2 py-3 text-center">
-                      <span className={`text-sm font-semibold tabular-nums ${
+                    <td className="px-2 py-3.5 text-center">
+                      <span className={`text-base font-semibold tabular-nums ${
                         isTop1
                           ? "text-green-500"
                           : isTop3
@@ -1501,7 +1501,7 @@ export function LlmPriceCalculator() {
                         {rank}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-fd-foreground/72">
+                    <td className="px-4 py-3.5 text-[15px] font-medium text-fd-foreground/72">
                       {providerLabels[model.provider]}
                     </td>
                     <td className="px-4 py-3 text-left">
@@ -1509,7 +1509,7 @@ export function LlmPriceCalculator() {
                         <button
                           onClick={() => togglePin(model.name)}
                           title={isPinned ? "Unpin" : "Pin to compare"}
-                          className={`text-left text-sm font-medium text-fd-foreground hover:text-fd-primary transition-colors ${
+                          className={`text-left text-[15px] font-medium text-fd-foreground hover:text-fd-primary transition-colors ${
                             isPinned ? "underline decoration-fd-primary decoration-2 underline-offset-2" : ""
                           }`}
                         >
@@ -1532,29 +1532,29 @@ export function LlmPriceCalculator() {
                         max output {formatTokenCount(model.maxOutput)}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/62">
+                    <td className="px-4 py-3.5 text-right text-[15px] tabular-nums text-fd-foreground/62">
                       {formatTokenCount(model.context)}/
                       {formatTokenCount(model.maxOutput)}
                     </td>
                     {showAdvanced && (
-                      <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/74">
+                      <td className="px-4 py-3.5 text-right text-[15px] tabular-nums text-fd-foreground/74">
                         {formatRate(model.input)}
                       </td>
                     )}
                     {showAdvanced && (
-                      <td className="px-4 py-3 text-right text-sm tabular-nums text-fd-foreground/74">
+                      <td className="px-4 py-3.5 text-right text-[15px] tabular-nums text-fd-foreground/74">
                         {formatRate(model.output)}
                       </td>
                     )}
                     {isChainMode ? (
                       <>
-                        <td className="border-l border-fd-border/40 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground">
+                        <td className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground">
                           {formatCost(model.chainCall1)}
                         </td>
-                        <td className="border-l border-fd-border/40 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground/78">
+                        <td className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground/78">
                           {formatCost(model.chainLastCall)}
                         </td>
-                        <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3 text-right">
+                        <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             {model.chainExceedsAt > 0 && (
                               <span title={`Exceeds ${formatTokenCount(model.context)} context at call ${model.chainExceedsAt}`} className="text-amber-500">
@@ -1563,7 +1563,7 @@ export function LlmPriceCalculator() {
                                 </svg>
                               </span>
                             )}
-                            <span className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
+                            <span className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
                               {formatCost(model.chainTotal)}
                             </span>
                           </div>
@@ -1576,8 +1576,8 @@ export function LlmPriceCalculator() {
                         </td>
                       </>
                     ) : isBudgetMode ? (
-                      <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3 text-right">
-                        <div className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
+                      <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
+                        <div className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
                           {model.maxCalls === Infinity ? "\u221e" : formatCallCount(model.maxCalls)}
                         </div>
                         <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
@@ -1589,12 +1589,12 @@ export function LlmPriceCalculator() {
                       </td>
                     ) : (
                       <>
-                        <td className="border-l border-fd-border/40 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground">
+                        <td className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground">
                           {formatCost(model.perCall)}
                         </td>
                         {showAdvanced && showCache && (
                           <td
-                            className="border-l border-fd-border/40 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground/78"
+                            className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground/78"
                             title={`Per-call breakdown (${cachePercent}% cached):\n  Input: ${formatCost(model.cachedInputCost)} (${cachePercent}% at ${formatRate(model.cachedInput)}/M, ${100 - cachePercent}% at ${formatRate(model.input)}/M)\n  Output: ${formatCost(model.outputCost)} (${formatTokenCount(outputTokens)} × ${formatRate(model.output)}/M)${model.reasoning && reasoningTokens > 0 ? `\n  Reasoning: ${formatCost(model.reasoningCost)}` : ""}`}
                           >
                             <span className="cursor-help border-b border-dashed border-fd-foreground/25">
@@ -1602,8 +1602,8 @@ export function LlmPriceCalculator() {
                             </span>
                           </td>
                         )}
-                        <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3 text-right">
-                          <span className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
+                        <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
+                          <span className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
                             {formatCost(showCache ? model.cachedTotal : model.total)}
                           </span>
                           <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
@@ -1614,14 +1614,67 @@ export function LlmPriceCalculator() {
                           </div>
                         </td>
                         {showAdvanced && showCache && (
-                          <td className="border-l border-fd-border/50 px-4 py-3 text-right text-sm font-medium tabular-nums text-fd-foreground/72">
+                          <td className="border-l border-fd-border/50 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground/72">
                             {model.savings.toFixed(0)}%
                           </td>
                         )}
                       </>
                     )}
                   </motion.tr>
-                );
+                  {isSelected && showCache && !isBudgetMode && !isChainMode && (() => {
+                    const colCount = 4 + (showAdvanced ? 2 : 0) + (showCache ? 2 : 0) + (showBulk || showCache ? 1 : 0);
+                    const subsequentCalls = Math.max(0, apiCalls - 1);
+                    const inputDiscount = model.input > 0 ? Math.round((1 - model.cachedInput / model.input) * 100) : 0;
+                    return (
+                      <tr key={`${model.name}-detail`} className="border-b border-fd-border/50 bg-fd-muted/30" ref={(el) => { if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }}>
+                        <td colSpan={colCount} className="px-8 py-6">
+                          <div className="max-w-2xl space-y-4">
+                            <div className="space-y-3">
+                              {/* Call 1 */}
+                              <div className="flex items-center gap-4">
+                                <span className="w-36 text-base font-medium text-fd-foreground/60">Call 1</span>
+                                <span className="text-lg font-semibold tabular-nums text-fd-foreground">{formatCost(model.perCall)}</span>
+                                <span className="text-base text-fd-foreground/40">full price</span>
+                              </div>
+                              {/* Call 2 */}
+                              {subsequentCalls > 0 && (
+                                <div className="flex items-center gap-4">
+                                  <span className="w-36 text-base font-medium text-green-500/70">Call 2</span>
+                                  <span className="text-lg font-semibold tabular-nums text-green-500/80">{formatCost(model.cachedPerCall)}</span>
+                                  <span className="text-base text-green-500/50">{inputDiscount}% cheaper input ({formatRate(model.cachedInput)} vs {formatRate(model.input)}/M)</span>
+                                </div>
+                              )}
+                              {/* ... calls 3 to N-1 */}
+                              {subsequentCalls > 2 && (
+                                <div className="flex items-center gap-4">
+                                  <span className="w-36 text-base text-fd-foreground/30">Calls 3&ndash;{(apiCalls - 1).toLocaleString()}</span>
+                                  <span className="text-lg tabular-nums text-fd-foreground/30">...</span>
+                                  <span className="text-base text-fd-foreground/30">same as Call 2</span>
+                                </div>
+                              )}
+                              {/* Call N */}
+                              {subsequentCalls > 1 && (
+                                <div className="flex items-center gap-4">
+                                  <span className="w-36 text-base font-medium text-green-500/70">Call {apiCalls.toLocaleString()}</span>
+                                  <span className="text-lg font-semibold tabular-nums text-green-500/80">{formatCost(model.cachedPerCall)}</span>
+                                  <span className="text-base text-green-500/50">{cachePercent}% cached</span>
+                                </div>
+                              )}
+                            </div>
+                            {/* Total */}
+                            <div className="flex items-center gap-4 border-t border-fd-border/30 pt-4">
+                              <span className="w-36 text-base font-bold text-fd-foreground/70">Total</span>
+                              <span className="text-xl font-bold tabular-nums text-fd-foreground">{formatCost(model.cachedTotal)}</span>
+                              {model.savings > 0 && (
+                                <span className="text-base font-medium text-green-500/70">saving {model.savings.toFixed(0)}% vs {formatCost(model.total)} without cache</span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })()}
+                </>);
               })}
             </AnimatePresence>
             </tbody>
@@ -1805,86 +1858,11 @@ export function LlmPriceCalculator() {
           </AnimatePresence>
         </div>
 
-        {/* Per-model caching detail panels */}
-        {showCache && !isBudgetMode && !isChainMode && selectedModels.size > 0 && (() => {
-          const selected = calculated.filter((c) => selectedModels.has(c.name));
-          if (selected.length === 0) return null;
-          const cachedTokens = Math.round(inputTokens * cachePercent / 100);
-          const uncachedTokens = inputTokens - cachedTokens;
-          const subsequentCalls = Math.max(0, apiCalls - 1);
-          return (
-            <div className="border-t border-fd-primary/20 bg-fd-primary/[0.03]">
-              <div className="flex items-center justify-between px-6 pt-4 pb-2">
-                <span className="text-xs font-medium text-fd-foreground/40">Caching breakdown ({selected.length} model{selected.length > 1 ? "s" : ""})</span>
-                <button onClick={() => setSelectedModels(new Set())} className="text-xs text-fd-foreground/30 hover:text-fd-foreground/60 transition-colors">clear all</button>
-              </div>
-              <div className="grid gap-4 px-6 pb-5" style={{ gridTemplateColumns: selected.length === 1 ? "1fr" : selected.length === 2 ? "1fr 1fr" : "1fr 1fr 1fr" }}>
-                {selected.map((m) => {
-                  const inputDiscount = m.input > 0 ? Math.round((1 - m.cachedInput / m.input) * 100) : 0;
-                  return (
-                    <div key={m.name} className="rounded-lg border border-fd-border/40 bg-fd-background/50 px-4 py-3">
-                      <div className="mb-2 flex items-center justify-between">
-                        <div>
-                          <span className="text-sm font-semibold text-fd-foreground">{m.name}</span>
-                          <span className="ml-2 text-xs text-fd-foreground/35">{providerLabels[m.provider]}</span>
-                        </div>
-                        <button onClick={(e) => { e.stopPropagation(); setSelectedModels((prev) => { const next = new Set(prev); next.delete(m.name); return next; }); }} className="text-fd-foreground/25 hover:text-fd-foreground/50 transition-colors">&times;</button>
-                      </div>
-                      {/* Bars */}
-                      <div className="mb-2 space-y-1.5">
-                        <div>
-                          <div className="mb-0.5 flex items-center justify-between text-[11px] text-fd-foreground/35">
-                            <span>Call 1 - full price</span>
-                            <span className="tabular-nums">{formatCost(m.perCall)}</span>
-                          </div>
-                          <div className="flex h-5 w-full overflow-hidden rounded">
-                            <div className="flex flex-1 items-center justify-center bg-fd-foreground/10 text-[10px] font-medium text-fd-foreground/50">
-                              {formatTokenCount(inputTokens)} @ {formatRate(m.input)}/M
-                            </div>
-                          </div>
-                        </div>
-                        {subsequentCalls > 0 && (
-                          <div>
-                            <div className="mb-0.5 flex items-center justify-between text-[11px] text-fd-foreground/35">
-                              <span>{subsequentCalls === 1 ? "Call 2" : `Calls 2\u2013${apiCalls.toLocaleString()}`} - {cachePercent}% cached</span>
-                              <span className="tabular-nums text-green-500/60">{formatCost(m.cachedPerCall)}</span>
-                            </div>
-                            <div className="flex h-5 w-full overflow-hidden rounded">
-                              <div
-                                className="flex items-center justify-center bg-green-500/20 text-[10px] font-medium text-green-400/80 transition-all duration-300"
-                                style={{ width: `${cachePercent}%` }}
-                              >
-                                {cachePercent >= 30 && `${formatTokenCount(cachedTokens)} @ ${formatRate(m.cachedInput)}`}
-                              </div>
-                              <div
-                                className="flex items-center justify-center bg-fd-foreground/10 text-[10px] font-medium text-fd-foreground/45 transition-all duration-300"
-                                style={{ width: `${100 - cachePercent}%` }}
-                              >
-                                {(100 - cachePercent) >= 25 && `${formatTokenCount(uncachedTokens)} @ ${formatRate(m.input)}`}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      {/* Summary line */}
-                      <div className="text-xs text-fd-foreground/45">
-                        Cached input is <span className="font-medium text-green-500/70">{inputDiscount}% cheaper</span> ({formatRate(m.cachedInput)} vs {formatRate(m.input)}/M)
-                        {subsequentCalls > 0 && m.savings > 0 && (
-                          <> &middot; Total: <span className="font-medium text-fd-foreground/70">{formatCost(m.cachedTotal)}</span> saving {m.savings.toFixed(0)}%</>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })()}
-        <div className="border-t border-fd-border px-5 py-3 text-[11px] leading-5 text-fd-foreground/60">
+        <div className="border-t border-fd-border px-5 py-3 text-xs leading-5 text-fd-foreground/60">
           Prices per million tokens. Last updated March 2026.
           {isChainMode && " Chain mode assumes previous context is cached and each turn adds new tokens at full price."}
           {showCache && !isChainMode &&
-            ` Totals reflect cache hits at the selected cache rate.${selectedModels.size === 0 ? " Click model rows to see caching details." : ""}`}
+            ` Totals reflect cache hits at the selected cache rate. Click a row to see per-call breakdown.`}
         </div>
       </div>
     </div>

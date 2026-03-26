@@ -1647,9 +1647,9 @@ export function LlmPriceCalculator() {
                               </tr>
                               {subsequentCalls > 0 && (
                                 <tr>
-                                  <td className="pr-4 py-1 font-medium text-green-500/70">Call 2+</td>
-                                  <td className="pr-4 py-1 text-right font-semibold tabular-nums text-green-500/80">{formatCost(model.cachedPerCall)}</td>
-                                  <td className="py-1 text-sm text-green-500/70">{inputDiscount}% cheaper input ({formatRate(model.cachedInput)} vs {formatRate(model.input)}/M)</td>
+                                  <td className="pr-4 py-1 font-medium text-fd-foreground/60">Call 2+</td>
+                                  <td className="pr-4 py-1 text-right font-semibold tabular-nums text-fd-foreground">{formatCost(model.cachedPerCall)}</td>
+                                  <td className="py-1 text-sm text-fd-foreground/60"><span className="text-green-500/80">{inputDiscount}% cheaper</span> ({formatRate(model.cachedInput)} vs {formatRate(model.input)}/M)</td>
                                 </tr>
                               )}
                               <tr className="border-t border-fd-border/30">

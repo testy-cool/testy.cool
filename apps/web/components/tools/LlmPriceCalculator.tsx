@@ -1628,34 +1628,31 @@ export function LlmPriceCalculator() {
                     return (
                       <tr key={`${model.name}-detail`} className="border-b border-fd-border/50 bg-fd-muted/20" ref={(el) => { if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }}>
                         <td colSpan={colCount} className="px-8 py-5">
-                          <div className="max-w-2xl space-y-3">
-                            <div className="space-y-2.5">
-                              {/* Call 1 */}
-                              <div className="flex items-center gap-4">
-                                <span className="w-28 text-[15px] font-medium text-fd-foreground/60">Call 1</span>
-                                <span className="text-[15px] font-semibold tabular-nums text-fd-foreground">{formatCost(model.perCall)}</span>
-                                <span className="text-sm text-fd-foreground/40">
+                          <table className="text-[15px]">
+                            <tbody>
+                              <tr>
+                                <td className="pr-4 py-1 font-medium text-fd-foreground/60">Call 1</td>
+                                <td className="pr-4 py-1 text-right font-semibold tabular-nums text-fd-foreground" style={{ minWidth: 72 }}>{formatCost(model.perCall)}</td>
+                                <td className="py-1 text-sm text-fd-foreground/40">
                                   {formatCost(model.inputCost)} input + {formatCost(model.outputCost)} output{model.reasoningCost > 0 ? ` + ${formatCost(model.reasoningCost)} reasoning` : ""}
-                                </span>
-                              </div>
-                              {/* Call 2 */}
+                                </td>
+                              </tr>
                               {subsequentCalls > 0 && (
-                                <div className="flex items-center gap-4">
-                                  <span className="w-28 text-[15px] font-medium text-green-500/70">Call 2+</span>
-                                  <span className="text-[15px] font-semibold tabular-nums text-green-500/80">{formatCost(model.cachedPerCall)}</span>
-                                  <span className="text-sm text-green-500/50">{inputDiscount}% cheaper input ({formatRate(model.cachedInput)} vs {formatRate(model.input)}/M)</span>
-                                </div>
+                                <tr>
+                                  <td className="pr-4 py-1 font-medium text-green-500/70">Call 2+</td>
+                                  <td className="pr-4 py-1 text-right font-semibold tabular-nums text-green-500/80">{formatCost(model.cachedPerCall)}</td>
+                                  <td className="py-1 text-sm text-green-500/50">{inputDiscount}% cheaper input ({formatRate(model.cachedInput)} vs {formatRate(model.input)}/M)</td>
+                                </tr>
                               )}
-                            </div>
-                            {/* Total */}
-                            <div className="flex items-center gap-4 border-t border-fd-border/30 pt-3">
-                              <span className="w-28 text-[15px] font-bold text-fd-foreground/70">Total</span>
-                              <span className="text-lg font-bold tabular-nums text-fd-foreground">{formatCost(model.cachedTotal)}</span>
-                              {model.savings > 0 && (
-                                <span className="text-sm font-medium text-green-500/70">saving {model.savings.toFixed(0)}% vs {formatCost(model.total)} without cache</span>
-                              )}
-                            </div>
-                          </div>
+                              <tr className="border-t border-fd-border/30">
+                                <td className="pr-4 pt-2 font-bold text-fd-foreground/70">Total</td>
+                                <td className="pr-4 pt-2 text-right font-bold tabular-nums text-fd-foreground">{formatCost(model.cachedTotal)}</td>
+                                <td className="pt-2 text-sm font-medium text-green-500/70">
+                                  {model.savings > 0 && <>saving {model.savings.toFixed(0)}% vs {formatCost(model.total)} without cache</>}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
                         </td>
                       </tr>
                     );

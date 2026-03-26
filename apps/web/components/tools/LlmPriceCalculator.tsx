@@ -883,6 +883,14 @@ export function LlmPriceCalculator() {
   }, [visibleModels, showCache, isBudgetMode, isChainMode]);
 
 
+  // Auto-expand the cheapest model when cache is enabled so users discover the feature
+  useEffect(() => {
+    if (showCache && !isBudgetMode && !isChainMode && selectedModels.size === 0) {
+      const cheapest = visibleModels.reduce((best, m) => m.cachedTotal < best.cachedTotal ? m : best, visibleModels[0]);
+      if (cheapest) setSelectedModels(new Set([cheapest.name]));
+    }
+  }, [showCache, isBudgetMode, isChainMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function getCostBarWidth(model: typeof visibleModels[0]): number {
     if (isBudgetMode) {
       return maxCost > 0 ? (model.maxCalls / maxCost) * 100 : 0;
@@ -1633,7 +1641,7 @@ export function LlmPriceCalculator() {
                               <tr>
                                 <td className="pr-4 py-1 font-medium text-fd-foreground/60">Call 1</td>
                                 <td className="pr-4 py-1 text-right font-semibold tabular-nums text-fd-foreground" style={{ minWidth: 72 }}>{formatCost(model.perCall)}</td>
-                                <td className="py-1 text-sm text-fd-foreground/40">
+                                <td className="py-1 text-sm text-fd-foreground/60">
                                   {formatCost(model.inputCost)} input + {formatCost(model.outputCost)} output{model.reasoningCost > 0 ? ` + ${formatCost(model.reasoningCost)} reasoning` : ""}
                                 </td>
                               </tr>
@@ -1641,7 +1649,7 @@ export function LlmPriceCalculator() {
                                 <tr>
                                   <td className="pr-4 py-1 font-medium text-green-500/70">Call 2+</td>
                                   <td className="pr-4 py-1 text-right font-semibold tabular-nums text-green-500/80">{formatCost(model.cachedPerCall)}</td>
-                                  <td className="py-1 text-sm text-green-500/50">{inputDiscount}% cheaper input ({formatRate(model.cachedInput)} vs {formatRate(model.input)}/M)</td>
+                                  <td className="py-1 text-sm text-green-500/70">{inputDiscount}% cheaper input ({formatRate(model.cachedInput)} vs {formatRate(model.input)}/M)</td>
                                 </tr>
                               )}
                               <tr className="border-t border-fd-border/30">

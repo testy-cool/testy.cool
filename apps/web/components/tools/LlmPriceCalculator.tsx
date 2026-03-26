@@ -911,9 +911,9 @@ export function LlmPriceCalculator() {
       `}</style>
 
       {/* Input Controls - Sticky */}
-      <div className="sticky top-[var(--fd-nav-height,3.5rem)] z-10 mb-5 rounded-xl border border-fd-border bg-fd-card/95 p-5 shadow-sm backdrop-blur-sm sm:p-6">
+      <div className="mb-5 rounded-xl border border-fd-border bg-fd-card/95 p-3 shadow-sm sm:p-5 md:sticky md:top-[var(--fd-nav-height,3.5rem)] md:z-10 md:p-6 md:backdrop-blur-sm">
         {/* Mode toggle + Presets row */}
-        <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="mb-2.5 flex flex-wrap items-center gap-1.5 sm:mb-4 sm:gap-2">
           <div className="inline-flex rounded-lg border border-fd-border bg-fd-background/80 p-1">
             <button
               onClick={() => setMode("cost")}
@@ -992,7 +992,7 @@ export function LlmPriceCalculator() {
         </div>
 
         {isChainMode ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 xl:gap-5">
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-4 xl:grid-cols-5 xl:gap-5">
             <div>
               <label htmlFor="chain-base-tokens" className={controlLabelClass}>
                 Base tokens
@@ -1075,7 +1075,7 @@ export function LlmPriceCalculator() {
             </div>
           </div>
         ) : isBudgetMode ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-4 xl:grid-cols-4 xl:gap-5">
             <div>
               <label htmlFor="budget-input" className={controlLabelClass}>
                 Budget ($)
@@ -1143,7 +1143,7 @@ export function LlmPriceCalculator() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 xl:gap-5">
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-4 xl:grid-cols-5 xl:gap-5">
             <div>
               <label htmlFor="input-tokens" className={controlLabelClass}>
                 Input Tokens
@@ -1665,7 +1665,7 @@ export function LlmPriceCalculator() {
         </div>
 
         {/* Mobile card view */}
-        <div className="flex flex-col gap-3 p-3 md:hidden">
+        <div className="flex flex-col gap-2 p-2 md:hidden">
           <AnimatePresence initial={false}>
           {visibleModels.map((model) => {
             const rank = rankedModels.get(model.name) ?? 999;
@@ -1680,14 +1680,14 @@ export function LlmPriceCalculator() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
-                className={`relative rounded-xl border p-4 transition-colors hover:bg-fd-muted/45 ${
+                className={`relative rounded-lg border px-3 py-2.5 transition-colors hover:bg-fd-muted/45 ${
                   isPinned
                     ? "border-fd-primary/40 bg-fd-primary/[0.04]"
                     : "border-fd-border bg-fd-background"
                 }`}
                 style={isTop1 ? { borderLeft: "3px solid rgb(34 197 94)" } : undefined}
               >
-                <div className="mb-3 flex items-start justify-between gap-2">
+                <div className="mb-1.5 flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <span className={`flex h-5 w-5 items-center justify-center rounded text-xs font-bold tabular-nums ${
@@ -1727,7 +1727,7 @@ export function LlmPriceCalculator() {
                   </div>
                 </div>
 
-                <div className="mb-3 flex items-center gap-3 text-xs text-fd-muted-foreground">
+                <div className="mb-1.5 flex items-center gap-3 text-xs text-fd-muted-foreground">
                   <span>
                     {formatTokenCount(model.context)} /{" "}
                     {formatTokenCount(model.maxOutput)}
@@ -1828,7 +1828,7 @@ export function LlmPriceCalculator() {
                 )}
 
                 {/* Cost bar */}
-                <div className="mt-3 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
+                <div className="mt-2 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
                     style={{ width: `${barWidth}%` }}

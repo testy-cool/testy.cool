@@ -883,11 +883,10 @@ export function LlmPriceCalculator() {
   }, [visibleModels, showCache, isBudgetMode, isChainMode]);
 
 
-  // Auto-expand the cheapest model when cache is enabled so users discover the feature
+  // Auto-expand the first visible model when cache is enabled so users discover the feature
   useEffect(() => {
     if (showCache && !isBudgetMode && !isChainMode && selectedModels.size === 0) {
-      const cheapest = visibleModels.reduce((best, m) => m.cachedTotal < best.cachedTotal ? m : best, visibleModels[0]);
-      if (cheapest) setSelectedModels(new Set([cheapest.name]));
+      if (visibleModels[0]) setSelectedModels(new Set([visibleModels[0].name]));
     }
   }, [showCache, isBudgetMode, isChainMode]); // eslint-disable-line react-hooks/exhaustive-deps
 

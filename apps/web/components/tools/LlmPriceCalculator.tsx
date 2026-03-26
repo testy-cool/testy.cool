@@ -1626,47 +1626,33 @@ export function LlmPriceCalculator() {
                     const subsequentCalls = Math.max(0, apiCalls - 1);
                     const inputDiscount = model.input > 0 ? Math.round((1 - model.cachedInput / model.input) * 100) : 0;
                     return (
-                      <tr key={`${model.name}-detail`} className="border-b border-fd-border/50 bg-fd-muted/30" ref={(el) => { if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }}>
-                        <td colSpan={colCount} className="px-8 py-6">
-                          <div className="max-w-2xl space-y-4">
-                            <div className="space-y-3">
+                      <tr key={`${model.name}-detail`} className="border-b border-fd-border/50 bg-fd-muted/20" ref={(el) => { if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }}>
+                        <td colSpan={colCount} className="px-8 py-5">
+                          <div className="max-w-2xl space-y-3">
+                            <div className="space-y-2.5">
                               {/* Call 1 */}
                               <div className="flex items-center gap-4">
-                                <span className="w-36 text-base font-medium text-fd-foreground/60">Call 1</span>
-                                <span className="text-lg font-semibold tabular-nums text-fd-foreground">{formatCost(model.perCall)}</span>
-                                <span className="text-base text-fd-foreground/40">full price</span>
+                                <span className="w-28 text-[15px] font-medium text-fd-foreground/60">Call 1</span>
+                                <span className="text-[15px] font-semibold tabular-nums text-fd-foreground">{formatCost(model.perCall)}</span>
+                                <span className="text-sm text-fd-foreground/40">
+                                  {formatCost(model.inputCost)} input + {formatCost(model.outputCost)} output{model.reasoningCost > 0 ? ` + ${formatCost(model.reasoningCost)} reasoning` : ""}
+                                </span>
                               </div>
                               {/* Call 2 */}
                               {subsequentCalls > 0 && (
                                 <div className="flex items-center gap-4">
-                                  <span className="w-36 text-base font-medium text-green-500/70">Call 2</span>
-                                  <span className="text-lg font-semibold tabular-nums text-green-500/80">{formatCost(model.cachedPerCall)}</span>
-                                  <span className="text-base text-green-500/50">{inputDiscount}% cheaper input ({formatRate(model.cachedInput)} vs {formatRate(model.input)}/M)</span>
-                                </div>
-                              )}
-                              {/* ... calls 3 to N-1 */}
-                              {subsequentCalls > 2 && (
-                                <div className="flex items-center gap-4">
-                                  <span className="w-36 text-base text-fd-foreground/30">Calls 3&ndash;{(apiCalls - 1).toLocaleString()}</span>
-                                  <span className="text-lg tabular-nums text-fd-foreground/30">...</span>
-                                  <span className="text-base text-fd-foreground/30">same as Call 2</span>
-                                </div>
-                              )}
-                              {/* Call N */}
-                              {subsequentCalls > 1 && (
-                                <div className="flex items-center gap-4">
-                                  <span className="w-36 text-base font-medium text-green-500/70">Call {apiCalls.toLocaleString()}</span>
-                                  <span className="text-lg font-semibold tabular-nums text-green-500/80">{formatCost(model.cachedPerCall)}</span>
-                                  <span className="text-base text-green-500/50">{cachePercent}% cached</span>
+                                  <span className="w-28 text-[15px] font-medium text-green-500/70">Call 2+</span>
+                                  <span className="text-[15px] font-semibold tabular-nums text-green-500/80">{formatCost(model.cachedPerCall)}</span>
+                                  <span className="text-sm text-green-500/50">{inputDiscount}% cheaper input ({formatRate(model.cachedInput)} vs {formatRate(model.input)}/M)</span>
                                 </div>
                               )}
                             </div>
                             {/* Total */}
-                            <div className="flex items-center gap-4 border-t border-fd-border/30 pt-4">
-                              <span className="w-36 text-base font-bold text-fd-foreground/70">Total</span>
-                              <span className="text-xl font-bold tabular-nums text-fd-foreground">{formatCost(model.cachedTotal)}</span>
+                            <div className="flex items-center gap-4 border-t border-fd-border/30 pt-3">
+                              <span className="w-28 text-[15px] font-bold text-fd-foreground/70">Total</span>
+                              <span className="text-lg font-bold tabular-nums text-fd-foreground">{formatCost(model.cachedTotal)}</span>
                               {model.savings > 0 && (
-                                <span className="text-base font-medium text-green-500/70">saving {model.savings.toFixed(0)}% vs {formatCost(model.total)} without cache</span>
+                                <span className="text-sm font-medium text-green-500/70">saving {model.savings.toFixed(0)}% vs {formatCost(model.total)} without cache</span>
                               )}
                             </div>
                           </div>

@@ -5,8 +5,15 @@ import { getBlogPosts } from "@/lib/source";
 import type { BlogPost } from "@repo/fumadocs-blog/blog";
 import { organizationSchema, websiteSchema } from "@/lib/jsonld";
 import { allTools, getToolUrl } from "@/lib/tools";
+import { createMetadata } from "@/lib/metadata";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+
+export const metadata = createMetadata({
+  alternates: {
+    canonical: "https://testy.cool",
+  },
+});
 
 type SitePost = NonNullable<BlogPost>;
 

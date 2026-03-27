@@ -41,11 +41,6 @@ export default function RootLayout({
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
-        <script
-          crossOrigin="anonymous"
-          src="//cdn.jsdelivr.net/npm/meta-scan@0.15.0/dist/auto.global.js"
-          data-auto-enable={"false"}
-        />
       </head>
       <body
         className={cn("relative flex min-h-svh flex-col overflow-x-hidden")}

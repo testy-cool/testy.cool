@@ -1,3 +1,58 @@
 # Blog post renames
 /blog/tutorial/setup-blog-with-testy-blog /blog/tutorial/fumadocs-blog-setup 301
 /blog/tutorial/setup-blog-with-testy-blog/ /blog/tutorial/fumadocs-blog-setup 301
+
+# Old WordPress URLs — redirect to closest equivalent or fallback
+# Posts
+/posts/setting-up-obsidian-with-the-obsidianite-theme-and-smart-composer-plugin/ /blog 301
+/spidercloud-web-scraper-review/ /blog 301
+
+# Notes
+/notes/obsidian-smart-composer-is-fucking-awesome/ /blog 301
+/notes/uv-cheatsheet/ /blog 301
+/notes/simonws-llm-cheatsheet/ /blog 301
+/notes/add-mcp-servers-to-claude-code-on-windows-with-git-bash/ /blog/tutorial/claude-code-ssh-setup 301
+/notes/fix-for-microsoft-edge-lag-disable-the-quic-protocol/ /blog 301
+/notes/fix-black-gray-screen-issues-sharex-or-windows-screenshot-tools/ /blog/troubleshooting/windows-nul-file 301
+
+# Ramblings
+/ramblings/yt-stop-recommending-me-shit-i-dont-care-about/ /blog 301
+/ramblings/do-an-imperfect-thing-to-improve-what-you-want/ /blog 301
+/ramblings/i-keep-getting-distracted-and-simple-tasks-take-way-too-long-than-they-should/ /blog 301
+/ramblings/ask-yourself-does-this-move-the-needle-while-doing-something/ /blog 301
+/ramblings/trying-image-upscalers-enhancers/ /blog 301
+
+# Tutorials
+/tutorials/web-scraping-with-playwright-aria-snapshots-in-crawl4ai/ /blog 301
+/tutorials/increasing-php-upload-limits-in-coolify-hosted-wordpress/ /blog 301
+/tutorials/quick-fix-for-couldnt-connect-bluetooth-issues-on-windows-10/ /blog/troubleshooting/windows-nul-file 301
+
+# Today I Learned
+/today-i-learned/how-to-remove-empty-image-placeholders-from-quarto-listings/ /blog 301
+
+# Tools (old paths)
+/tools/obsidian-smart-composer-is-fucking-awesome/ /tools 301
+/chrome-extension-icon-generator/ /tools 301
+
+# WordPress system pages
+/install /  301
+/signin /  301
+/reset-password /  301
+/contact/ /about 301
+/privacy-policy-2/ /privacy 301
+
+# WordPress category pages
+/category/notes/ /blog 301
+/category/ramblings/ /blog 301
+/category/today-i-learned/ /blog 301
+
+# WordPress assets
+/browserconfig.xml /  301
+/manifest.json /  301
+
+# www → non-www (Cloudflare should handle this, but belt-and-suspenders)
+http://www.testy.cool/* https://testy.cool/:splat 301
+
+# Catch-all for any remaining old WordPress paths with trailing slashes
+/gemini-20/ /blog 301
+/CHANGELOG.html / 301

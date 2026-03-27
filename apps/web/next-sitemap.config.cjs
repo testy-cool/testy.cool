@@ -29,10 +29,10 @@ module.exports = {
     }
     // Use default transformation for all other cases
     return {
-      loc: path, // => this will be exported as http(s)://<config.siteUrl>/<path>
+      loc: path,
       changefreq: config.changefreq,
       priority: config.priority,
-      lastmod: config.autoLastmod ? new Date().toISOString() : undefined,
+      lastmod: undefined,
       alternateRefs: config.alternateRefs ?? [],
     };
   },
@@ -52,6 +52,8 @@ function customIgnoreFunction(path) {
     "blog-og",
     "blog-posts-og",
     "posts",
+    "knowledge.json",
+    "llms.txt",
   ];
 
   return pathsToIgnore.some((pattern) => path.includes(pattern));

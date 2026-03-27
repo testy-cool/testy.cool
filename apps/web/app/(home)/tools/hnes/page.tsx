@@ -27,9 +27,25 @@ const chromeWebStoreUrl =
   "https://chromewebstore.google.com/detail/hacker-news-enhancement-s/ebmjdaaabekgefdnfkcoejejhkodkepg";
 const githubUrl = "https://github.com/testy-cool/hackernews-enhancement-suite";
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "Hacker News Enhancement Suite",
+  description:
+    "Manifest V3 fork of HNES with collapsible comments, keyboard shortcuts, and user tags.",
+  url: "https://testy.cool/tools/hnes",
+  applicationCategory: "BrowserExtension",
+  operatingSystem: "Web",
+  offers: { "@type": "Offer", price: "0" },
+};
+
 export default function HNESPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <section className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left bg-zinc-50/50 dark:bg-zinc-900/50">
         <div className="text-center">
           <Breadcrumb className="mb-4 flex justify-center">

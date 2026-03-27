@@ -30,3 +30,14 @@ del "\\?\F:\full\path\to\nul"
 ```
 
 The `\\?\` prefix bypasses Windows name parsing, allowing you to access files with reserved names. Always use the full absolute path.
+
+<FaqSchema items={[
+  {
+    question: "What is a NUL file in Windows?",
+    answer: "NUL is a reserved device name in Windows, like CON, PRN, and AUX. These files get created when cross-platform tools such as Git, WSL, or Linux apps create files without Windows name validation, or when extracting archives from Unix/Linux systems."
+  },
+  {
+    question: "How do I delete a NUL file on Windows?",
+    answer: "Use PowerShell: Remove-Item -Path \"\\\\?\\F:\\full\\path\\to\\nul\" -Force, or Command Prompt: del \"\\\\?\\F:\\full\\path\\to\\nul\". The \\\\?\\ prefix bypasses Windows name parsing so you can access files with reserved names. Always use the full absolute path."
+  }
+]} />

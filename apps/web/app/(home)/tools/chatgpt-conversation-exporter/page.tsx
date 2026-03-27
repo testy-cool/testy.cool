@@ -27,9 +27,25 @@ const screenshot =
 const githubUrl = "https://github.com/testy-cool/export-chatgpt-conversation";
 const privacyUrl = "/privacy#chatgpt-conversation-exporter";
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "ChatGPT Conversation Exporter",
+  description:
+    "Browser extension for exporting one ChatGPT conversation to Markdown or HTML. Everything stays in the browser.",
+  url: "https://testy.cool/tools/chatgpt-conversation-exporter",
+  applicationCategory: "BrowserExtension",
+  operatingSystem: "Web",
+  offers: { "@type": "Offer", price: "0" },
+};
+
 export default function ChatGPTConversationExporterPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <section className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left bg-zinc-50/50 dark:bg-zinc-900/50">
         <div className="text-center">
           <Breadcrumb className="mb-4 flex justify-center">

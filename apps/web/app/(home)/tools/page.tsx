@@ -25,6 +25,21 @@ export const metadata: Metadata = {
 
 const pageTitle = "Tools";
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "Tools",
+  description:
+    "Tools, a few tool-backed tutorials, and some browser extensions.",
+  url: "https://testy.cool/tools",
+  itemListElement: allTools.map((tool, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    name: tool.title,
+    url: `https://testy.cool${getToolUrl(tool)}`,
+  })),
+};
+
 function ToolCard({ tool }: { tool: Tool }) {
   const url = getToolUrl(tool);
 
@@ -73,6 +88,10 @@ function ToolCard({ tool }: { tool: Tool }) {
 export default function ToolsIndex() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <section className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left bg-fd-muted/50">
         <div className="text-center">
           <Breadcrumb className="mb-4 flex justify-center">

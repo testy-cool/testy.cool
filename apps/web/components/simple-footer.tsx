@@ -32,6 +32,15 @@ export default function SimpleFooter({
         </div>
         <p className="mt-8 text-center text-sm/6 text-fd-muted-foreground md:order-1 md:mt-0">
           &copy; {new Date().getFullYear()} testy.cool
+          <span className="mx-2">·</span>
+          <a
+            href="https://ailookup.dev"
+            className="hover:text-fd-primary transition-colors duration-200"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            AI tools directory
+          </a>
         </p>
       </div>
     </footer>

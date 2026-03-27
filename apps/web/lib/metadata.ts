@@ -19,6 +19,14 @@ export function createMetadata(override: Metadata): Metadata {
       siteName: "testy.cool",
       type: "website",
       locale: "en_US",
+      images: [
+        {
+          url: "https://testy.cool/avatar.png",
+          width: 512,
+          height: 512,
+          alt: "testy.cool",
+        },
+      ],
       ...override.openGraph,
     },
     twitter: {
@@ -27,6 +35,7 @@ export function createMetadata(override: Metadata): Metadata {
       creator: "@testy_cool",
       title: override.title ?? undefined,
       description: override.description ?? undefined,
+      images: ["https://testy.cool/avatar.png"],
       ...override.twitter,
     },
     alternates: {

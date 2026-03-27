@@ -78,3 +78,22 @@ Once the redirect works and Google stops surfacing the `pages.dev` URL, users wo
 ## Related
 
 - [How to Set Up a Blog with Fumadocs](/blog/tutorial/fumadocs-blog-setup) - If you're setting up a new Cloudflare Pages site
+
+<FaqSchema items={[
+  {
+    question: "Why is my pages.dev URL ranking in Google instead of my custom domain?",
+    answer: "Without a 301 redirect from your pages.dev URL to your custom domain, Google sees two separate sites with duplicate content and picks whichever it crawled first. Set up a Cloudflare Bulk Redirect with your pages.dev hostname as source and your custom domain as target."
+  },
+  {
+    question: "How do I redirect Cloudflare Pages pages.dev to my custom domain?",
+    answer: "In Cloudflare dashboard, go to Rules > Bulk Redirects, add your pages.dev hostname as the source URL and your custom domain as the target URL with status 301. Enable Preserve query string, Include subdomains, Subpath matching, and Preserve path suffix."
+  },
+  {
+    question: "How do I remove pages.dev URLs from Google search results?",
+    answer: "First set up the 301 redirect and make sure your site outputs canonical URLs pointing to your custom domain. Then in Google Search Console, add a URL-prefix property for your pages.dev URL and use Removals to speed up cleanup. Google will eventually follow the 301 and consolidate to your custom domain."
+  },
+  {
+    question: "What is Chrome's 'looks fake' lookalike URL warning on pages.dev?",
+    answer: "Chrome's lookalike-URL warning is generated in the browser by comparing URLs to popular or previously-visited sites. It doesn't mean your site is hacked. Once the 301 redirect is working and Google stops surfacing the pages.dev URL, users won't hit that warning anymore."
+  }
+]} />

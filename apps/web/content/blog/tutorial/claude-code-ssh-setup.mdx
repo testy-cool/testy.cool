@@ -106,3 +106,18 @@ ssh myserver "cd ~/project && ./run.sh"
 **Sudo asks for password** - Add NOPASSWD rule in sudoers (step 5)
 
 **Command hangs** - Probably waiting for input, make sure the command is non-interactive
+
+<FaqSchema items={[
+  {
+    question: "How do I set up SSH for Claude Code?",
+    answer: "Configure SSH key-based authentication on your server so it accepts connections without a password prompt. Optionally set up passwordless sudo. Claude Code runs each command as a separate non-interactive SSH call, so the connection must work without any interactive input."
+  },
+  {
+    question: "Why does SSH say 'Permission denied' when using Claude Code?",
+    answer: "Your SSH key isn't set up properly. Make sure your public key is in ~/.ssh/authorized_keys on the server, the file permissions are correct (600 for authorized_keys, 700 for .ssh), and the server's sshd_config allows key-based auth."
+  },
+  {
+    question: "Why does my SSH command hang when run by Claude Code?",
+    answer: "The command is probably waiting for interactive input such as a password prompt, confirmation, or a text editor. Claude Code can't respond to prompts, so all commands must be fully non-interactive. Use flags like -y for apt, DEBIAN_FRONTEND=noninteractive, or pre-accept host keys."
+  }
+]} />

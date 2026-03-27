@@ -2,20 +2,37 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import PantryApp from "@/components/tools/channel-pantry/PantryApp";
 
+const description =
+  "See what ingredients a YouTube cooking channel actually uses.";
+
 export const metadata: Metadata = {
   title: "Channel Pantry",
-  description:
-    "See what ingredients a YouTube cooking channel actually uses.",
+  description,
   openGraph: {
     title: "Channel Pantry | testy.cool",
-    description:
-      "See what ingredients a YouTube cooking channel actually uses.",
+    description,
   },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "Channel Pantry",
+  description,
+  url: "https://testy.cool/tools/channel-pantry",
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "Web",
+  offers: { "@type": "Offer", price: "0" },
 };
 
 export default function ChannelPantryPage() {
   return (
-    <div className="min-h-screen">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <div className="min-h-screen">
       <section className="max-w-3xl lg:max-w-4xl mx-auto px-5 sm:px-8 pt-12 sm:pt-16 pb-16">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-[13px] text-fd-muted-foreground/60 mb-8">
@@ -40,5 +57,6 @@ export default function ChannelPantryPage() {
         </div>
       </section>
     </div>
+    </>
   );
 }

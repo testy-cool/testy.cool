@@ -69,7 +69,7 @@ function IngredientPopover({
   return (
     <div
       ref={ref}
-      className="absolute left-0 top-full mt-1 z-50 w-80 max-h-64 overflow-y-auto rounded-xl border border-fd-border bg-white dark:bg-zinc-900 shadow-xl animate-fade-slide-in"
+      className="absolute left-0 top-full mt-1 z-50 w-80 max-h-64 overflow-y-auto rounded-xl border border-fd-border bg-fd-card shadow-xl animate-fade-slide-in"
       style={{ animationDuration: '150ms' }}
     >
       <div className="p-3">

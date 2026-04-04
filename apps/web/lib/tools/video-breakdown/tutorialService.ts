@@ -1,5 +1,19 @@
 import type { Tutorial, TutorialSummary, TutorialVersion } from "./types";
 
+async function parseResponse(res: Response) {
+  const text = await res.text();
+  try {
+    const data = JSON.parse(text);
+    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+    return data;
+  } catch (e) {
+    if (e instanceof SyntaxError) {
+      throw new Error(`Server error (${res.status}). Try again.`);
+    }
+    throw e;
+  }
+}
+
 export function parseVideoId(input: string): string | null {
   const patterns = [
     /[?&]v=([a-zA-Z0-9_-]{11})/,
@@ -25,8 +39,7 @@ export async function generateTutorial(videoId: string, force?: boolean, model?:
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
+  const data = await parseResponse(res);
   return data.tutorial;
 }
 
@@ -56,8 +69,7 @@ export async function getVersions(videoId: string): Promise<TutorialVersion[]> {
 
 export async function getVersion(videoId: string, version: number): Promise<Tutorial> {
   const res = await fetch(`/api/tutorial/generate?action=version&videoId=${videoId}&v=${version}`);
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
+  const data = await parseResponse(res);
   return data.tutorial;
 }
 
@@ -82,8 +94,7 @@ export async function chatWithTutorial(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
+  const data = await parseResponse(res);
   return { reply: data.reply, convId: data.convId };
 }
 
@@ -129,6 +140,5 @@ export async function updatePrompt(prompt: string, password: string): Promise<vo
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "updatePrompt", prompt, password }),
   });
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
+  const data = await parseResponse(res);
 }

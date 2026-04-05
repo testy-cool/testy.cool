@@ -74,8 +74,17 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   }
 
   if (videoId) {
-    const raw = await kv.get(`tutorial:${videoId}`);
-    return json({ tutorial: raw ? JSON.parse(raw) : null });
+    const [raw, lockRaw, errRaw] = await Promise.all([
+      kv.get(`tutorial:${videoId}`),
+      kv.get(`generating:${videoId}`),
+      kv.get(`tutorial:${videoId}:error`),
+    ]);
+    const tutorial = raw ? JSON.parse(raw) : null;
+    return json({
+      tutorial,
+      pending: !!lockRaw,
+      ...(errRaw ? { error: errRaw } : {}),
+    });
   }
 
   return json({ error: "Missing action or videoId" }, 400);
@@ -182,13 +191,41 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   } else {
     const existingLock = await kv.get(lockKey);
     if (existingLock) {
-      return json(
-        { error: "Generation already in progress for this video. Please wait and try again." },
-        409,
-      );
+      // Another request is already generating. Tell client to poll.
+      return json({ status: "pending", videoId });
     }
   }
-  await kv.put(lockKey, "1", { expirationTtl: 120 });
+  // 5 min TTL: matches client polling timeout, ensures stuck jobs self-heal
+  await kv.put(lockKey, "1", { expirationTtl: 300 });
+  // Clear any previous error from a failed run
+  await kv.delete(`tutorial:${videoId}:error`);
+
+  // Kick off background generation via waitUntil so we can return immediately.
+  // This avoids Cloudflare's 100s edge timeout (524) on long Gemini calls.
+  // Client polls GET /api/tutorial/generate?videoId=X until done.
+  context.waitUntil(runGeneration(context.env, videoId, !!force, model, customNote));
+
+  return json({ status: "pending", videoId });
+};
+
+async function runGeneration(
+  env: Env,
+  videoId: string,
+  force: boolean,
+  model: string,
+  customNote: string,
+): Promise<void> {
+  const kv = env.PANTRY_CACHE;
+  const apiKey = env.GEMINI_API_KEY;
+  const lockKey = `generating:${videoId}`;
+  const errorKey = `tutorial:${videoId}:error`;
+
+  const writeError = async (msg: string) => {
+    try {
+      await kv.put(errorKey, msg, { expirationTtl: 300 });
+      await kv.delete(lockKey);
+    } catch {}
+  };
 
   try {
     // 1. Get video title via oEmbed
@@ -197,7 +234,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     // 2. Determine prompt: check KV for custom prompt, fall back to hardcoded
     const storedPrompt = await kv.get(PROMPT_KEY);
     const prompt = storedPrompt || buildPrompt(videoTitle);
-    // If using stored prompt, inject the video title
     let finalPrompt = storedPrompt
       ? storedPrompt.replace(/\{videoTitle\}/g, videoTitle)
       : prompt;
@@ -236,11 +272,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     const genEndTime = new Date().toISOString();
     const text = response.text;
-    if (!text) return json({ error: "Empty response from Gemini" }, 502);
+    if (!text) {
+      await writeError("Empty response from Gemini");
+      return;
+    }
 
     // Langfuse trace
     const usageMeta = response.usageMetadata;
-    await langfuseTrace(context.env, {
+    await langfuseTrace(env, {
       traceId: `tut-${videoId}-${Date.now()}`,
       name: `tutorial:${videoId}`,
       input: finalPrompt,
@@ -248,7 +287,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       model,
       startTime: genStartTime,
       endTime: genEndTime,
-      metadata: { videoId, videoTitle, force: !!force },
+      metadata: { videoId, videoTitle, force },
       modelParameters: { responseMimeType: "application/json", thinkingBudget: 2048 },
       usage: usageMeta ? {
         input: usageMeta.promptTokenCount,
@@ -261,7 +300,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     try {
       tutorialData = JSON.parse(text);
     } catch {
-      return json({ error: "Failed to parse tutorial data" }, 502);
+      await writeError("Failed to parse tutorial data");
+      return;
     }
 
     const tutorial = {
@@ -278,11 +318,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     // Validate tutorial has steps before caching
     if (!tutorial.steps || (tutorial.steps as unknown[]).length === 0) {
-      await kv.delete(lockKey);
-      return json(
-        { error: "Failed to generate tutorial content. Please try again." },
-        500,
-      );
+      await writeError("Failed to generate tutorial content. Please try again.");
+      return;
     }
 
     // 4. Version history: store versioned entry and update metadata
@@ -302,7 +339,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     // Cap at MAX_VERSIONS: drop oldest
     if (meta.versions.length > MAX_VERSIONS) {
       const dropped = meta.versions.splice(0, meta.versions.length - MAX_VERSIONS);
-      // Clean up old version keys
       for (const d of dropped) {
         await kv.delete(`tutorial:${videoId}:v${d.version}`);
       }
@@ -318,13 +354,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       expirationTtl: TTL_SECONDS,
     });
 
-    // Store main key (backward compat)
+    // Store main key (this is what the client polls for)
     await kv.put(`tutorial:${videoId}`, JSON.stringify(tutorial), {
       expirationTtl: TTL_SECONDS,
     });
-
-    // Delete generation lock
-    await kv.delete(lockKey);
 
     // 5. Update recent list
     const raw = await kv.get(RECENT_KEY);
@@ -342,13 +375,13 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     ].slice(0, MAX_RECENT);
     await kv.put(RECENT_KEY, JSON.stringify(updated));
 
-    return json({ tutorial, cached: false, version: newVersion });
-  } catch (e: unknown) {
+    // 6. Delete generation lock LAST - signals completion to polling clients
     await kv.delete(lockKey);
+  } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Unknown error";
-    return json({ error: msg }, 500);
+    await writeError(msg);
   }
-};
+}
 
 async function handleChat(
   env: Env,

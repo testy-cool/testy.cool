@@ -248,7 +248,7 @@ export function NgramViewer() {
           <label className="text-sm font-semibold text-fd-foreground">
             Input text
           </label>
-          <div className="text-xs text-fd-muted-foreground">
+          <div className="text-sm text-fd-muted-foreground">
             {totalTokens.toLocaleString()} tokens ·{" "}
             {uniqueTokens.toLocaleString()} unique ·{" "}
             {segments.toLocaleString()} segments
@@ -264,7 +264,7 @@ export function NgramViewer() {
         <div className="mt-2 flex flex-wrap gap-2">
           <button
             onClick={() => setText("")}
-            className="text-xs rounded-md border border-fd-border px-2 py-1 hover:bg-fd-muted"
+            className="text-sm rounded-md border border-fd-border px-2 py-1 hover:bg-fd-muted"
           >
             Clear
           </button>
@@ -274,7 +274,7 @@ export function NgramViewer() {
       {/* Controls */}
       <div className="rounded-xl border border-fd-border bg-fd-card p-4 mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-fd-muted-foreground mb-1">
+          <label className="block text-sm font-semibold uppercase tracking-wider text-fd-muted-foreground mb-1">
             N (core size)
           </label>
           <div className="flex gap-1">
@@ -295,7 +295,7 @@ export function NgramViewer() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-fd-muted-foreground mb-1">
+          <label className="block text-sm font-semibold uppercase tracking-wider text-fd-muted-foreground mb-1">
             Min count
           </label>
           <input
@@ -310,7 +310,7 @@ export function NgramViewer() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-fd-muted-foreground mb-1">
+          <label className="block text-sm font-semibold uppercase tracking-wider text-fd-muted-foreground mb-1">
             Max rows shown
           </label>
           <select
@@ -414,7 +414,7 @@ export function NgramViewer() {
               className="w-16 rounded-md border border-fd-border bg-fd-background px-2 py-1"
             />
           </div>
-          <div className="text-xs text-fd-muted-foreground italic">
+          <div className="text-sm text-fd-muted-foreground italic">
             A phrase frame is a core n-gram with the words that appear on its
             left and right sides across the text. Min variants = the maximum
             of left/right distinct fillers must be ≥ this value.
@@ -425,7 +425,7 @@ export function NgramViewer() {
       {/* Results */}
       {view === "ngrams" ? (
         <div className="rounded-xl border border-fd-border bg-fd-card overflow-hidden">
-          <table className="w-full text-sm">
+          <table className="w-full text-base">
             <thead>
               <tr className="border-b border-fd-border bg-fd-muted/50">
                 <th className="text-left px-4 py-2 font-semibold">#</th>
@@ -467,7 +467,7 @@ export function NgramViewer() {
         </div>
       ) : (
         <div className="rounded-xl border border-fd-border bg-fd-card overflow-hidden">
-          <table className="w-full text-sm">
+          <table className="w-full text-base">
             <thead>
               <tr className="border-b border-fd-border bg-fd-muted/50">
                 <th className="text-left px-4 py-2 font-semibold">#</th>
@@ -508,13 +508,15 @@ export function NgramViewer() {
                     <td className="px-4 py-2">
                       <div className="font-mono">
                         {frame.left.length > 0 && (
-                          <span className="text-fd-primary">
+                          <span className="text-fd-muted-foreground/70">
                             {renderFillerGroup(frame.left)}{" "}
                           </span>
                         )}
-                        <span>{frame.core}</span>
+                        <span className="text-fd-foreground font-semibold">
+                          {frame.core}
+                        </span>
                         {frame.right.length > 0 && (
-                          <span className="text-fd-primary">
+                          <span className="text-fd-muted-foreground/70">
                             {" "}
                             {renderFillerGroup(frame.right)}
                           </span>
@@ -522,20 +524,20 @@ export function NgramViewer() {
                       </div>
                       {(frame.left.length > 0 || frame.right.length > 0) && (
                         <details className="mt-1">
-                          <summary className="text-xs text-fd-muted-foreground cursor-pointer hover:text-fd-foreground">
+                          <summary className="text-sm text-fd-muted-foreground cursor-pointer hover:text-fd-foreground">
                             all fillers
                           </summary>
                           <div className="mt-2 space-y-2">
                             {frame.left.length > 0 && (
                               <div>
-                                <div className="text-xs text-fd-muted-foreground mb-1">
+                                <div className="text-sm text-fd-muted-foreground mb-1">
                                   Left ({frame.left.length})
                                 </div>
                                 <div className="flex flex-wrap gap-1">
                                   {frame.left.map((f) => (
                                     <span
                                       key={f.word}
-                                      className="inline-flex items-center gap-1 rounded-md border border-fd-border bg-fd-muted/50 px-1.5 py-0.5 text-xs font-mono"
+                                      className="inline-flex items-center gap-1 rounded-md border border-fd-border bg-fd-muted/50 px-1.5 py-0.5 text-sm font-mono"
                                     >
                                       {f.word}
                                       <span className="text-fd-muted-foreground">
@@ -548,14 +550,14 @@ export function NgramViewer() {
                             )}
                             {frame.right.length > 0 && (
                               <div>
-                                <div className="text-xs text-fd-muted-foreground mb-1">
+                                <div className="text-sm text-fd-muted-foreground mb-1">
                                   Right ({frame.right.length})
                                 </div>
                                 <div className="flex flex-wrap gap-1">
                                   {frame.right.map((f) => (
                                     <span
                                       key={f.word}
-                                      className="inline-flex items-center gap-1 rounded-md border border-fd-border bg-fd-muted/50 px-1.5 py-0.5 text-xs font-mono"
+                                      className="inline-flex items-center gap-1 rounded-md border border-fd-border bg-fd-muted/50 px-1.5 py-0.5 text-sm font-mono"
                                     >
                                       {f.word}
                                       <span className="text-fd-muted-foreground">

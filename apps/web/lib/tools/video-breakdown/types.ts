@@ -24,6 +24,7 @@ export interface Tutorial {
   summary?: string;
   category?: string;
   transcript?: string;
+  incentiveAnalysis?: string;
   steps: TutorialStep[];
   generatedAt: number;
 }

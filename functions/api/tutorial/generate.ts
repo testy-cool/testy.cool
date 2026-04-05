@@ -271,6 +271,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       summary: (tutorialData as any).summary || "",
       category: (tutorialData as any).category || "",
       transcript: (tutorialData as any).transcript || "",
+      incentiveAnalysis: (tutorialData as any).incentiveAnalysis || "",
       steps: tutorialData.steps || [],
       generatedAt: Date.now(),
     };
@@ -546,6 +547,7 @@ Use hsl(var(--fd-foreground)) for body text (NOT --fd-muted-foreground, that's t
 - summary: 2-4 SHORT sentences. Use <br> between sentences for line breaks. Is this worth my time? What's the actual point? Don't be polite.
 - category: ONE word for the topic niche. Pick from existing: "AI", "Web Dev", "DevOps", "Design", "Data", "Security", "Mobile", "Gaming", "Hardware", "Cooking", "Finance", "Music", "Science", "Productivity". Only create a new category if none fit. Be conservative.
 - transcript: Full transcript of what's said in the video. Include timestamps. Format: "0:00 - Speaker says this thing.\n0:45 - Then they explain that." Capture ALL dialogue, not just highlights.
+- incentiveAnalysis: Short HTML (3-6 sentences) assessing why you should or shouldn't trust this creator/channel. This is a "skin in the game" analysis - the core question is whether the creator's incentives are aligned with giving you good information, or whether they profit regardless of whether their advice works. Use google search to look up the channel if you need context on their background, sponsors, products, or track record. Assess: (1) What does the creator gain from this video? Ads, affiliate links, course sales, supplement sales, reputation, or actual professional stakes? (2) Is the topic their PRIMARY expertise where they have measurable, verifiable competitive results, or is it a SECONDARY content-creator play where the topic is just a hook for monetization? (3) Do they have real-world downside if they're wrong - athletes who lose matches, clients who sue, peers who call them out - or is it pure creator economics where bad advice still gets views? (4) Any obvious red flags (selling the thing they're teaching, undisclosed sponsorships, credentials that don't match claims)? The classic contrast: a rugby strength coach teaching hypertrophy has skin in the game (his athletes need to perform in matches) vs a fitness influencer selling protein (incentive is affiliate revenue whether you get results or not). Be direct and cynical. Start with a verdict tag: "<strong style=\\"color:#22c55e\\">High trust:</strong>", "<strong style=\\"color:#f59e0b\\">Mixed:</strong>", or "<strong style=\\"color:#ef4444\\">Low trust:</strong>" - then the reasoning. Use <br> between sentences.
 
 ## OUTPUT (return ONLY valid JSON):
 {
@@ -553,6 +555,7 @@ Use hsl(var(--fd-foreground)) for body text (NOT --fd-muted-foreground, that's t
   "category": "AI",
   "summary": "First sentence about what this is.<br>Second sentence about whether it's worth watching.<br>Third sentence with the cynical take.",
   "transcript": "0:00 - Full transcript with timestamps...",
+  "incentiveAnalysis": "<strong style=\\"color:#f59e0b\\">Mixed:</strong> The creator is a full-time YouTuber whose income comes from ad revenue and sponsored segments.<br>Their main expertise is making videos about X, not actually doing X at a competitive level.<br>The advice is directionally useful but optimized for watch-time, not results.",
   "steps": [{ "startSeconds": 0, "endSeconds": 120, "tag": "Label", "tagType": "intro", "title": "...", "blocks": [{ "type": "...", "html": "..." }] }]
 }`;
 }

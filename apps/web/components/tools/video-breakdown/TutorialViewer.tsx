@@ -823,6 +823,17 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
                 />
               </div>
             )}
+            {tutorial.incentiveAnalysis && (
+              <div className="mb-6 pl-4 border-l-2 border-fd-border/40">
+                <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1.5 block">
+                  Skin in the game
+                </span>
+                <div
+                  className="text-base text-fd-foreground/70 leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(tutorial.incentiveAnalysis.replace(/\n/g, "<br>"), SANITIZE_CFG) }}
+                />
+              </div>
+            )}
             <p className="text-[12px] text-fd-muted-foreground/40 mb-8">
               Scroll to scrub the video, or play to auto-scroll.
             </p>

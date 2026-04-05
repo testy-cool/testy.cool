@@ -298,9 +298,12 @@ async function runGeneration(
 
     let tutorialData: { title?: string; steps?: unknown[] };
     try {
-      tutorialData = JSON.parse(text);
-    } catch {
-      await writeError("Failed to parse tutorial data");
+      // Gemini sometimes wraps JSON in ```json ... ``` fences despite responseMimeType
+      const cleaned = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+      tutorialData = JSON.parse(cleaned);
+    } catch (e) {
+      const detail = e instanceof Error ? `: ${e.message}` : "";
+      await writeError(`Failed to parse tutorial data${detail}`);
       return;
     }
 
@@ -580,7 +583,7 @@ Use hsl(var(--fd-foreground)) for body text (NOT --fd-muted-foreground, that's t
 - summary: 2-4 SHORT sentences. Use <br> between sentences for line breaks. Is this worth my time? What's the actual point? Don't be polite.
 - category: ONE word for the topic niche. Pick from existing: "AI", "Web Dev", "DevOps", "Design", "Data", "Security", "Mobile", "Gaming", "Hardware", "Cooking", "Finance", "Music", "Science", "Productivity". Only create a new category if none fit. Be conservative.
 - transcript: Full transcript of what's said in the video. Include timestamps. Format: "0:00 - Speaker says this thing.\n0:45 - Then they explain that." Capture ALL dialogue, not just highlights.
-- incentiveAnalysis: Short HTML (3-5 sentences) assessing whether to trust this creator. Skin-in-the-game analysis: is the video topic their PRIMARY expertise with real competitive stakes (coaches whose athletes must perform, professionals whose clients can sue, experts whose peers fact-check them), or a SECONDARY content-creator play monetized via ads/affiliates/supplements/courses where bad advice still gets views? Note red flags: selling the thing they're teaching, undisclosed sponsors, credentials that don't match claims. Classic contrast: rugby strength coach teaching hypertrophy has skin in the game (athletes must win matches) vs fitness influencer selling protein (affiliate revenue regardless of results). Be cynical and direct. Start with a color-coded verdict: "<strong style=\\"color:#22c55e\\">High trust:</strong>", "<strong style=\\"color:#f59e0b\\">Mixed:</strong>", or "<strong style=\\"color:#ef4444\\">Low trust:</strong>" - then the reasoning. Use <br> between sentences.
+- incentiveAnalysis: Short HTML (3-5 sentences) on the creator's incentive. Is their expertise PRIMARY with competitive stakes (coaches whose athletes must perform, pros whose clients can sue), or SECONDARY content-creator economics (ads/affiliates/supplements/courses where bad advice still gets views)? Note red flags: selling what they teach, hidden sponsors, credentials that don't match claims. Be cynical. Start with a colored verdict using SINGLE QUOTES in the style attribute so JSON stays valid: <strong style='color:#22c55e'>High trust:</strong> or <strong style='color:#f59e0b'>Mixed:</strong> or <strong style='color:#ef4444'>Low trust:</strong>. Then the reasoning. Use <br> between sentences.
 
 ## OUTPUT (return ONLY valid JSON):
 {
@@ -588,7 +591,7 @@ Use hsl(var(--fd-foreground)) for body text (NOT --fd-muted-foreground, that's t
   "category": "AI",
   "summary": "First sentence about what this is.<br>Second sentence about whether it's worth watching.<br>Third sentence with the cynical take.",
   "transcript": "0:00 - Full transcript with timestamps...",
-  "incentiveAnalysis": "<strong style=\\"color:#f59e0b\\">Mixed:</strong> The creator is a full-time YouTuber whose income comes from ad revenue and sponsored segments.<br>Their main expertise is making videos about X, not actually doing X at a competitive level.<br>The advice is directionally useful but optimized for watch-time, not results.",
+  "incentiveAnalysis": "<strong style='color:#f59e0b'>Mixed:</strong> Full-time YouTuber whose income is ad revenue and sponsor segments.<br>Main skill is making videos, not doing the thing at a competitive level.<br>Advice is directionally useful but optimized for watch-time.",
   "steps": [{ "startSeconds": 0, "endSeconds": 120, "tag": "Label", "tagType": "intro", "title": "...", "blocks": [{ "type": "...", "html": "..." }] }]
 }`;
 }

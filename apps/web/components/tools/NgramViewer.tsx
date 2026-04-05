@@ -455,7 +455,7 @@ export function NgramViewer() {
                     <td className="px-4 py-2 text-fd-muted-foreground">
                       {i + 1}
                     </td>
-                    <td className="px-4 py-2 font-mono">{row.ngram}</td>
+                    <td className="px-4 py-2">{row.ngram}</td>
                     <td className="px-4 py-2 text-right font-semibold">
                       {row.count}
                     </td>
@@ -506,7 +506,7 @@ export function NgramViewer() {
                       {i + 1}
                     </td>
                     <td className="px-4 py-2">
-                      <div className="font-mono">
+                      <div>
                         {frame.left.length > 0 && (
                           <span className="text-fd-muted-foreground/70">
                             {renderFillerGroup(frame.left)}{" "}
@@ -537,7 +537,7 @@ export function NgramViewer() {
                                   {frame.left.map((f) => (
                                     <span
                                       key={f.word}
-                                      className="inline-flex items-center gap-1 rounded-md border border-fd-border bg-fd-muted/50 px-1.5 py-0.5 text-sm font-mono"
+                                      className="inline-flex items-center gap-1 rounded-md border border-fd-border bg-fd-muted/50 px-1.5 py-0.5 text-sm"
                                     >
                                       {f.word}
                                       <span className="text-fd-muted-foreground">
@@ -557,7 +557,7 @@ export function NgramViewer() {
                                   {frame.right.map((f) => (
                                     <span
                                       key={f.word}
-                                      className="inline-flex items-center gap-1 rounded-md border border-fd-border bg-fd-muted/50 px-1.5 py-0.5 text-sm font-mono"
+                                      className="inline-flex items-center gap-1 rounded-md border border-fd-border bg-fd-muted/50 px-1.5 py-0.5 text-sm"
                                     >
                                       {f.word}
                                       <span className="text-fd-muted-foreground">

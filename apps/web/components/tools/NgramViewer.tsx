@@ -10,101 +10,140 @@ interface NgramRow {
   count: number;
 }
 
-interface PhraseFrame {
-  skeleton: string; // e.g. "* pe piata din romania"
-  position: number; // which index is the slot
-  fillers: { word: string; count: number }[];
-  total: number;
+interface Filler {
+  word: string;
+  count: number;
 }
 
-function tokenize(text: string, caseSensitive: boolean): Token[] {
-  // Keep unicode letters, digits, and internal hyphens/apostrophes
-  // Split on everything else. Includes Romanian diacritics via \p{L}.
-  const regex = /[\p{L}\p{N}]+(?:[-'][\p{L}\p{N}]+)*/gu;
-  const tokens: Token[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = regex.exec(text)) !== null) {
-    const raw = m[0];
-    tokens.push({
-      raw,
-      text: caseSensitive ? raw : raw.toLowerCase(),
-      idx: m.index,
-    });
+interface PhraseFrame {
+  core: string;
+  tokens: string[];
+  count: number;
+  left: Filler[];
+  right: Filler[];
+}
+
+/**
+ * Tokenize text into lines of tokens.
+ *
+ * Hard boundaries (nothing can span them): newlines, markdown markers (*, _),
+ * sentence-ending punctuation (. ! ? ; :), and brackets. This prevents ghost
+ * n-grams like "foo bar" from appearing when the source was "foo **bar**".
+ *
+ * Commas are NOT boundaries — phrases commonly cross commas.
+ * Hyphens and apostrophes inside words are preserved (don't, s-a).
+ */
+function tokenize(text: string, caseSensitive: boolean): Token[][] {
+  const segmentRegex = /[^\n*_.!?;:[\](){}<>\\/|"`~]+/g;
+  const wordRegex = /[\p{L}\p{N}]+(?:[-'][\p{L}\p{N}]+)*/gu;
+
+  const lines: Token[][] = [];
+  let seg: RegExpExecArray | null;
+  while ((seg = segmentRegex.exec(text)) !== null) {
+    const segText = seg[0];
+    if (!segText.trim()) continue;
+    const tokens: Token[] = [];
+    let m: RegExpExecArray | null;
+    wordRegex.lastIndex = 0;
+    while ((m = wordRegex.exec(segText)) !== null) {
+      const raw = m[0];
+      tokens.push({
+        raw,
+        text: caseSensitive ? raw : raw.toLowerCase(),
+        idx: seg.index + m.index,
+      });
+    }
+    if (tokens.length > 0) lines.push(tokens);
   }
-  return tokens;
+  return lines;
 }
 
 function computeNgrams(
-  tokens: Token[],
+  lines: Token[][],
   n: number,
 ): Map<string, { tokens: string[]; count: number }> {
   const map = new Map<string, { tokens: string[]; count: number }>();
-  for (let i = 0; i <= tokens.length - n; i++) {
-    const slice = tokens.slice(i, i + n).map((t) => t.text);
-    const key = slice.join(" ");
-    const existing = map.get(key);
-    if (existing) existing.count++;
-    else map.set(key, { tokens: slice, count: 1 });
+  for (const tokens of lines) {
+    for (let i = 0; i <= tokens.length - n; i++) {
+      const slice = tokens.slice(i, i + n).map((t) => t.text);
+      const key = slice.join(" ");
+      const existing = map.get(key);
+      if (existing) existing.count++;
+      else map.set(key, { tokens: slice, count: 1 });
+    }
   }
   return map;
 }
 
-function computePhraseFrames(
-  ngrams: Map<string, { tokens: string[]; count: number }>,
+/**
+ * Phrase frames = core n-gram + distribution of words to its left and right.
+ *
+ * Each row is one unique core. For every occurrence of the core in the text,
+ * we look at the word immediately before (left context) and immediately after
+ * (right context), staying inside line boundaries. The result shows the core
+ * with fillers on either or both sides, e.g.
+ *   (intrat|impus|pătruns) s-a impus pe piața (din|românească)
+ */
+function computeFrames(
+  lines: Token[][],
   n: number,
-  slotPosition: number | "any",
-  minVariants: number,
 ): PhraseFrame[] {
-  // For each ngram, create a skeleton by replacing one position with "*".
-  // Group ngrams that share a skeleton. Each skeleton becomes a phrase frame
-  // with its fillers = the words that appeared at the slot position.
-  const frames = new Map<
+  const cores = new Map<
     string,
-    { position: number; fillers: Map<string, number> }
+    {
+      tokens: string[];
+      count: number;
+      left: Map<string, number>;
+      right: Map<string, number>;
+    }
   >();
 
-  for (const { tokens, count } of ngrams.values()) {
-    const positions = slotPosition === "any"
-      ? Array.from({ length: n }, (_, i) => i)
-      : [slotPosition];
-
-    for (const pos of positions) {
-      if (pos >= tokens.length) continue;
-      const skel = tokens
-        .map((t, i) => (i === pos ? "*" : t))
-        .join(" ");
-      const key = `${pos}|${skel}`;
-      let frame = frames.get(key);
-      if (!frame) {
-        frame = { position: pos, fillers: new Map() };
-        frames.set(key, frame);
+  for (const tokens of lines) {
+    for (let i = 0; i <= tokens.length - n; i++) {
+      const slice = tokens.slice(i, i + n).map((t) => t.text);
+      const key = slice.join(" ");
+      let entry = cores.get(key);
+      if (!entry) {
+        entry = { tokens: slice, count: 0, left: new Map(), right: new Map() };
+        cores.set(key, entry);
       }
-      const filler = tokens[pos];
-      frame.fillers.set(filler, (frame.fillers.get(filler) ?? 0) + count);
+      entry.count++;
+      if (i > 0) {
+        const lw = tokens[i - 1].text;
+        entry.left.set(lw, (entry.left.get(lw) ?? 0) + 1);
+      }
+      if (i + n < tokens.length) {
+        const rw = tokens[i + n].text;
+        entry.right.set(rw, (entry.right.get(rw) ?? 0) + 1);
+      }
     }
   }
 
-  const result: PhraseFrame[] = [];
-  for (const [key, { position, fillers }] of frames) {
-    if (fillers.size < minVariants) continue;
-    const skeleton = key.slice(key.indexOf("|") + 1);
-    const fillerList = Array.from(fillers.entries())
+  const frames: PhraseFrame[] = [];
+  for (const [core, entry] of cores) {
+    const left = Array.from(entry.left.entries())
       .map(([word, count]) => ({ word, count }))
       .sort((a, b) => b.count - a.count);
-    const total = fillerList.reduce((s, f) => s + f.count, 0);
-    result.push({ skeleton, position, fillers: fillerList, total });
+    const right = Array.from(entry.right.entries())
+      .map(([word, count]) => ({ word, count }))
+      .sort((a, b) => b.count - a.count);
+    frames.push({
+      core,
+      tokens: entry.tokens,
+      count: entry.count,
+      left,
+      right,
+    });
   }
 
-  return result.sort((a, b) => b.total - a.total);
+  return frames;
 }
 
-function renderFrameLabel(frame: PhraseFrame, maxShow = 4): string {
-  const words = frame.skeleton.split(" ");
-  const shown = frame.fillers.slice(0, maxShow).map((f) => f.word);
-  const more = frame.fillers.length - shown.length;
-  const alt =
-    "(" + shown.join("|") + (more > 0 ? `|+${more} more` : "") + ")";
-  return words.map((w) => (w === "*" ? alt : w)).join(" ");
+function renderFillerGroup(fillers: Filler[], maxShow = 4): string {
+  if (fillers.length === 0) return "";
+  const shown = fillers.slice(0, maxShow).map((f) => f.word);
+  const more = fillers.length - shown.length;
+  return "(" + shown.join("|") + (more > 0 ? `|+${more}` : "") + ")";
 }
 
 function toCSV(rows: string[][]): string {
@@ -133,24 +172,31 @@ function downloadCSV(filename: string, rows: string[][]) {
 
 export function NgramViewer() {
   const [text, setText] = useState("");
-  const [n, setN] = useState(5);
+  const [n, setN] = useState(4);
   const [minCount, setMinCount] = useState(2);
   const [caseSensitive, setCaseSensitive] = useState(false);
   const [view, setView] = useState<"ngrams" | "frames">("frames");
   const [search, setSearch] = useState("");
-  const [slotPosition, setSlotPosition] = useState<number | "any">("any");
   const [minVariants, setMinVariants] = useState(2);
   const [limit, setLimit] = useState(100);
 
-  const tokens = useMemo(
+  const lines = useMemo(
     () => tokenize(text, caseSensitive),
     [text, caseSensitive],
   );
 
-  const ngramMap = useMemo(
-    () => computeNgrams(tokens, n),
-    [tokens, n],
+  const totalTokens = useMemo(
+    () => lines.reduce((s, l) => s + l.length, 0),
+    [lines],
   );
+  const uniqueTokens = useMemo(() => {
+    const set = new Set<string>();
+    for (const line of lines) for (const t of line) set.add(t.text);
+    return set.size;
+  }, [lines]);
+  const segments = lines.length;
+
+  const ngramMap = useMemo(() => computeNgrams(lines, n), [lines, n]);
 
   const ngramRows: NgramRow[] = useMemo(() => {
     const rows: NgramRow[] = [];
@@ -163,12 +209,15 @@ export function NgramViewer() {
   }, [ngramMap, minCount]);
 
   const phraseFrames = useMemo(() => {
-    // Filter ngramMap by minCount before frame computation? No - a frame's
-    // total can exceed minCount even if each variant is below it. Use raw map
-    // but skip n-grams with count 0 (none). Apply minCount on frame total.
-    const frames = computePhraseFrames(ngramMap, n, slotPosition, minVariants);
-    return frames.filter((f) => f.total >= minCount);
-  }, [ngramMap, n, slotPosition, minVariants, minCount]);
+    const all = computeFrames(lines, n);
+    return all
+      .filter((f) => {
+        if (f.count < minCount) return false;
+        const sideVariants = Math.max(f.left.length, f.right.length);
+        return sideVariants >= minVariants;
+      })
+      .sort((a, b) => b.count - a.count);
+  }, [lines, n, minCount, minVariants]);
 
   const filteredNgrams = useMemo(() => {
     if (!search.trim()) return ngramRows.slice(0, limit);
@@ -184,17 +233,12 @@ export function NgramViewer() {
     return phraseFrames
       .filter(
         (f) =>
-          f.skeleton.toLowerCase().includes(q) ||
-          f.fillers.some((fi) => fi.word.toLowerCase().includes(q)),
+          f.core.toLowerCase().includes(q) ||
+          f.left.some((fi) => fi.word.toLowerCase().includes(q)) ||
+          f.right.some((fi) => fi.word.toLowerCase().includes(q)),
       )
       .slice(0, limit);
   }, [phraseFrames, search, limit]);
-
-  const totalTokens = tokens.length;
-  const uniqueTokens = useMemo(
-    () => new Set(tokens.map((t) => t.text)).size,
-    [tokens],
-  );
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -205,7 +249,9 @@ export function NgramViewer() {
             Input text
           </label>
           <div className="text-xs text-fd-muted-foreground">
-            {totalTokens.toLocaleString()} tokens · {uniqueTokens.toLocaleString()} unique
+            {totalTokens.toLocaleString()} tokens ·{" "}
+            {uniqueTokens.toLocaleString()} unique ·{" "}
+            {segments.toLocaleString()} segments
           </div>
         </div>
         <textarea
@@ -229,7 +275,7 @@ export function NgramViewer() {
       <div className="rounded-xl border border-fd-border bg-fd-card p-4 mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wider text-fd-muted-foreground mb-1">
-            N (gram size)
+            N (core size)
           </label>
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5, 6, 7].map((v) => (
@@ -256,7 +302,9 @@ export function NgramViewer() {
             type="number"
             min={1}
             value={minCount}
-            onChange={(e) => setMinCount(Math.max(1, Number(e.target.value) || 1))}
+            onChange={(e) =>
+              setMinCount(Math.max(1, Number(e.target.value) || 1))
+            }
             className="w-full rounded-md border border-fd-border bg-fd-background px-2 py-1.5 text-sm"
           />
         </div>
@@ -333,13 +381,14 @@ export function NgramViewer() {
               ]);
             } else {
               downloadCSV("phrase-frames.csv", [
-                ["frame", "slot_position", "total", "variants", "fillers"],
+                ["core", "count", "left_variants", "right_variants", "left", "right"],
                 ...filteredFrames.map((f) => [
-                  f.skeleton,
-                  String(f.position),
-                  String(f.total),
-                  String(f.fillers.length),
-                  f.fillers.map((fi) => `${fi.word}:${fi.count}`).join(" | "),
+                  f.core,
+                  String(f.count),
+                  String(f.left.length),
+                  String(f.right.length),
+                  f.left.map((fi) => `${fi.word}:${fi.count}`).join(" | "),
+                  f.right.map((fi) => `${fi.word}:${fi.count}`).join(" | "),
                 ]),
               ]);
             }
@@ -354,25 +403,6 @@ export function NgramViewer() {
       {view === "frames" && (
         <div className="rounded-lg border border-fd-border bg-fd-muted/30 p-3 mb-3 flex flex-wrap gap-4 items-center text-sm">
           <div className="flex items-center gap-2">
-            <span className="text-fd-muted-foreground">Slot position:</span>
-            <select
-              value={slotPosition === "any" ? "any" : String(slotPosition)}
-              onChange={(e) =>
-                setSlotPosition(
-                  e.target.value === "any" ? "any" : Number(e.target.value),
-                )
-              }
-              className="rounded-md border border-fd-border bg-fd-background px-2 py-1"
-            >
-              <option value="any">any position</option>
-              {Array.from({ length: n }, (_, i) => (
-                <option key={i} value={i}>
-                  position {i + 1}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-center gap-2">
             <span className="text-fd-muted-foreground">Min variants:</span>
             <input
               type="number"
@@ -385,9 +415,9 @@ export function NgramViewer() {
             />
           </div>
           <div className="text-xs text-fd-muted-foreground italic">
-            A phrase frame is an n-gram with one variable slot. e.g.{" "}
-            <code className="font-mono">(intrat|impus) pe piața din românia</code>{" "}
-            groups variants that share the same frame.
+            A phrase frame is a core n-gram with the words that appear on its
+            left and right sides across the text. Min variants = the maximum
+            of left/right distinct fillers must be ≥ this value.
           </div>
         </div>
       )}
@@ -400,7 +430,9 @@ export function NgramViewer() {
               <tr className="border-b border-fd-border bg-fd-muted/50">
                 <th className="text-left px-4 py-2 font-semibold">#</th>
                 <th className="text-left px-4 py-2 font-semibold">N-gram</th>
-                <th className="text-right px-4 py-2 font-semibold w-24">Count</th>
+                <th className="text-right px-4 py-2 font-semibold w-24">
+                  Count
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -410,7 +442,8 @@ export function NgramViewer() {
                     colSpan={3}
                     className="px-4 py-8 text-center text-fd-muted-foreground"
                   >
-                    No n-grams match. Try lowering min count or clearing the filter.
+                    No n-grams match. Try lowering min count or clearing the
+                    filter.
                   </td>
                 </tr>
               ) : (
@@ -419,7 +452,9 @@ export function NgramViewer() {
                     key={row.ngram}
                     className="border-b border-fd-border last:border-0 hover:bg-fd-muted/30"
                   >
-                    <td className="px-4 py-2 text-fd-muted-foreground">{i + 1}</td>
+                    <td className="px-4 py-2 text-fd-muted-foreground">
+                      {i + 1}
+                    </td>
                     <td className="px-4 py-2 font-mono">{row.ngram}</td>
                     <td className="px-4 py-2 text-right font-semibold">
                       {row.count}
@@ -436,55 +471,113 @@ export function NgramViewer() {
             <thead>
               <tr className="border-b border-fd-border bg-fd-muted/50">
                 <th className="text-left px-4 py-2 font-semibold">#</th>
-                <th className="text-left px-4 py-2 font-semibold">Phrase frame</th>
-                <th className="text-right px-4 py-2 font-semibold w-24">Variants</th>
-                <th className="text-right px-4 py-2 font-semibold w-24">Total</th>
+                <th className="text-left px-4 py-2 font-semibold">
+                  Phrase frame
+                </th>
+                <th className="text-right px-4 py-2 font-semibold w-20">
+                  Left
+                </th>
+                <th className="text-right px-4 py-2 font-semibold w-20">
+                  Right
+                </th>
+                <th className="text-right px-4 py-2 font-semibold w-24">
+                  Count
+                </th>
               </tr>
             </thead>
             <tbody>
               {filteredFrames.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={5}
                     className="px-4 py-8 text-center text-fd-muted-foreground"
                   >
-                    No phrase frames found. Try a smaller N, lower min count, or
-                    lower min variants.
+                    No phrase frames found. Try a smaller N, lower min count,
+                    or lower min variants.
                   </td>
                 </tr>
               ) : (
                 filteredFrames.map((frame, i) => (
                   <tr
-                    key={`${frame.position}-${frame.skeleton}`}
+                    key={frame.core}
                     className="border-b border-fd-border last:border-0 hover:bg-fd-muted/30 align-top"
                   >
-                    <td className="px-4 py-2 text-fd-muted-foreground">{i + 1}</td>
+                    <td className="px-4 py-2 text-fd-muted-foreground">
+                      {i + 1}
+                    </td>
                     <td className="px-4 py-2">
-                      <div className="font-mono">{renderFrameLabel(frame)}</div>
-                      <details className="mt-1">
-                        <summary className="text-xs text-fd-muted-foreground cursor-pointer hover:text-fd-foreground">
-                          all {frame.fillers.length} fillers
-                        </summary>
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {frame.fillers.map((f) => (
-                            <span
-                              key={f.word}
-                              className="inline-flex items-center gap-1 rounded-md border border-fd-border bg-fd-muted/50 px-1.5 py-0.5 text-xs font-mono"
-                            >
-                              {f.word}
-                              <span className="text-fd-muted-foreground">
-                                ×{f.count}
-                              </span>
-                            </span>
-                          ))}
-                        </div>
-                      </details>
+                      <div className="font-mono">
+                        {frame.left.length > 0 && (
+                          <span className="text-fd-primary">
+                            {renderFillerGroup(frame.left)}{" "}
+                          </span>
+                        )}
+                        <span>{frame.core}</span>
+                        {frame.right.length > 0 && (
+                          <span className="text-fd-primary">
+                            {" "}
+                            {renderFillerGroup(frame.right)}
+                          </span>
+                        )}
+                      </div>
+                      {(frame.left.length > 0 || frame.right.length > 0) && (
+                        <details className="mt-1">
+                          <summary className="text-xs text-fd-muted-foreground cursor-pointer hover:text-fd-foreground">
+                            all fillers
+                          </summary>
+                          <div className="mt-2 space-y-2">
+                            {frame.left.length > 0 && (
+                              <div>
+                                <div className="text-xs text-fd-muted-foreground mb-1">
+                                  Left ({frame.left.length})
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                  {frame.left.map((f) => (
+                                    <span
+                                      key={f.word}
+                                      className="inline-flex items-center gap-1 rounded-md border border-fd-border bg-fd-muted/50 px-1.5 py-0.5 text-xs font-mono"
+                                    >
+                                      {f.word}
+                                      <span className="text-fd-muted-foreground">
+                                        ×{f.count}
+                                      </span>
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            {frame.right.length > 0 && (
+                              <div>
+                                <div className="text-xs text-fd-muted-foreground mb-1">
+                                  Right ({frame.right.length})
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                  {frame.right.map((f) => (
+                                    <span
+                                      key={f.word}
+                                      className="inline-flex items-center gap-1 rounded-md border border-fd-border bg-fd-muted/50 px-1.5 py-0.5 text-xs font-mono"
+                                    >
+                                      {f.word}
+                                      <span className="text-fd-muted-foreground">
+                                        ×{f.count}
+                                      </span>
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </details>
+                      )}
                     </td>
                     <td className="px-4 py-2 text-right font-semibold">
-                      {frame.fillers.length}
+                      {frame.left.length}
                     </td>
                     <td className="px-4 py-2 text-right font-semibold">
-                      {frame.total}
+                      {frame.right.length}
+                    </td>
+                    <td className="px-4 py-2 text-right font-semibold">
+                      {frame.count}
                     </td>
                   </tr>
                 ))

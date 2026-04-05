@@ -12,6 +12,14 @@ export interface Tool {
 
 export const allTools: Tool[] = [
   {
+    slug: "ngram-viewer",
+    title: "N-gram Viewer & Phrase Frames",
+    description:
+      "Paste text, get n-gram frequencies plus phrase frames — n-grams with one variable slot so variants collapse into one entry.",
+    tags: ["Text", "Linguistics", "NLP"],
+    type: "Tool",
+  },
+  {
     slug: "llm-price-calculator",
     title: "LLM Price Calculator",
     description:

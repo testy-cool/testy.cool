@@ -125,7 +125,7 @@ export default function NgramViewerPage() {
           </p>
 
           <h2 className="text-xl font-semibold mb-3 mt-10 text-fd-foreground">
-            Phrase frames — n-grams with a variable slot
+            Phrase frames — a core with its left and right context
           </h2>
           <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
             Plain n-gram counts have a weakness. Consider these two Romanian
@@ -139,20 +139,17 @@ export default function NgramViewerPage() {
             but the verb that sits in front of it is lost.
           </p>
           <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
-            A <strong>phrase frame</strong> (also called a p-frame in corpus
-            linguistics) fixes this. It&apos;s an n-gram with one position
-            replaced by a wildcard. The frame{" "}
-            <code className="font-mono">* pe piața din românia</code> collects{" "}
-            every word that ever appeared in that slot — {" "}
-            <code className="font-mono">intrat</code>,{" "}
-            <code className="font-mono">impus</code>,{" "}
-            <code className="font-mono">pătruns</code>,{" "}
-            <code className="font-mono">extins</code>, and so on — and
-            displays them together as{" "}
+            A <strong>phrase frame</strong> fixes this. In this tool, a phrase
+            frame is a core n-gram shown together with the distribution of
+            words that appear immediately to its left and immediately to its
+            right across the entire text. So{" "}
+            <code className="font-mono">pe piața din românia</code> becomes{" "}
             <code className="font-mono">
               (intrat|impus|pătruns|extins) pe piața din românia
+              (datorită|prin|la)
             </code>
-            , with the total count across all variants.
+            , collapsing every leading verb and every trailing connector into
+            a single row, with counts for each filler.
           </p>
           <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
             This is how you find templatic expressions, collocations,
@@ -166,25 +163,29 @@ export default function NgramViewerPage() {
           </h2>
           <ul className="list-disc pl-6 text-base leading-relaxed text-fd-muted-foreground space-y-2 mb-4">
             <li>
-              <strong>N</strong> — the size of each n-gram, from 1 (single
-              words) up to 7.
+              <strong>N</strong> — the size of the core, from 1 (single
+              words) up to 7. In the n-grams view this is just the n-gram
+              length; in the frames view it&apos;s the length of the fixed
+              core, with left and right context shown around it.
             </li>
             <li>
-              <strong>Min count</strong> — hide n-grams or frames that occur
+              <strong>Min count</strong> — hide n-grams or cores that occur
               fewer than this many times.
             </li>
             <li>
-              <strong>Slot position</strong> (frames only) — pin the wildcard
-              to a specific word position, or let any position be the slot.
-            </li>
-            <li>
               <strong>Min variants</strong> (frames only) — only show frames
-              where at least this many different words fill the slot. Higher
-              values surface more productive templates.
+              where at least one side (left or right) has this many distinct
+              filler words. Higher values surface more productive templates
+              and filter out cores where the surrounding words never repeat.
             </li>
             <li>
               <strong>Filter</strong> — text search across the visible
               n-grams or frames. Matches against fillers too on the frame view.
+            </li>
+            <li>
+              <strong>Case sensitive</strong> — by default tokens are
+              lowercased so <em>The</em> and <em>the</em> merge. Flip this
+              off for stylometric work where casing matters.
             </li>
             <li>
               <strong>Export CSV</strong> — download whatever is currently
@@ -235,20 +236,33 @@ export default function NgramViewerPage() {
             How it works
           </h2>
           <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
-            The text is tokenized with a Unicode-aware regex that keeps letters,
-            digits, and internal hyphens or apostrophes, and splits on
-            everything else. Tokens are lowercased by default (you can turn
-            that off). The tool then slides a window of size N across the
-            token stream and counts every distinct n-gram it sees.
+            The input text is first split into segments at hard boundaries:
+            newlines, markdown markers (<code className="font-mono">*</code>,{" "}
+            <code className="font-mono">_</code>), sentence-ending punctuation
+            (<code className="font-mono">. ! ? ; :</code>), brackets,
+            backticks, pipes, slashes, and quote marks. No n-gram can span
+            across one of these boundaries, so phrases from two unrelated
+            sentences — or two unrelated URL path segments — never get glued
+            together into a ghost n-gram. Commas and internal hyphens or
+            apostrophes stay inside a segment because real phrases legitimately
+            cross those.
           </p>
           <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
-            For phrase frames, it takes each n-gram and generates N skeletons
-            — one per position — by replacing that position with a wildcard.
-            N-grams that share a skeleton get grouped together, and the words
-            that filled the wildcard slot are collected as the frame&apos;s
-            fillers. Frames with only one filler are discarded (they&apos;re
-            just regular n-grams). Frames with many fillers are more
-            productive templates.
+            Each segment is then tokenized with a Unicode-aware regex that
+            keeps letters, digits, and internal hyphens or apostrophes.
+            Tokens are lowercased by default. The tool slides a window of
+            size N across each segment&apos;s token stream and counts every
+            distinct n-gram it sees.
+          </p>
+          <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
+            For phrase frames, every occurrence of a core n-gram records the
+            token that appeared immediately before it and the token that
+            appeared immediately after it, staying inside segment boundaries.
+            After scanning the whole text each core has a left-context
+            distribution and a right-context distribution. Cores where
+            neither side has any repeats are discarded — they&apos;re just
+            regular n-grams. Cores with productive slots on one or both
+            sides are what the frame view shows.
           </p>
 
           <h2 className="text-xl font-semibold mb-3 mt-10 text-fd-foreground">
@@ -291,11 +305,27 @@ export default function NgramViewerPage() {
             What&apos;s the difference between an n-gram and a phrase frame?
           </h3>
           <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
-            An n-gram is a fixed sequence of N words. A phrase frame is an
-            n-gram with one position replaced by a wildcard, so multiple
-            surface variants get grouped together. Plain n-grams miss
-            templatic patterns where each variant is rare; phrase frames
-            catch them.
+            An n-gram is a fixed sequence of N words. A phrase frame in this
+            tool is a core n-gram together with the distribution of words
+            that appear just before and just after it everywhere it shows up
+            in the text. Plain n-grams miss templatic patterns where each
+            variant is rare; phrase frames catch them by collapsing every
+            lead-in and every follow-on into one row.
+          </p>
+
+          <h3 className="text-base font-semibold mt-4 mb-2 text-fd-foreground">
+            Why am I seeing phrases that aren&apos;t really in my text?
+          </h3>
+          <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
+            You shouldn&apos;t — the tokenizer treats sentence-ending
+            punctuation, markdown markers, brackets, slashes, and newlines
+            as hard boundaries, so n-grams can&apos;t span them. If you paste
+            something like <code className="font-mono">site.com/us/en/about</code>,
+            each of <em>site</em>, <em>com</em>, <em>us</em>, <em>en</em>,{" "}
+            <em>about</em> lives in its own segment and no multi-word
+            n-gram will be built across them. If you see a phantom phrase
+            anyway, it means two tokens really are adjacent in the source
+            with only a space or comma between them.
           </p>
 
           <h3 className="text-base font-semibold mt-4 mb-2 text-fd-foreground">
@@ -320,7 +350,8 @@ export default function NgramViewerPage() {
             </li>
             <li>
               Click <em>all fillers</em> on any frame row to see every word
-              that appeared in the slot and how often.
+              that appeared on the left or right side of the core and how
+              often.
             </li>
             <li>
               Tokenization is Unicode-aware — Romanian diacritics, Cyrillic,

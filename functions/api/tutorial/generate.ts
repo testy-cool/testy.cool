@@ -854,10 +854,14 @@ Use hsl(var(--fd-foreground)) for body text (NOT --fd-muted-foreground, that's t
 
 ## STRUCTURE
 
+- First section must start with the bottom line immediately. No warm-up.
+- Open with a blunt verdict in the first block: is it good, is it useful, is it lying, and is it worth the time.
+- The first section must also tell the reader who should care, who can skip it, and the biggest caveat.
+- Assume the reader may leave after 10 seconds. Front-load the payoff.
 - 5-15 sections chronologically, no timestamp gaps. endSeconds = next startSeconds.
 - tagType: "intro" | "concept" | "setup" | "action"
 - title: SHORT (under 60 chars). Descriptive, not meta. Never mention "breakdown", "cynical", "honest", "brutal" in the title. Just say what the video is about.
-- summary: 2-4 SHORT sentences. Use <br> between sentences for line breaks. Is this worth my time? What's the actual point? Don't be polite.
+- summary: 2-4 SHORT sentences. Use <br> between sentences for line breaks. Sentence 1 must be the bottom line. Is this worth my time? What's the actual point? Don't be polite.
 - category: ONE word for the topic niche. Pick from existing: "AI", "Web Dev", "DevOps", "Design", "Data", "Security", "Mobile", "Gaming", "Hardware", "Cooking", "Finance", "Music", "Science", "Productivity". Only create a new category if none fit. Be conservative.
 - transcript: Full transcript of what's said in the video. Include timestamps. Format: "0:00 - Speaker says this thing.\n0:45 - Then they explain that." Capture ALL dialogue, not just highlights.
 - channelIncentive: 1-3 blunt sentences. What does the creator/channel stand to gain from making this video?

@@ -854,7 +854,7 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
                 />
               </div>
             )}
-            {(tutorial.channelIncentive || tutorial.hypeLevel || tutorial.trustLevel || tutorial.evidenceLevel || tutorial.whoShouldCare) && (
+            {(tutorial.channelIncentive || tutorial.hypeLevel || tutorial.trustLevel || tutorial.evidenceLevel || tutorial.whoShouldCare || tutorial.whatToDoAboutIt) && (
               <div className="mb-6">
                 <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-2 block">
                   Read This First
@@ -893,6 +893,16 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
                     </div>
                     <div className="text-[14px] leading-relaxed text-fd-foreground/75 whitespace-pre-wrap">
                       {tutorial.whoShouldCare}
+                    </div>
+                  </div>
+                )}
+                {tutorial.whatToDoAboutIt && (
+                  <div className="mt-3 p-4 rounded-xl border border-fd-border/50 bg-fd-card">
+                    <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1.5">
+                      What To Do About It
+                    </div>
+                    <div className="text-[14px] leading-relaxed text-fd-foreground/75 whitespace-pre-wrap">
+                      {tutorial.whatToDoAboutIt}
                     </div>
                   </div>
                 )}

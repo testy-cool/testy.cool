@@ -30,6 +30,7 @@ export interface Tutorial {
   trustLevel?: string;
   evidenceLevel?: string;
   whoShouldCare?: string;
+  whatToDoAboutIt?: string;
   steps: TutorialStep[];
   generatedAt: number;
 }

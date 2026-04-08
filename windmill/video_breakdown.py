@@ -46,11 +46,12 @@ Use hsl(var(--fd-foreground)) for body text (NOT --fd-muted-foreground, that's t
 - summary: 2-4 SHORT sentences. Use <br> between sentences for line breaks. Sentence 1 must be the bottom line. Is this worth my time? What's the actual point? Don't be polite.
 - category: ONE word for the topic niche. Pick from existing: "AI", "Web Dev", "DevOps", "Design", "Data", "Security", "Mobile", "Gaming", "Hardware", "Cooking", "Finance", "Music", "Science", "Productivity". Only create a new category if none fit. Be conservative.
 - transcript: Full transcript of what's said in the video. Include timestamps. Format: "0:00 - Speaker says this thing.\\n0:45 - Then they explain that." Capture ALL dialogue, not just highlights.
-- channelIncentive: 1-3 blunt sentences. What does the creator/channel stand to gain from this video?
+- channelIncentive: 2-4 blunt sentences. Explain what the creator/channel stands to gain, who benefits if the viewer buys the framing, and the concrete end-state win. Name the money, lock-in, status, leads, access, or platform advantage directly.
 - hypeLevel: one of "low", "medium", "high"
 - trustLevel: one of "low", "mixed", "high"
 - evidenceLevel: one of "low", "medium", "high"
 - whoShouldCare: 1-2 blunt sentences. Which professions or viewers should care, and who can skip?
+- whatToDoAboutIt: 2-4 blunt sentences. Tell the reader what to do in response. Be concrete. Example actions: verify with neutral sources, demand benchmarks, treat it as marketing until proven otherwise, copy the useful part without buying the whole stack.
 - incentiveAnalysis: Short HTML (3-5 sentences) on the creator's incentive. Is their expertise PRIMARY with competitive stakes (coaches whose athletes must perform, pros whose clients can sue), or SECONDARY content-creator economics (ads/affiliates/supplements/courses where bad advice still gets views)? Note red flags: selling what they teach, hidden sponsors, credentials that don't match claims. Be cynical. Start with a colored verdict using SINGLE QUOTES in the style attribute so JSON stays valid: <strong style='color:#22c55e'>High trust:</strong> or <strong style='color:#f59e0b'>Mixed:</strong> or <strong style='color:#ef4444'>Low trust:</strong>. Then the reasoning. Use <br> between sentences.
 
 ## OUTPUT (return ONLY valid JSON):
@@ -59,11 +60,12 @@ Use hsl(var(--fd-foreground)) for body text (NOT --fd-muted-foreground, that's t
   "category": "AI",
   "summary": "First sentence about what this is.<br>Second sentence about whether it's worth watching.<br>Third sentence with the cynical take.",
   "transcript": "0:00 - Full transcript with timestamps...",
-  "channelIncentive": "The creator wants attention, authority, affiliate clicks, leads, or sponsorship leverage from this topic.",
+  "channelIncentive": "The creator wants attention, authority, affiliate clicks, leads, sponsorship leverage, or platform advantage from this topic.",
   "hypeLevel": "high",
   "trustLevel": "mixed",
   "evidenceLevel": "medium",
   "whoShouldCare": "People actively deciding whether to use this idea should care. Everyone else can skip it.",
+  "whatToDoAboutIt": "Take the useful idea, but do not buy the whole framing on trust. Verify the big claims elsewhere before you commit time, money, or stack decisions.",
   "incentiveAnalysis": "<strong style='color:#f59e0b'>Mixed:</strong> Full-time YouTuber whose income is ad revenue and sponsor segments.<br>Main skill is making videos, not doing the thing at a competitive level.<br>Advice is directionally useful but optimized for watch-time.",
   "steps": [{{ "startSeconds": 0, "endSeconds": 120, "tag": "Label", "tagType": "intro", "title": "...", "blocks": [{{ "type": "...", "html": "..." }}] }}]
 }}"""
@@ -423,7 +425,7 @@ def main(
         extra_note = f"\n\n## ADDITIONAL INSTRUCTIONS FROM USER\n{customNote.strip()}" if customNote.strip() else ""
         langfuse_trace(
             trace_id=trace_id,
-            name=f"tutorial:{videoId}",
+            name=f"Video Breakdown / {videoId}",
             input_payload={
                 "jobId": jobId,
                 "videoId": videoId,
@@ -445,7 +447,7 @@ def main(
         langfuse_span(
             trace_id=trace_id,
             span_id=f"{trace_id}-transcript",
-            name="transcript_fetch",
+            name="03. Prepare Source Transcript",
             start_time=transcript_started,
             end_time=transcript_finished,
             output_payload={
@@ -473,7 +475,7 @@ def main(
             source_mode = "transcript"
             langfuse_event(
                 trace_id=trace_id,
-                name="prompt_assembled",
+                name="04. Build Gemini Request",
                 timestamp=iso_now(),
                 input_payload={
                     "sourceMode": source_mode,
@@ -512,7 +514,7 @@ def main(
             source_mode = "video"
             langfuse_event(
                 trace_id=trace_id,
-                name="prompt_assembled",
+                name="04. Build Gemini Request",
                 timestamp=iso_now(),
                 input_payload={
                     "sourceMode": source_mode,
@@ -535,7 +537,7 @@ def main(
             langfuse_generation(
                 trace_id=trace_id,
                 generation_id=f"{trace_id}-attempt-{attempt['actualModel']}-{attempt['attemptIndex']}",
-                name="gemini_attempt",
+                name="04. Gemini Attempt",
                 model=attempt["actualModel"],
                 start_time=attempt["startedAt"],
                 end_time=attempt["endedAt"],
@@ -570,6 +572,7 @@ def main(
             "trustLevel": parsed.get("trustLevel") or "",
             "evidenceLevel": parsed.get("evidenceLevel") or "",
             "whoShouldCare": parsed.get("whoShouldCare") or "",
+            "whatToDoAboutIt": parsed.get("whatToDoAboutIt") or "",
             "steps": parsed.get("steps") or [],
             "generatedAt": int(time.time() * 1000),
         }
@@ -580,7 +583,7 @@ def main(
         end_iso = iso_now()
         langfuse_event(
             trace_id=trace_id,
-            name="tutorial_normalized",
+            name="04. Normalize Result",
             timestamp=end_iso,
             input_payload={
                 "parsed": parsed,
@@ -611,7 +614,7 @@ def main(
             langfuse_span(
                 trace_id=trace_id,
                 span_id=f"{trace_id}-callback",
-                name="callback_post",
+                name="05. Send Callback",
                 start_time=callback_started,
                 end_time=callback_finished,
                 input_payload={"callbackUrl": callbackUrl, "body": callback_body},
@@ -625,7 +628,7 @@ def main(
         end_iso = iso_now()
         langfuse_event(
             trace_id=trace_id,
-            name=f"tutorial:{videoId}",
+            name="04. Worker Failed",
             timestamp=end_iso,
             input_payload={
                 "videoId": videoId,
@@ -652,7 +655,7 @@ def main(
             langfuse_span(
                 trace_id=trace_id,
                 span_id=f"{trace_id}-callback-failed",
-                name="callback_post",
+                name="05. Send Failure Callback",
                 start_time=callback_started,
                 end_time=callback_finished,
                 input_payload={"callbackUrl": callbackUrl, "body": callback_body},

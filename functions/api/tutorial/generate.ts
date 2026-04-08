@@ -41,6 +41,7 @@ interface TutorialPayload {
   trustLevel?: string;
   evidenceLevel?: string;
   whoShouldCare?: string;
+  whatToDoAboutIt?: string;
   steps: unknown[];
   generatedAt: number;
 }
@@ -258,6 +259,7 @@ function ensureTutorialShape(videoId: string, tutorial: TutorialPayload | undefi
     trustLevel: tutorial.trustLevel || "",
     evidenceLevel: tutorial.evidenceLevel || "",
     whoShouldCare: tutorial.whoShouldCare || "",
+    whatToDoAboutIt: tutorial.whatToDoAboutIt || "",
     steps: tutorial.steps,
     generatedAt: tutorial.generatedAt || Date.now(),
   };
@@ -337,7 +339,7 @@ async function handleCallback(context: EventContext<Env, string, unknown>, body:
   const now = Date.now();
   await langfuseEvent(context.env, {
     traceId,
-    name: "callback_received",
+    name: "05. Callback Received",
     timestamp: new Date(now).toISOString(),
     input: {
       headers: sanitizeHeadersForTrace(context.request.headers),
@@ -356,7 +358,7 @@ async function handleCallback(context: EventContext<Env, string, unknown>, body:
       await langfuseSpan(context.env, {
         traceId,
         spanId: `${traceId}-callback-persist`,
-        name: "callback_persist_success",
+        name: "06. Persist Tutorial",
         startTime: new Date(job.createdAt).toISOString(),
         endTime: new Date(now).toISOString(),
         input: {
@@ -402,7 +404,7 @@ async function handleCallback(context: EventContext<Env, string, unknown>, body:
   await langfuseSpan(context.env, {
     traceId,
     spanId: `${traceId}-callback-persist-failed`,
-    name: "callback_persist_failure",
+    name: "06. Persist Tutorial Failed",
     startTime: new Date(job.createdAt).toISOString(),
     endTime: new Date(now).toISOString(),
     input: {
@@ -648,7 +650,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const traceId = `video-breakdown-${job.id}`;
   await langfuseTrace(context.env, {
     traceId,
-    name: `tutorial:${videoId}`,
+    name: `Video Breakdown / ${videoId}`,
     input: {
       videoId,
       force,
@@ -683,7 +685,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   });
   await langfuseEvent(context.env, {
     traceId,
-    name: "windmill_queue_requested",
+    name: "01. Queue Requested",
     timestamp: new Date(Date.now()).toISOString(),
     input: payload,
     metadata: {
@@ -704,7 +706,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     await langfuseSpan(context.env, {
       traceId,
       spanId: `${traceId}-windmill-start`,
-      name: "windmill_job_started",
+      name: "02. Windmill Job Started",
       startTime: new Date(job.createdAt).toISOString(),
       endTime: new Date(runningJob.updatedAt).toISOString(),
       input: payload,
@@ -735,7 +737,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     await langfuseSpan(context.env, {
       traceId,
       spanId: `${traceId}-windmill-start-failed`,
-      name: "windmill_job_failed_to_start",
+      name: "02. Windmill Job Failed To Start",
       startTime: new Date(job.createdAt).toISOString(),
       endTime: new Date(failedJob.updatedAt).toISOString(),
       input: payload,
@@ -865,10 +867,12 @@ Use hsl(var(--fd-foreground)) for body text (NOT --fd-muted-foreground, that's t
 - category: ONE word for the topic niche. Pick from existing: "AI", "Web Dev", "DevOps", "Design", "Data", "Security", "Mobile", "Gaming", "Hardware", "Cooking", "Finance", "Music", "Science", "Productivity". Only create a new category if none fit. Be conservative.
 - transcript: Full transcript of what's said in the video. Include timestamps. Format: "0:00 - Speaker says this thing.\n0:45 - Then they explain that." Capture ALL dialogue, not just highlights.
 - channelIncentive: 1-3 blunt sentences. What does the creator/channel stand to gain from making this video?
+- channelIncentive: 2-4 blunt sentences. Explain what the creator/channel stands to gain, who benefits if the viewer buys the framing, and the concrete end-state win. Name the money, lock-in, status, leads, access, or platform advantage directly.
 - hypeLevel: one of "low", "medium", "high"
 - trustLevel: one of "low", "mixed", "high"
 - evidenceLevel: one of "low", "medium", "high"
 - whoShouldCare: 1-2 sentences. Which professions or viewers should care, and who can safely ignore it?
+- whatToDoAboutIt: 2-4 blunt sentences. Tell the reader what to do in response. Be concrete. Example actions: verify with neutral sources, demand benchmarks, treat it as marketing until proven otherwise, copy the useful part without buying the whole stack.
 - incentiveAnalysis: Short HTML (3-5 sentences) on the creator's incentive. Is their expertise PRIMARY with competitive stakes (coaches whose athletes must perform, pros whose clients can sue), or SECONDARY content-creator economics (ads/affiliates/supplements/courses where bad advice still gets views)? Note red flags: selling what they teach, hidden sponsors, credentials that don't match claims. Be cynical. Start with a colored verdict using SINGLE QUOTES in the style attribute so JSON stays valid: <strong style='color:#22c55e'>High trust:</strong> or <strong style='color:#f59e0b'>Mixed:</strong> or <strong style='color:#ef4444'>Low trust:</strong>. Then the reasoning. Use <br> between sentences.
 
 ## OUTPUT (return ONLY valid JSON):
@@ -882,6 +886,7 @@ Use hsl(var(--fd-foreground)) for body text (NOT --fd-muted-foreground, that's t
   "trustLevel": "mixed",
   "evidenceLevel": "medium",
   "whoShouldCare": "Engineers or designers evaluating this exact workflow should care. Everyone else can skip it.",
+  "whatToDoAboutIt": "Steal the useful idea, but do not buy the whole narrative without evidence. Compare it against a boring alternative before you commit time or stack decisions.",
   "incentiveAnalysis": "<strong style='color:#f59e0b'>Mixed:</strong> Full-time YouTuber whose income is ad revenue and sponsor segments.<br>Main skill is making videos, not doing the thing at a competitive level.<br>Advice is directionally useful but optimized for watch-time.",
   "steps": [{ "startSeconds": 0, "endSeconds": 120, "tag": "Label", "tagType": "intro", "title": "...", "blocks": [{ "type": "...", "html": "..." }] }]
 }`;
@@ -905,6 +910,7 @@ You must return valid JSON with ALL of these top-level fields:
 - trustLevel
 - evidenceLevel
 - whoShouldCare
+- whatToDoAboutIt
 - incentiveAnalysis
 - steps
 

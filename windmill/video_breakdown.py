@@ -11,6 +11,10 @@ import wmill
 # requests
 
 
+def iso_now() -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+
 def build_prompt(video_title: str) -> str:
     return f"""You're a cynical tech writer who values people's time. Someone sent you a video. You don't want to watch it either, but you did, and now you're going to save everyone else the trouble.
 
@@ -133,16 +137,22 @@ def call_gemini_json(gemini_api_key: str, model: str, body: dict) -> dict:
     model_candidates = [model]
     if model == "gemini-3-flash-preview":
         model_candidates.append(fallback_model)
+    attempts = []
 
     for model_index, active_model in enumerate(model_candidates):
         for attempt in range(3):
+            started_at = iso_now()
             res = requests.post(
                 f"https://generativelanguage.googleapis.com/v1beta/models/{active_model}:generateContent",
                 params={"key": gemini_api_key},
                 json=body,
                 timeout=180,
             )
-            data = res.json()
+            try:
+                data = res.json()
+            except Exception:
+                data = {"raw_text": res.text}
+            finished_at = iso_now()
             if res.ok:
                 parts = (
                     data.get("candidates", [{}])[0]
@@ -155,23 +165,54 @@ def call_gemini_json(gemini_api_key: str, model: str, body: dict) -> dict:
 
                 cleaned = re.sub(r"^```(?:json)?\s*", "", candidate_text, flags=re.I)
                 cleaned = re.sub(r"\s*```$", "", cleaned)
+                attempts.append({
+                    "attemptIndex": attempt + 1,
+                    "requestedModel": model,
+                    "actualModel": active_model,
+                    "isFallback": active_model != model,
+                    "startedAt": started_at,
+                    "endedAt": finished_at,
+                    "statusCode": res.status_code,
+                    "requestBody": body,
+                    "responseBody": data,
+                    "rawText": candidate_text,
+                    "ok": True,
+                })
                 return {
                     "parsed": json.loads(cleaned),
                     "raw_text": candidate_text,
                     "usage": data.get("usageMetadata") or {},
                     "model": active_model,
+                    "attempts": attempts,
                 }
 
             last_error = data.get("error", {}).get("message") or f"Gemini request failed ({res.status_code})"
+            attempts.append({
+                "attemptIndex": attempt + 1,
+                "requestedModel": model,
+                "actualModel": active_model,
+                "isFallback": active_model != model,
+                "startedAt": started_at,
+                "endedAt": finished_at,
+                "statusCode": res.status_code,
+                "requestBody": body,
+                "responseBody": data,
+                "error": last_error,
+                "ok": False,
+            })
             if "high demand" in last_error.lower():
                 if attempt < 2:
                     time.sleep(5 * (attempt + 1))
                     continue
                 if model_index < len(model_candidates) - 1:
                     break
-            raise RuntimeError(last_error)
+            error = RuntimeError(last_error)
+            setattr(error, "attempts", attempts)
+            raise error
 
-    raise RuntimeError(last_error)
+    error = RuntimeError(last_error)
+    setattr(error, "attempts", attempts)
+    raise error
 
 
 def send_callback(callback_url: str, callback_secret: str, body: dict) -> None:
@@ -197,16 +238,7 @@ def get_first_available_variable(paths: list[str]) -> str | None:
     return None
 
 
-def langfuse_trace(
-    trace_id: str,
-    name: str,
-    model: str,
-    input_payload: dict,
-    output_payload: dict,
-    start_time: str,
-    end_time: str,
-    metadata: dict | None = None,
-):
+def get_langfuse_config() -> tuple[str, str, str] | None:
     public_key = get_first_available_variable([
         "u/vlad/langfuse_public_key",
         "u/bled/langfuse_public_key",
@@ -220,43 +252,22 @@ def langfuse_trace(
         "u/bled/langfuse_base_url",
     ])
     if not public_key or not secret_key or not base_url:
+        return None
+    return public_key, secret_key, base_url.rstrip("/")
+
+
+def langfuse_ingest(batch: list[dict]):
+    config = get_langfuse_config()
+    if not config or not batch:
         return
+    public_key, secret_key, base_url = config
 
     payload = {
-        "batch": [
-            {
-                "id": str(uuid.uuid4()),
-                "type": "trace-create",
-                "timestamp": start_time,
-                "body": {
-                    "id": trace_id,
-                    "name": name,
-                    "input": input_payload,
-                    "output": output_payload,
-                    "metadata": metadata,
-                },
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "type": "generation-create",
-                "timestamp": start_time,
-                "body": {
-                    "id": f"gen-{trace_id}",
-                    "traceId": trace_id,
-                    "name": f"{model} generation",
-                    "model": model,
-                    "input": input_payload,
-                    "output": output_payload,
-                    "startTime": start_time,
-                    "endTime": end_time,
-                    "metadata": metadata,
-                },
-            },
-        ]
+        "batch": batch
     }
     try:
         requests.post(
-            f"{base_url.rstrip('/')}/api/public/ingestion",
+            f"{base_url}/api/public/ingestion",
             headers={"Content-Type": "application/json"},
             auth=(public_key, secret_key),
             json=payload,
@@ -264,6 +275,82 @@ def langfuse_trace(
         ).raise_for_status()
     except Exception:
         return
+
+
+def langfuse_trace(trace_id: str, name: str, input_payload: dict, output_payload: dict, start_time: str, metadata: dict | None = None):
+    langfuse_ingest([
+        {
+            "id": str(uuid.uuid4()),
+            "type": "trace-create",
+            "timestamp": start_time,
+            "body": {
+                "id": trace_id,
+                "name": name,
+                "input": input_payload,
+                "output": output_payload,
+                "metadata": metadata,
+            },
+        }
+    ])
+
+
+def langfuse_event(trace_id: str, name: str, timestamp: str, input_payload: dict | None = None, output_payload: dict | None = None, metadata: dict | None = None):
+    langfuse_ingest([
+        {
+            "id": str(uuid.uuid4()),
+            "type": "event-create",
+            "timestamp": timestamp,
+            "body": {
+                "id": str(uuid.uuid4()),
+                "traceId": trace_id,
+                "name": name,
+                "input": input_payload,
+                "output": output_payload,
+                "metadata": metadata,
+            },
+        }
+    ])
+
+
+def langfuse_span(trace_id: str, span_id: str, name: str, start_time: str, end_time: str, input_payload: dict | None = None, output_payload: dict | None = None, metadata: dict | None = None):
+    langfuse_ingest([
+        {
+            "id": str(uuid.uuid4()),
+            "type": "span-create",
+            "timestamp": start_time,
+            "body": {
+                "id": span_id,
+                "traceId": trace_id,
+                "name": name,
+                "startTime": start_time,
+                "endTime": end_time,
+                "input": input_payload,
+                "output": output_payload,
+                "metadata": metadata,
+            },
+        }
+    ])
+
+
+def langfuse_generation(trace_id: str, generation_id: str, name: str, model: str, start_time: str, end_time: str, input_payload: dict | None = None, output_payload: dict | None = None, metadata: dict | None = None):
+    langfuse_ingest([
+        {
+            "id": str(uuid.uuid4()),
+            "type": "generation-create",
+            "timestamp": start_time,
+            "body": {
+                "id": generation_id,
+                "traceId": trace_id,
+                "name": name,
+                "model": model,
+                "startTime": start_time,
+                "endTime": end_time,
+                "input": input_payload,
+                "output": output_payload,
+                "metadata": metadata,
+            },
+        }
+    ])
 
 
 def main(
@@ -277,6 +364,7 @@ def main(
 ):
     if not jobId or not videoId:
         raise ValueError("Missing required job arguments")
+    trace_id = f"video-breakdown-{jobId}"
 
     gemini_api_key = get_first_available_variable([
         "u/bled/oana_googleai",
@@ -285,13 +373,43 @@ def main(
         raise ValueError("Missing Windmill Google AI secret")
 
     try:
-        start_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        start_iso = iso_now()
         video_title = get_video_title(videoId)
         prompt_base = (promptTemplate or build_prompt(video_title)).replace("{videoTitle}", video_title)
         extra_note = f"\n\n## ADDITIONAL INSTRUCTIONS FROM USER\n{customNote.strip()}" if customNote.strip() else ""
+        langfuse_trace(
+            trace_id=trace_id,
+            name=f"tutorial:{videoId}",
+            input_payload={
+                "jobId": jobId,
+                "videoId": videoId,
+                "videoTitle": video_title,
+                "requestedModel": model,
+                "callbackUrl": callbackUrl,
+                "customNote": customNote,
+            },
+            output_payload={"state": "started"},
+            start_time=start_iso,
+            metadata={"videoId": videoId, "jobId": jobId},
+        )
 
+        transcript_started = iso_now()
         segments = get_transcript_segments(videoId)
         transcript = build_transcript(segments)
+        transcript_finished = iso_now()
+        langfuse_span(
+            trace_id=trace_id,
+            span_id=f"{trace_id}-transcript",
+            name="transcript_fetch",
+            start_time=transcript_started,
+            end_time=transcript_finished,
+            output_payload={
+                "segmentCount": len(segments),
+                "transcriptChars": len(transcript),
+                "hasTranscript": bool(transcript),
+            },
+            metadata={"videoId": videoId},
+        )
 
         if len(transcript) > 200:
             gemini_body = {
@@ -307,6 +425,20 @@ def main(
                 ],
                 "generationConfig": {"responseMimeType": "application/json"},
             }
+            source_mode = "transcript"
+            langfuse_event(
+                trace_id=trace_id,
+                name="prompt_assembled",
+                timestamp=iso_now(),
+                input_payload={
+                    "sourceMode": source_mode,
+                    "promptBase": prompt_base,
+                    "extraNote": extra_note,
+                    "transcriptChars": len(transcript),
+                },
+                output_payload={"geminiRequest": gemini_body},
+                metadata={"videoId": videoId},
+            )
             generation = call_gemini_json(
                 gemini_api_key,
                 model,
@@ -314,7 +446,6 @@ def main(
             )
             parsed = generation["parsed"]
             active_model = generation.get("model") or model
-            source_mode = "transcript"
         else:
             gemini_body = {
                 "contents": [
@@ -333,6 +464,20 @@ def main(
                 ],
                 "generationConfig": {"responseMimeType": "application/json"},
             }
+            source_mode = "video"
+            langfuse_event(
+                trace_id=trace_id,
+                name="prompt_assembled",
+                timestamp=iso_now(),
+                input_payload={
+                    "sourceMode": source_mode,
+                    "promptBase": prompt_base,
+                    "extraNote": extra_note,
+                    "transcriptChars": len(transcript),
+                },
+                output_payload={"geminiRequest": gemini_body},
+                metadata={"videoId": videoId},
+            )
             generation = call_gemini_json(
                 gemini_api_key,
                 model,
@@ -340,7 +485,32 @@ def main(
             )
             parsed = generation["parsed"]
             active_model = generation.get("model") or model
-            source_mode = "video"
+
+        for attempt in generation.get("attempts", []):
+            langfuse_generation(
+                trace_id=trace_id,
+                generation_id=f"{trace_id}-attempt-{attempt['actualModel']}-{attempt['attemptIndex']}",
+                name="gemini_attempt",
+                model=attempt["actualModel"],
+                start_time=attempt["startedAt"],
+                end_time=attempt["endedAt"],
+                input_payload=attempt["requestBody"],
+                output_payload={
+                    "ok": attempt["ok"],
+                    "statusCode": attempt["statusCode"],
+                    "responseBody": attempt.get("responseBody"),
+                    "rawText": attempt.get("rawText"),
+                    "error": attempt.get("error"),
+                },
+                metadata={
+                    "videoId": videoId,
+                    "requestedModel": attempt["requestedModel"],
+                    "actualModel": attempt["actualModel"],
+                    "attemptIndex": attempt["attemptIndex"],
+                    "isFallback": attempt["isFallback"],
+                    "sourceMode": source_mode,
+                },
+            )
 
         tutorial = {
             "videoId": videoId,
@@ -362,26 +532,16 @@ def main(
         if not tutorial["steps"]:
             raise RuntimeError("Generated tutorial did not contain any steps")
 
-        end_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        langfuse_trace(
-            trace_id=f"video-breakdown-{jobId}",
-            name=f"tutorial:{videoId}",
-            model=active_model,
+        end_iso = iso_now()
+        langfuse_event(
+            trace_id=trace_id,
+            name="tutorial_normalized",
+            timestamp=end_iso,
             input_payload={
-                "videoId": videoId,
-                "videoTitle": video_title,
-                "sourceMode": source_mode,
-                "requestedModel": model,
-                "actualModel": active_model,
-                "geminiRequest": gemini_body,
-            },
-            output_payload={
-                "geminiRawText": generation.get("raw_text"),
                 "parsed": parsed,
-                "tutorial": tutorial,
+                "geminiRawText": generation.get("raw_text"),
             },
-            start_time=start_iso,
-            end_time=end_iso,
+            output_payload={"tutorial": tutorial},
             metadata={
                 "videoId": videoId,
                 "sourceMode": source_mode,
@@ -395,38 +555,63 @@ def main(
         if callbackUrl:
             if not callbackSecret:
                 raise ValueError("Missing callbackSecret for callback mode")
+            callback_started = iso_now()
+            callback_body = {"jobId": jobId, "success": True, "tutorial": tutorial}
             send_callback(
                 callbackUrl,
                 callbackSecret,
-                {"jobId": jobId, "success": True, "tutorial": tutorial},
+                callback_body,
+            )
+            callback_finished = iso_now()
+            langfuse_span(
+                trace_id=trace_id,
+                span_id=f"{trace_id}-callback",
+                name="callback_post",
+                start_time=callback_started,
+                end_time=callback_finished,
+                input_payload={"callbackUrl": callbackUrl, "body": callback_body},
+                output_payload={"ok": True},
+                metadata={"videoId": videoId, "jobId": jobId},
             )
             return {"ok": True, "stepCount": len(tutorial["steps"])}
 
         return tutorial
     except Exception as exc:
-        end_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        langfuse_trace(
-            trace_id=f"video-breakdown-{jobId}",
+        end_iso = iso_now()
+        langfuse_event(
+            trace_id=trace_id,
             name=f"tutorial:{videoId}",
-            model=model,
+            timestamp=end_iso,
             input_payload={
                 "videoId": videoId,
                 "videoTitle": video_title if 'video_title' in locals() else "",
                 "sourceMode": source_mode if 'source_mode' in locals() else "",
                 "requestedModel": model,
                 "geminiRequest": gemini_body if 'gemini_body' in locals() else None,
+                "attempts": getattr(exc, "attempts", []),
             },
             output_payload={"error": str(exc)},
-            start_time=start_iso,
-            end_time=end_iso,
             metadata={"videoId": videoId, "failed": True},
         )
         if callbackUrl:
             if not callbackSecret:
                 raise ValueError("Missing callbackSecret for callback mode") from exc
+            callback_started = iso_now()
+            callback_body = {"jobId": jobId, "success": False, "error": str(exc)}
             send_callback(
                 callbackUrl,
                 callbackSecret,
-                {"jobId": jobId, "success": False, "error": str(exc)},
+                callback_body,
+            )
+            callback_finished = iso_now()
+            langfuse_span(
+                trace_id=trace_id,
+                span_id=f"{trace_id}-callback-failed",
+                name="callback_post",
+                start_time=callback_started,
+                end_time=callback_finished,
+                input_payload={"callbackUrl": callbackUrl, "body": callback_body},
+                output_payload={"ok": True},
+                metadata={"videoId": videoId, "jobId": jobId, "failed": True},
             )
         raise

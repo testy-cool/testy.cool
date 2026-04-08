@@ -157,7 +157,7 @@ function getWindmillRunUrl(env: Env) {
 async function startWindmillJob(
   env: Env,
   payload: Record<string, unknown>,
-): Promise<{ windmillJobId: string }> {
+): Promise<{ windmillJobId: string; responseText: string; responseData: unknown }> {
   const runUrl = getWindmillRunUrl(env);
   if (!runUrl || !env.WINDMILL_TOKEN) {
     throw new Error("Windmill is not configured");
@@ -200,7 +200,7 @@ async function startWindmillJob(
         : null;
 
   if (!windmillJobId) throw new Error("Windmill did not return a job id");
-  return { windmillJobId };
+  return { windmillJobId, responseText: text, responseData: data };
 }
 
 function ensureTutorialShape(videoId: string, tutorial: TutorialPayload | undefined): TutorialPayload {
@@ -304,25 +304,41 @@ async function handleCallback(context: EventContext<Env, string, unknown>, body:
 
   const job = await getJobById(kv, body.jobId);
   if (!job) return json({ error: "Unknown job" }, 404);
+  const traceId = `video-breakdown-${job.id}`;
 
   const now = Date.now();
+  await langfuseEvent(context.env, {
+    traceId,
+    name: "callback_received",
+    timestamp: new Date(now).toISOString(),
+    input: {
+      headers: Object.fromEntries(context.request.headers.entries()),
+      body,
+    },
+    metadata: {
+      videoId: job.videoId,
+      windmillJobId: job.windmillJobId,
+      success: body.success,
+    },
+  });
   if (body.success) {
     try {
       const tutorial = ensureTutorialShape(job.videoId, body.tutorial);
       const version = await persistTutorialResult(kv, tutorial, job.usedCustomPrompt);
-      await langfuseTrace(context.env, {
-        traceId: `tut-${job.id}`,
-        name: `tutorial:${job.videoId}`,
+      await langfuseSpan(context.env, {
+        traceId,
+        spanId: `${traceId}-callback-persist`,
+        name: "callback_persist_success",
+        startTime: new Date(job.createdAt).toISOString(),
+        endTime: new Date(now).toISOString(),
         input: {
           videoId: job.videoId,
           model: job.model,
           jobId: job.id,
-          mode: "windmill-callback",
+          mode: "windmill-callback-success",
+          body,
         },
         output: tutorial,
-        model: job.model || DEFAULT_MODEL,
-        startTime: new Date(job.createdAt).toISOString(),
-        endTime: new Date(now).toISOString(),
         metadata: {
           videoId: job.videoId,
           windmillJobId: job.windmillJobId,
@@ -355,19 +371,20 @@ async function handleCallback(context: EventContext<Env, string, unknown>, body:
   const message = typeof body.error === "string" && body.error.trim()
     ? body.error.trim()
     : "Tutorial generation failed.";
-  await langfuseTrace(context.env, {
-    traceId: `tut-${job.id}`,
-    name: `tutorial:${job.videoId}`,
+  await langfuseSpan(context.env, {
+    traceId,
+    spanId: `${traceId}-callback-persist-failed`,
+    name: "callback_persist_failure",
+    startTime: new Date(job.createdAt).toISOString(),
+    endTime: new Date(now).toISOString(),
     input: {
       videoId: job.videoId,
       model: job.model,
       jobId: job.id,
-      mode: "windmill-callback",
+      mode: "windmill-callback-failure",
+      body,
     },
     output: { error: message },
-    model: job.model || DEFAULT_MODEL,
-    startTime: new Date(job.createdAt).toISOString(),
-    endTime: new Date(now).toISOString(),
     metadata: {
       videoId: job.videoId,
       windmillJobId: job.windmillJobId,
@@ -581,22 +598,52 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     usedCustomPrompt: !!storedPrompt,
   };
   await putJob(kv, job);
+  const traceId = `video-breakdown-${job.id}`;
+  await langfuseTrace(context.env, {
+    traceId,
+    name: `tutorial:${videoId}`,
+    input: {
+      videoId,
+      force,
+      model,
+      customNote,
+      promptTemplate: enforcePromptSchema(storedPrompt || "", "{videoTitle}"),
+      existingTutorial: currentTutorial,
+    },
+    output: { state: "queued" },
+    startTime: new Date(job.createdAt).toISOString(),
+    metadata: {
+      videoId,
+      jobId: job.id,
+    },
+  });
 
   const callbackUrl = new URL(context.request.url);
   callbackUrl.search = "?action=callback";
+  const resolvedPrompt = enforcePromptSchema(storedPrompt || "", "{videoTitle}");
   const payload = {
     jobId: job.id,
     videoId,
     force,
     model,
     customNote,
-    promptTemplate: enforcePromptSchema(storedPrompt || "", "{videoTitle}"),
+    promptTemplate: resolvedPrompt,
     callbackUrl: callbackUrl.toString(),
     callbackSecret: context.env.TUTORIAL_CALLBACK_SECRET,
   };
+  await langfuseEvent(context.env, {
+    traceId,
+    name: "windmill_queue_requested",
+    timestamp: new Date(Date.now()).toISOString(),
+    input: payload,
+    metadata: {
+      videoId,
+      jobId: job.id,
+    },
+  });
 
   try {
-    const { windmillJobId } = await startWindmillJob(context.env, payload);
+    const { windmillJobId, responseText, responseData } = await startWindmillJob(context.env, payload);
     const runningJob: TutorialJobRecord = {
       ...job,
       state: "running",
@@ -604,6 +651,23 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       updatedAt: Date.now(),
     };
     await putJob(kv, runningJob);
+    await langfuseSpan(context.env, {
+      traceId,
+      spanId: `${traceId}-windmill-start`,
+      name: "windmill_job_started",
+      startTime: new Date(job.createdAt).toISOString(),
+      endTime: new Date(runningJob.updatedAt).toISOString(),
+      input: payload,
+      output: {
+        windmillJobId,
+        responseText,
+        responseData,
+      },
+      metadata: {
+        videoId,
+        jobId: job.id,
+      },
+    });
     return json({
       tutorial: currentTutorial || undefined,
       job: normalizePublicJob(runningJob),
@@ -618,6 +682,19 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       error: message,
     };
     await putJob(kv, failedJob);
+    await langfuseSpan(context.env, {
+      traceId,
+      spanId: `${traceId}-windmill-start-failed`,
+      name: "windmill_job_failed_to_start",
+      startTime: new Date(job.createdAt).toISOString(),
+      endTime: new Date(failedJob.updatedAt).toISOString(),
+      input: payload,
+      output: { error: message },
+      metadata: {
+        videoId,
+        jobId: job.id,
+      },
+    });
     return json({ error: message }, 502);
   }
 };
@@ -793,46 +870,95 @@ async function langfuseTrace(
     name: string;
     input: unknown;
     output: unknown;
-    model: string;
     startTime: string;
-    endTime: string;
     metadata?: Record<string, unknown>;
   },
 ): Promise<void> {
+  await langfuseIngest(env, [
+    {
+      id: crypto.randomUUID(),
+      type: "trace-create",
+      timestamp: opts.startTime,
+      body: {
+        id: opts.traceId,
+        name: opts.name,
+        input: opts.input,
+        output: opts.output,
+        metadata: opts.metadata,
+      },
+    },
+  ]);
+}
+
+async function langfuseEvent(
+  env: Env,
+  opts: {
+    traceId: string;
+    name: string;
+    timestamp: string;
+    input?: unknown;
+    output?: unknown;
+    metadata?: Record<string, unknown>;
+  },
+): Promise<void> {
+  await langfuseIngest(env, [
+    {
+      id: crypto.randomUUID(),
+      type: "event-create",
+      timestamp: opts.timestamp,
+      body: {
+        id: crypto.randomUUID(),
+        traceId: opts.traceId,
+        name: opts.name,
+        input: opts.input,
+        output: opts.output,
+        metadata: opts.metadata,
+      },
+    },
+  ]);
+}
+
+async function langfuseSpan(
+  env: Env,
+  opts: {
+    traceId: string;
+    spanId: string;
+    name: string;
+    startTime: string;
+    endTime: string;
+    input?: unknown;
+    output?: unknown;
+    metadata?: Record<string, unknown>;
+  },
+): Promise<void> {
+  await langfuseIngest(env, [
+    {
+      id: crypto.randomUUID(),
+      type: "span-create",
+      timestamp: opts.startTime,
+      body: {
+        id: opts.spanId,
+        traceId: opts.traceId,
+        name: opts.name,
+        startTime: opts.startTime,
+        endTime: opts.endTime,
+        input: opts.input,
+        output: opts.output,
+        metadata: opts.metadata,
+      },
+    },
+  ]);
+}
+
+async function langfuseIngest(
+  env: Env,
+  batch: unknown[],
+): Promise<void> {
   const { LANGFUSE_SECRET_KEY, LANGFUSE_PUBLIC_KEY, LANGFUSE_BASE_URL } = env;
-  if (!LANGFUSE_SECRET_KEY || !LANGFUSE_PUBLIC_KEY || !LANGFUSE_BASE_URL) return;
+  if (!LANGFUSE_SECRET_KEY || !LANGFUSE_PUBLIC_KEY || !LANGFUSE_BASE_URL || batch.length === 0) return;
 
   const payload = {
-    batch: [
-      {
-        id: crypto.randomUUID(),
-        type: "trace-create",
-        timestamp: opts.startTime,
-        body: {
-          id: opts.traceId,
-          name: opts.name,
-          input: opts.input,
-          output: opts.output,
-          metadata: opts.metadata,
-        },
-      },
-      {
-        id: crypto.randomUUID(),
-        type: "generation-create",
-        timestamp: opts.startTime,
-        body: {
-          id: `gen-${opts.traceId}`,
-          traceId: opts.traceId,
-          name: `${opts.model} generation`,
-          model: opts.model,
-          input: opts.input,
-          output: opts.output,
-          startTime: opts.startTime,
-          endTime: opts.endTime,
-          metadata: opts.metadata,
-        },
-      },
-    ],
+    batch,
   };
 
   try {

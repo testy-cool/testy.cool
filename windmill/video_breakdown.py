@@ -256,6 +256,37 @@ def get_langfuse_config() -> tuple[str, str, str] | None:
     return public_key, secret_key, base_url.rstrip("/")
 
 
+def get_testycool_runtime_config() -> tuple[str, str] | None:
+    base_url = get_first_available_variable([
+        "u/bled/testycool_base_url",
+    ])
+    secret = get_first_available_variable([
+        "u/bled/testycool_tutorial_secret",
+    ])
+    if not base_url or not secret:
+        return None
+    return base_url.rstrip("/"), secret
+
+
+def fetch_remote_job_config(job_id: str) -> dict | None:
+    config = get_testycool_runtime_config()
+    if not config:
+        return None
+    base_url, secret = config
+    res = requests.get(
+        f"{base_url}/api/tutorial/generate",
+        params={"action": "worker-config", "id": job_id},
+        headers={"x-tutorial-callback-secret": secret},
+        timeout=30,
+    )
+    res.raise_for_status()
+    data = res.json()
+    if not isinstance(data, dict):
+        raise RuntimeError("Remote worker config response was invalid")
+    data["callbackSecret"] = secret
+    return data
+
+
 def langfuse_ingest(batch: list[dict]):
     config = get_langfuse_config()
     if not config or not batch:
@@ -365,6 +396,15 @@ def main(
     if not jobId or not videoId:
         raise ValueError("Missing required job arguments")
     trace_id = f"video-breakdown-{jobId}"
+    remote_config = None
+    if not promptTemplate and not customNote and not callbackUrl:
+        remote_config = fetch_remote_job_config(jobId)
+        if remote_config:
+            model = remote_config.get("model") or model
+            customNote = remote_config.get("customNote") or ""
+            promptTemplate = remote_config.get("promptTemplate") or ""
+            callbackUrl = remote_config.get("callbackUrl") or ""
+            callbackSecret = remote_config.get("callbackSecret") or callbackSecret
 
     gemini_api_key = get_first_available_variable([
         "u/bled/oana_googleai",
@@ -386,7 +426,8 @@ def main(
                 "videoTitle": video_title,
                 "requestedModel": model,
                 "callbackUrl": callbackUrl,
-                "customNote": customNote,
+                "customNote": "[present]" if customNote else "",
+                "promptSource": "remote-config" if remote_config else "direct-args",
             },
             output_payload={"state": "started"},
             start_time=start_iso,

@@ -311,7 +311,7 @@ export default function TutorialApp() {
     };
 
     poll();
-    const timer = window.setInterval(poll, 5000);
+    const timer = window.setInterval(poll, 15000);
     return () => {
       cancelled = true;
       window.clearInterval(timer);

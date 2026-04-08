@@ -59,6 +59,16 @@ interface TutorialJobRecord {
   usedCustomPrompt?: boolean;
 }
 
+interface TutorialJobConfigRecord {
+  jobId: string;
+  videoId: string;
+  model: string;
+  customNote?: string;
+  promptTemplate: string;
+  callbackUrl: string;
+  createdAt: number;
+}
+
 interface CallbackBody {
   action?: string;
   secret?: string;
@@ -81,6 +91,10 @@ function jobByVideoKey(videoId: string) {
 
 function jobByIdKey(jobId: string) {
   return `tutorial_job:id:${jobId}`;
+}
+
+function jobConfigByIdKey(jobId: string) {
+  return `tutorial_job:config:${jobId}`;
 }
 
 function normalizePublicJob(job: TutorialJobRecord | null) {
@@ -114,6 +128,20 @@ async function putJob(kv: KVNamespace, job: TutorialJobRecord) {
     kv.put(jobByVideoKey(job.videoId), serialized, { expirationTtl: JOB_TTL_SECONDS }),
     kv.put(jobByIdKey(job.id), serialized, { expirationTtl: JOB_TTL_SECONDS }),
   ]);
+}
+
+async function putJobConfig(kv: KVNamespace, config: TutorialJobConfigRecord) {
+  await kv.put(jobConfigByIdKey(config.jobId), JSON.stringify(config), {
+    expirationTtl: JOB_TTL_SECONDS,
+  });
+}
+
+async function getJobConfig(
+  kv: KVNamespace,
+  jobId: string,
+): Promise<TutorialJobConfigRecord | null> {
+  const raw = await kv.get(jobConfigByIdKey(jobId));
+  return raw ? JSON.parse(raw) : null;
 }
 
 async function getTutorialState(kv: KVNamespace, videoId: string) {
@@ -312,8 +340,8 @@ async function handleCallback(context: EventContext<Env, string, unknown>, body:
     name: "callback_received",
     timestamp: new Date(now).toISOString(),
     input: {
-      headers: Object.fromEntries(context.request.headers.entries()),
-      body,
+      headers: sanitizeHeadersForTrace(context.request.headers),
+      body: sanitizeCallbackBodyForTrace(body),
     },
     metadata: {
       videoId: job.videoId,
@@ -438,6 +466,26 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     if (!id) return json({ error: "Missing job id" }, 400);
     const job = await getJobById(kv, id);
     return json({ job: normalizePublicJob(job) });
+  }
+
+  if (action === "worker-config") {
+    const id = url.searchParams.get("id");
+    const expectedSecret = context.env.TUTORIAL_CALLBACK_SECRET;
+    const headerSecret = context.request.headers.get("x-tutorial-callback-secret");
+    if (!id) return json({ error: "Missing job id" }, 400);
+    if (!expectedSecret || headerSecret !== expectedSecret) {
+      return json({ error: "Invalid worker config secret" }, 403);
+    }
+    const config = await getJobConfig(kv, id);
+    if (!config) return json({ error: "Unknown job config" }, 404);
+    return json({
+      jobId: config.jobId,
+      videoId: config.videoId,
+      model: config.model,
+      customNote: config.customNote || "",
+      promptTemplate: config.promptTemplate,
+      callbackUrl: config.callbackUrl,
+    });
   }
 
   if (action === "conversations" && videoId) {
@@ -624,13 +672,16 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const payload = {
     jobId: job.id,
     videoId,
-    force,
+  };
+  await putJobConfig(kv, {
+    jobId: job.id,
+    videoId,
     model,
     customNote,
     promptTemplate: resolvedPrompt,
     callbackUrl: callbackUrl.toString(),
-    callbackSecret: context.env.TUTORIAL_CALLBACK_SECRET,
-  };
+    createdAt: job.createdAt,
+  });
   await langfuseEvent(context.env, {
     traceId,
     name: "windmill_queue_requested",
@@ -861,6 +912,25 @@ Allowed enums:
 
 Do not omit the new top-level fields even if the earlier prompt forgets them.
 Video title: "${videoTitle}"`;
+}
+
+function sanitizeHeadersForTrace(headers: Headers) {
+  const entries = Object.fromEntries(headers.entries());
+  if ("x-tutorial-callback-secret" in entries) {
+    entries["x-tutorial-callback-secret"] = "[redacted]";
+  }
+  if ("authorization" in entries) {
+    entries.authorization = "[redacted]";
+  }
+  return entries;
+}
+
+function sanitizeCallbackBodyForTrace(body: CallbackBody) {
+  if (!body.secret) return body;
+  return {
+    ...body,
+    secret: "[redacted]",
+  };
 }
 
 async function langfuseTrace(

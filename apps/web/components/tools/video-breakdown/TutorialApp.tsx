@@ -4,12 +4,15 @@ import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import type {
   Tutorial,
+  TutorialJob,
   TutorialSummary,
+  TutorialState,
   TutorialVersion,
 } from "@/lib/tools/video-breakdown/types";
 import {
   parseVideoId,
   generateTutorial,
+  getTutorialState,
   getRecentTutorials,
   getVersions,
   getVersion,
@@ -111,7 +114,9 @@ export default function TutorialApp() {
   const [tutorial, setTutorial] = useState<Tutorial | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [job, setJob] = useState<TutorialJob | null>(null);
   const [input, setInput] = useState("");
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
   const [recentTutorials, setRecentTutorials] = useState<TutorialSummary[]>([]);
   const [versions, setVersions] = useState<TutorialVersion[]>([]);
   const [currentVersion, setCurrentVersion] = useState<number>(0);
@@ -141,6 +146,45 @@ export default function TutorialApp() {
   const previewId = useMemo(() => parseVideoId(input), [input]);
   const tutorialRef = useRef(tutorial);
   tutorialRef.current = tutorial;
+  const jobRef = useRef(job);
+  jobRef.current = job;
+
+  const refreshVersions = useCallback(async (videoId: string, nextTutorial?: Tutorial | null) => {
+    const v = await getVersions(videoId);
+    setVersions(v);
+    if (v.length === 0) {
+      setCurrentVersion(0);
+      return;
+    }
+    const matchedVersion = nextTutorial
+      ? v.find((entry) => entry.timestamp === nextTutorial.generatedAt)
+      : null;
+    const latestVersion = v[v.length - 1]!;
+    setCurrentVersion((matchedVersion || latestVersion).version);
+    if (
+      nextTutorial &&
+      tutorialRef.current &&
+      tutorialRef.current.videoId === nextTutorial.videoId &&
+      tutorialRef.current.generatedAt !== nextTutorial.generatedAt
+    ) {
+      setPendingVersion((matchedVersion || latestVersion).version);
+    }
+  }, []);
+
+  const applyTutorialState = useCallback(async (state: TutorialState, opts?: { preserveOld?: boolean }) => {
+    if (state.tutorial) {
+      setTutorial(state.tutorial);
+      setActiveVideoId(state.tutorial.videoId);
+      await refreshVersions(state.tutorial.videoId, state.tutorial);
+    } else if (!opts?.preserveOld) {
+      setTutorial(null);
+      setVersions([]);
+      setCurrentVersion(0);
+    }
+    setJob(state.job);
+    setIsLoading(state.pending);
+    setError(state.error || null);
+  }, [refreshVersions]);
 
   const handleGenerate = useCallback(async (videoIdOrUrl: string) => {
     const videoId = parseVideoId(videoIdOrUrl);
@@ -150,11 +194,15 @@ export default function TutorialApp() {
     }
     setError(null);
     setIsLoading(true);
+    setJob(null);
+    setActiveVideoId(videoId);
     const prevTutorial = tutorialRef.current;
+    let hasActiveJob = false;
 
-    // Only clear tutorial if it had valid steps (preserve empty-tutorial screen for retry)
-    if (!prevTutorial || prevTutorial.steps.length > 0) {
+    if (!prevTutorial || prevTutorial.videoId !== videoId) {
       setTutorial(null);
+      setVersions([]);
+      setCurrentVersion(0);
     }
 
     try {
@@ -166,29 +214,46 @@ export default function TutorialApp() {
         try { localStorage.setItem("vtg-note-history", JSON.stringify(updated)); } catch {}
       }
       const result = await generateTutorial(videoId, false, model, note || undefined);
-      setTutorial(result);
-      const slug = slugify(result.title || result.videoTitle || "");
+      if (result.tutorial) {
+        setTutorial(result.tutorial);
+        await refreshVersions(videoId, result.tutorial);
+      }
+      setJob(result.job || null);
+      hasActiveJob = !!result.job;
+      setIsLoading(!!result.job);
+      const titleSource = result.tutorial?.title || result.tutorial?.videoTitle || prevTutorial?.title || "";
+      const slug = slugify(titleSource);
       const url = slug ? `?v=${videoId}&t=${slug}` : `?v=${videoId}`;
       window.history.pushState(null, "", url);
       getRecentTutorials().then(setRecentTutorials);
-      getVersions(videoId).then((v) => {
-        setVersions(v);
-        if (v.length > 0) setCurrentVersion(v[v.length - 1]!.version);
-      });
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to generate tutorial");
       // If previous tutorial had empty steps, keep it so retry screen reappears
       if (prevTutorial && prevTutorial.steps.length === 0) {
         setTutorial(prevTutorial);
       }
+      setJob(jobRef.current);
     } finally {
-      setIsLoading(false);
+      if (!hasActiveJob) setIsLoading(false);
     }
-  }, [godMode, selectedModel]);
+  }, [customNote, godMode, noteHistory, refreshVersions, selectedModel]);
 
   useEffect(() => {
     const v = new URLSearchParams(window.location.search).get("v");
-    if (v) handleGenerate(v);
+    if (v) {
+      setActiveVideoId(v);
+      getTutorialState(v)
+        .then(async (state) => {
+          if (!state.tutorial && !state.job) {
+            await handleGenerate(v);
+            return;
+          }
+          await applyTutorialState(state, { preserveOld: false });
+        })
+        .catch(() => {
+          handleGenerate(v);
+        });
+    }
     getRecentTutorials().then(setRecentTutorials);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -200,6 +265,8 @@ export default function TutorialApp() {
         setTutorial(null);
         setError(null);
         setIsLoading(false);
+        setJob(null);
+        setActiveVideoId(null);
       }
     };
     window.addEventListener("popstate", onPopState);
@@ -223,6 +290,34 @@ export default function TutorialApp() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  useEffect(() => {
+    if (!job || !activeVideoId) return;
+    if (job.state !== "queued" && job.state !== "running") return;
+
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const state = await getTutorialState(activeVideoId);
+        if (cancelled) return;
+        await applyTutorialState(state, { preserveOld: !!tutorialRef.current });
+        if (state.tutorial) {
+          getRecentTutorials().then(setRecentTutorials);
+        }
+      } catch (e: unknown) {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : "Failed to refresh job status");
+        }
+      }
+    };
+
+    poll();
+    const timer = window.setInterval(poll, 5000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [activeVideoId, applyTutorialState, job]);
+
   const handleSubmit = () => {
     if (input.trim() && !isLoading) handleGenerate(input.trim());
   };
@@ -231,6 +326,8 @@ export default function TutorialApp() {
     setTutorial(null);
     setError(null);
     setIsLoading(false);
+    setJob(null);
+    setActiveVideoId(null);
     setVersions([]);
     setCurrentVersion(0);
     setPendingVersion(null);
@@ -244,18 +341,18 @@ export default function TutorialApp() {
     setIsLoading(true);
     setPendingVersion(null);
     const t0 = Date.now();
+    let hasActiveJob = false;
     try {
       const model = godMode ? selectedModel : undefined;
       const note = customNote.trim() || undefined;
       const result = await generateTutorial(current.videoId, true, model, note);
-      setTutorial(result);
-      const v = await getVersions(current.videoId);
-      setVersions(v);
-      if (v.length > 0) {
-        const newVer = v[v.length - 1]!.version;
-        setCurrentVersion(newVer);
-        setPendingVersion(newVer);
+      if (result.tutorial) {
+        setTutorial(result.tutorial);
+        await refreshVersions(current.videoId, result.tutorial);
       }
+      setJob(result.job || null);
+      hasActiveJob = !!result.job;
+      setIsLoading(!!result.job);
       getRecentTutorials().then(setRecentTutorials);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to regenerate");
@@ -263,9 +360,9 @@ export default function TutorialApp() {
       // Prevent banner flash when API errors instantly (e.g. rate limit)
       const elapsed = Date.now() - t0;
       if (elapsed < 600) await new Promise((r) => setTimeout(r, 600 - elapsed));
-      setIsLoading(false);
+      if (!hasActiveJob) setIsLoading(false);
     }
-  }, [godMode, selectedModel, customNote]);
+  }, [customNote, godMode, refreshVersions, selectedModel]);
 
   const handleSelectVersion = useCallback(async (version: number) => {
     if (!tutorial) return;
@@ -442,8 +539,8 @@ export default function TutorialApp() {
             <span className="text-fd-muted-foreground/40">Breakdown</span>
           </h1>
           <p className="mt-4 text-base sm:text-lg text-fd-muted-foreground/70 max-w-md leading-relaxed">
-            Paste a YouTube URL. AI watches the video and writes a scroll-synced
-            text breakdown.
+            Paste a YouTube URL. The site queues a durable job and turns the video
+            into a scroll-synced text breakdown.
           </p>
 
           {/* Input */}
@@ -627,7 +724,7 @@ export default function TutorialApp() {
             </div>
 
             {/* Error */}
-            {error && (
+            {error && !isLoading && (
               <div className="mt-6 p-4 rounded-xl border border-red-300/30 dark:border-red-900/30 bg-red-50/50 dark:bg-red-950/10 text-red-600 dark:text-red-400 text-base">
                 {error}
               </div>
@@ -636,10 +733,10 @@ export default function TutorialApp() {
             {/* Loading state */}
             {isLoading && (
               <div className="mt-14 flex flex-col items-center">
-                {previewId && (
+                {(previewId || activeVideoId) && (
                   <div className="vtg-scanline relative w-64 sm:w-80 aspect-video rounded-xl overflow-hidden shadow-2xl shadow-black/20 ring-1 ring-white/10">
                     <img
-                      src={`https://img.youtube.com/vi/${previewId}/mqdefault.jpg`}
+                      src={`https://img.youtube.com/vi/${previewId || activeVideoId}/mqdefault.jpg`}
                       alt="Video thumbnail"
                       className="w-full h-full object-cover"
                     />
@@ -653,11 +750,11 @@ export default function TutorialApp() {
                     <span className="h-2.5 w-2.5 rounded-full bg-fd-primary" />
                   </div>
                   <span className="text-fd-muted-foreground text-[15px]">
-                    Analyzing video with Gemini...
+                    {job ? `Job ${job.state}. Gemini is processing in Windmill...` : "Queueing video job..."}
                   </span>
                 </div>
                 <p className="mt-2 text-[13px] text-fd-muted-foreground/40">
-                  Usually takes 15-45 seconds
+                  Safe to close this tab and come back later.
                 </p>
               </div>
             )}

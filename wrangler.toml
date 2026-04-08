@@ -5,6 +5,9 @@ pages_build_output_dir = "apps/web/out"
 LANGFUSE_PUBLIC_KEY = "pk-lf-7221a823-3eda-4e96-a1f1-f4b5aee19491"
 LANGFUSE_SECRET_KEY = "sk-lf-a9baff4a-7e36-47a1-9639-d055bde6bb67"
 LANGFUSE_BASE_URL = "https://langfuse-f6tim406p7bpze5wutvcm4jv.voidxd.cloud"
+WINDMILL_BASE_URL = "https://windmill.voidxd.cloud"
+WINDMILL_WORKSPACE = "main"
+WINDMILL_FLOW_PATH = "u/vlad/video_breakdown"
 
 [[kv_namespaces]]
 binding = "PANTRY_CACHE"

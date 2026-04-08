@@ -1,4 +1,10 @@
-import type { Tutorial, TutorialSummary, TutorialVersion } from "./types";
+import type {
+  Tutorial,
+  TutorialGenerateResponse,
+  TutorialState,
+  TutorialSummary,
+  TutorialVersion,
+} from "./types";
 
 async function parseResponse(res: Response) {
   const text = await res.text();
@@ -24,12 +30,18 @@ export function parseVideoId(input: string): string | null {
   ];
   for (const p of patterns) {
     const m = input.trim().match(p);
-    if (m) return m[1];
+    const videoId = m?.[1];
+    if (videoId) return videoId;
   }
   return null;
 }
 
-export async function generateTutorial(videoId: string, force?: boolean, model?: string, customNote?: string): Promise<Tutorial> {
+export async function generateTutorial(
+  videoId: string,
+  force?: boolean,
+  model?: string,
+  customNote?: string,
+): Promise<TutorialGenerateResponse> {
   const body: Record<string, unknown> = { videoId };
   if (force) body.force = true;
   if (model) body.model = model;
@@ -40,49 +52,13 @@ export async function generateTutorial(videoId: string, force?: boolean, model?:
     body: JSON.stringify(body),
   });
   const data = await parseResponse(res);
-
-  // Cached result: return immediately
-  if (data.tutorial) return data.tutorial;
-
-  // Server scheduled background generation. Poll until done.
-  if (data.status === "pending") {
-    return pollForTutorial(videoId, !!force);
-  }
-
+  if (data.tutorial || data.job || data.status) return data;
   throw new Error("Unexpected response from server");
 }
 
-async function pollForTutorial(videoId: string, force: boolean): Promise<Tutorial> {
-  const MAX_WAIT_MS = 5 * 60 * 1000; // 5 min, matches server lock TTL
-  const POLL_INTERVAL_MS = 3000;
-  const startedAt = Date.now();
-  // For force regen, remember the old generatedAt so we don't return stale data
-  let staleGeneratedAt: number | null = null;
-  if (force) {
-    try {
-      const pre = await fetch(`/api/tutorial/generate?videoId=${videoId}`);
-      const preData = await pre.json();
-      if (preData?.tutorial?.generatedAt) staleGeneratedAt = preData.tutorial.generatedAt;
-    } catch {}
-  }
-
-  while (Date.now() - startedAt < MAX_WAIT_MS) {
-    await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-    let data: { tutorial?: Tutorial; pending?: boolean; error?: string };
-    try {
-      const res = await fetch(`/api/tutorial/generate?videoId=${videoId}`);
-      data = await res.json();
-    } catch {
-      continue; // transient network blip; retry next tick
-    }
-    if (data.error) throw new Error(data.error);
-    if (data.tutorial && !data.pending) {
-      // On force regen, skip the stale copy until the new one lands
-      if (staleGeneratedAt && data.tutorial.generatedAt === staleGeneratedAt) continue;
-      return data.tutorial;
-    }
-  }
-  throw new Error("Generation timed out after 5 minutes. Try again.");
+export async function getTutorialState(videoId: string): Promise<TutorialState> {
+  const res = await fetch(`/api/tutorial/generate?videoId=${videoId}`);
+  return parseResponse(res);
 }
 
 export async function getRecentTutorials(): Promise<TutorialSummary[]> {

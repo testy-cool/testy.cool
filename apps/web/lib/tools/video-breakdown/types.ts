@@ -25,6 +25,11 @@ export interface Tutorial {
   category?: string;
   transcript?: string;
   incentiveAnalysis?: string;
+  channelIncentive?: string;
+  hypeLevel?: string;
+  trustLevel?: string;
+  evidenceLevel?: string;
+  whoShouldCare?: string;
   steps: TutorialStep[];
   generatedAt: number;
 }
@@ -41,4 +46,32 @@ export interface TutorialVersion {
   version: number;
   timestamp: number;
   stepCount: number;
+}
+
+export type TutorialJobState = "queued" | "running" | "succeeded" | "failed";
+
+export interface TutorialJob {
+  id: string;
+  videoId: string;
+  state: TutorialJobState;
+  windmillJobId?: string;
+  createdAt: number;
+  updatedAt: number;
+  error?: string;
+  resultVersion?: number;
+  model?: string;
+}
+
+export interface TutorialState {
+  tutorial: Tutorial | null;
+  job: TutorialJob | null;
+  pending: boolean;
+  error?: string;
+}
+
+export interface TutorialGenerateResponse {
+  tutorial?: Tutorial;
+  job?: TutorialJob;
+  cached?: boolean;
+  status?: TutorialJobState;
 }

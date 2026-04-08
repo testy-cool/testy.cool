@@ -55,6 +55,32 @@ interface Props {
   onDismissPending?: () => void;
 }
 
+function SignalBadge({
+  label,
+  value,
+  tone = "neutral",
+}: {
+  label: string;
+  value?: string;
+  tone?: "good" | "warn" | "bad" | "neutral";
+}) {
+  if (!value) return null;
+  const toneClass =
+    tone === "good"
+      ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+      : tone === "warn"
+        ? "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+        : tone === "bad"
+          ? "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400"
+          : "border-fd-border/50 bg-fd-card text-fd-foreground/70";
+  return (
+    <div className={`rounded-xl border px-3 py-2 ${toneClass}`}>
+      <div className="text-[10px] uppercase tracking-[0.08em] opacity-70 mb-1">{label}</div>
+      <div className="text-[13px] font-semibold">{value}</div>
+    </div>
+  );
+}
+
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
@@ -635,7 +661,10 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
     if (container.scrollTop <= 10) {
       if (activeIndex !== 0) {
         setActiveIndex(0);
-        playerRef.current.seekTo(tutorial.steps[0].startSeconds, true);
+        const firstStep = tutorial.steps[0];
+        if (firstStep) {
+          playerRef.current.seekTo(firstStep.startSeconds, true);
+        }
       }
       scrollTimeoutRef.current = window.setTimeout(() => {
         userScrollingRef.current = false;
@@ -660,8 +689,10 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
 
     if (closestIdx !== activeIndex) {
       setActiveIndex(closestIdx);
+      const nextStep = tutorial.steps[closestIdx];
+      if (!nextStep) return;
       playerRef.current.seekTo(
-        tutorial.steps[closestIdx].startSeconds,
+        nextStep.startSeconds,
         true,
       );
     }
@@ -821,6 +852,50 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
                   className="text-base text-fd-foreground/70 leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(tutorial.summary.replace(/\n/g, "<br>"), SANITIZE_CFG) }}
                 />
+              </div>
+            )}
+            {(tutorial.channelIncentive || tutorial.hypeLevel || tutorial.trustLevel || tutorial.evidenceLevel || tutorial.whoShouldCare) && (
+              <div className="mb-6">
+                <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-2 block">
+                  Read This First
+                </span>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <SignalBadge
+                    label="Hype"
+                    value={tutorial.hypeLevel}
+                    tone={tutorial.hypeLevel === "high" ? "warn" : tutorial.hypeLevel === "low" ? "good" : "neutral"}
+                  />
+                  <SignalBadge
+                    label="Trust"
+                    value={tutorial.trustLevel}
+                    tone={tutorial.trustLevel === "high" ? "good" : tutorial.trustLevel === "low" ? "bad" : "warn"}
+                  />
+                  <SignalBadge
+                    label="Evidence"
+                    value={tutorial.evidenceLevel}
+                    tone={tutorial.evidenceLevel === "high" ? "good" : tutorial.evidenceLevel === "low" ? "bad" : "warn"}
+                  />
+                </div>
+                {tutorial.channelIncentive && (
+                  <div className="mt-3 p-4 rounded-xl border border-fd-border/50 bg-fd-card">
+                    <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1.5">
+                      Channel Incentive
+                    </div>
+                    <div className="text-[14px] leading-relaxed text-fd-foreground/75 whitespace-pre-wrap">
+                      {tutorial.channelIncentive}
+                    </div>
+                  </div>
+                )}
+                {tutorial.whoShouldCare && (
+                  <div className="mt-3 p-4 rounded-xl border border-fd-border/50 bg-fd-card">
+                    <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1.5">
+                      Who Should Care
+                    </div>
+                    <div className="text-[14px] leading-relaxed text-fd-foreground/75 whitespace-pre-wrap">
+                      {tutorial.whoShouldCare}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             {tutorial.incentiveAnalysis && (

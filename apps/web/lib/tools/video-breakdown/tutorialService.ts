@@ -43,10 +43,9 @@ export async function generateTutorial(
   customNote?: string,
 ): Promise<TutorialGenerateResponse> {
   const body: Record<string, unknown> = { videoId };
-  if (force) body.force = true;
-  if (model) body.model = model;
   if (customNote) body.customNote = customNote;
-  const res = await fetch("/api/tutorial/generate", {
+  const url = force ? "/api/tutorial/generate?intent=refresh" : "/api/tutorial/generate";
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

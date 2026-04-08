@@ -541,12 +541,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   if (!kv) return json({ error: "KV not configured" }, 502);
   const url = new URL(context.request.url);
   const actionFromUrl = url.searchParams.get("action");
+  const intentFromUrl = url.searchParams.get("intent");
 
   let body: {
     action?: string;
     videoId?: string;
-    force?: boolean;
-    model?: string;
     customNote?: string;
     message?: string;
     history?: { role: string; text: string }[];
@@ -583,9 +582,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 
   const videoId = body.videoId;
-  const force = !!body.force;
+  const force = intentFromUrl === "refresh";
   const customNote = typeof body.customNote === "string" ? body.customNote.slice(0, 500) : "";
-  const model = body.model && ALLOWED_MODELS.includes(body.model) ? body.model : DEFAULT_MODEL;
+  const model = DEFAULT_MODEL;
   if (!videoId || typeof videoId !== "string") {
     return json({ error: "Missing videoId" }, 400);
   }

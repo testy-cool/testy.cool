@@ -15,6 +15,14 @@ def iso_now() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
 
+def clip_text(value: str, max_chars: int = 600) -> str:
+    if not value:
+        return ""
+    if len(value) <= max_chars:
+        return value
+    return value[:max_chars] + "... [truncated]"
+
+
 def build_prompt(video_title: str) -> str:
     return f"""You're a cynical tech writer who values people's time. Someone sent you a video. You don't want to watch it either, but you did, and now you're going to save everyone else the trouble.
 
@@ -164,6 +172,20 @@ def estimate_cost_usd(model: str, usage: dict) -> float:
         + ((output_tokens + thought_tokens) / 1_000_000) * rate["output"],
         6,
     )
+
+
+def build_gen_ai_attributes(model: str, usage: dict, estimated_cost: float) -> dict:
+    prompt_tokens = int(usage.get("promptTokenCount", 0) or 0)
+    output_tokens = int(usage.get("candidatesTokenCount", 0) or 0)
+    cached_tokens = int(usage.get("cachedContentTokenCount", 0) or 0)
+    return {
+        "gen_ai.system": "google-gemini",
+        "gen_ai.request.model": model,
+        "gen_ai.usage.input_tokens": prompt_tokens,
+        "gen_ai.usage.output_tokens": output_tokens,
+        "gen_ai.usage.cache_read_tokens": cached_tokens,
+        "gen_ai.usage.cost": estimated_cost,
+    }
 
 
 def call_gemini_json(gemini_api_key: str, model: str, body: dict) -> dict:
@@ -408,7 +430,15 @@ def langfuse_trace(trace_id: str, name: str, input_payload: dict, output_payload
     ])
 
 
-def langfuse_event(trace_id: str, name: str, timestamp: str, input_payload: dict | None = None, output_payload: dict | None = None, metadata: dict | None = None):
+def langfuse_event(
+    trace_id: str,
+    name: str,
+    timestamp: str,
+    input_payload: dict | None = None,
+    output_payload: dict | None = None,
+    metadata: dict | None = None,
+    parent_observation_id: str | None = None,
+):
     langfuse_ingest([
         {
             "id": str(uuid.uuid4()),
@@ -421,12 +451,23 @@ def langfuse_event(trace_id: str, name: str, timestamp: str, input_payload: dict
                 "input": input_payload,
                 "output": output_payload,
                 "metadata": metadata,
+                "parentObservationId": parent_observation_id,
             },
         }
     ])
 
 
-def langfuse_span(trace_id: str, span_id: str, name: str, start_time: str, end_time: str, input_payload: dict | None = None, output_payload: dict | None = None, metadata: dict | None = None):
+def langfuse_span(
+    trace_id: str,
+    span_id: str,
+    name: str,
+    start_time: str,
+    end_time: str,
+    input_payload: dict | None = None,
+    output_payload: dict | None = None,
+    metadata: dict | None = None,
+    parent_observation_id: str | None = None,
+):
     langfuse_ingest([
         {
             "id": str(uuid.uuid4()),
@@ -441,12 +482,24 @@ def langfuse_span(trace_id: str, span_id: str, name: str, start_time: str, end_t
                 "input": input_payload,
                 "output": output_payload,
                 "metadata": metadata,
+                "parentObservationId": parent_observation_id,
             },
         }
     ])
 
 
-def langfuse_generation(trace_id: str, generation_id: str, name: str, model: str, start_time: str, end_time: str, input_payload: dict | None = None, output_payload: dict | None = None, metadata: dict | None = None):
+def langfuse_generation(
+    trace_id: str,
+    generation_id: str,
+    name: str,
+    model: str,
+    start_time: str,
+    end_time: str,
+    input_payload: dict | None = None,
+    output_payload: dict | None = None,
+    metadata: dict | None = None,
+    parent_observation_id: str | None = None,
+):
     langfuse_ingest([
         {
             "id": str(uuid.uuid4()),
@@ -462,6 +515,7 @@ def langfuse_generation(trace_id: str, generation_id: str, name: str, model: str
                 "input": input_payload,
                 "output": output_payload,
                 "metadata": metadata,
+                "parentObservationId": parent_observation_id,
             },
         }
     ])
@@ -502,6 +556,7 @@ def main(
         video_title = get_video_title(videoId)
         prompt_base = (promptTemplate or build_prompt(video_title)).replace("{videoTitle}", video_title)
         extra_note = f"\n\n## ADDITIONAL INSTRUCTIONS FROM USER\n{customNote.strip()}" if customNote.strip() else ""
+        analysis_span_id = f"{trace_id}-analysis"
         langfuse_trace(
             trace_id=trace_id,
             name=f"Video Breakdown / {videoId}",
@@ -530,15 +585,43 @@ def main(
             start_time=transcript_started,
             end_time=transcript_finished,
             output_payload={
+                "analysisMode": analysisMode,
                 "segmentCount": len(segments),
                 "transcriptChars": len(transcript),
                 "hasTranscript": bool(transcript),
+                "transcriptPreview": clip_text(transcript, 500),
             },
             metadata={"videoId": videoId},
         )
 
         should_use_transcript = analysisMode == "transcript" or (
             analysisMode == "auto" and len(transcript) > 200
+        )
+        source_mode = "transcript" if should_use_transcript else "video"
+        langfuse_event(
+            trace_id=trace_id,
+            name="04a. Decide Source Path",
+            timestamp=iso_now(),
+            input_payload={
+                "analysisModeRequested": analysisMode,
+                "transcriptChars": len(transcript),
+                "segmentCount": len(segments),
+            },
+            output_payload={
+                "sourceModeSelected": source_mode,
+                "usedTranscriptThreshold": len(transcript) > 200,
+                "reason": (
+                    "forced transcript"
+                    if analysisMode == "transcript"
+                    else "forced video"
+                    if analysisMode == "video"
+                    else "usable transcript available"
+                    if should_use_transcript
+                    else "transcript missing or too short"
+                ),
+            },
+            metadata={"videoId": videoId},
+            parent_observation_id=analysis_span_id,
         )
 
         if should_use_transcript:
@@ -555,19 +638,26 @@ def main(
                 ],
                 "generationConfig": {"responseMimeType": "application/json"},
             }
-            source_mode = "transcript"
             langfuse_event(
                 trace_id=trace_id,
-                name="04. Build Gemini Request",
+                name="04b. Build Gemini Request",
                 timestamp=iso_now(),
                 input_payload={
                     "sourceMode": source_mode,
-                    "promptBase": prompt_base,
-                    "extraNote": extra_note,
+                    "promptPreview": clip_text(prompt_base, 1000),
+                    "extraNotePreview": clip_text(extra_note, 400),
                     "transcriptChars": len(transcript),
                 },
-                output_payload={"geminiRequest": gemini_body},
+                output_payload={
+                    "geminiRequest": gemini_body,
+                    "requestSummary": {
+                        "containsTranscript": True,
+                        "containsVideoFile": False,
+                        "responseMimeType": "application/json",
+                    },
+                },
                 metadata={"videoId": videoId},
+                parent_observation_id=analysis_span_id,
             )
             generation = call_gemini_json(
                 gemini_api_key,
@@ -594,19 +684,26 @@ def main(
                 ],
                 "generationConfig": {"responseMimeType": "application/json"},
             }
-            source_mode = "video"
             langfuse_event(
                 trace_id=trace_id,
-                name="04. Build Gemini Request",
+                name="04b. Build Gemini Request",
                 timestamp=iso_now(),
                 input_payload={
                     "sourceMode": source_mode,
-                    "promptBase": prompt_base,
-                    "extraNote": extra_note,
+                    "promptPreview": clip_text(prompt_base, 1000),
+                    "extraNotePreview": clip_text(extra_note, 400),
                     "transcriptChars": len(transcript),
                 },
-                output_payload={"geminiRequest": gemini_body},
+                output_payload={
+                    "geminiRequest": gemini_body,
+                    "requestSummary": {
+                        "containsTranscript": False,
+                        "containsVideoFile": True,
+                        "responseMimeType": "application/json",
+                    },
+                },
                 metadata={"videoId": videoId},
+                parent_observation_id=analysis_span_id,
             )
             generation = call_gemini_json(
                 gemini_api_key,
@@ -615,12 +712,23 @@ def main(
             )
             parsed = normalize_parsed_payload(generation["parsed"])
             active_model = generation.get("model") or model
+        estimated_cost = estimate_cost_usd(active_model, generation.get("usage") or {})
 
         for attempt in generation.get("attempts", []):
+            usage = generation.get("usage") or {}
+            attrs = build_gen_ai_attributes(
+                attempt["actualModel"],
+                usage if attempt["ok"] else {},
+                estimated_cost if attempt["ok"] else 0.0,
+            )
             langfuse_generation(
                 trace_id=trace_id,
                 generation_id=f"{trace_id}-attempt-{attempt['actualModel']}-{attempt['attemptIndex']}",
-                name="04. Gemini Attempt",
+                name=(
+                    "04c. Gemini Attempt"
+                    if not attempt["isFallback"]
+                    else "04c. Gemini Fallback Attempt"
+                ),
                 model=attempt["actualModel"],
                 start_time=attempt["startedAt"],
                 end_time=attempt["endedAt"],
@@ -633,13 +741,17 @@ def main(
                     "error": attempt.get("error"),
                 },
                 metadata={
+                    "attributes": attrs,
                     "videoId": videoId,
                     "requestedModel": attempt["requestedModel"],
                     "actualModel": attempt["actualModel"],
                     "attemptIndex": attempt["attemptIndex"],
                     "isFallback": attempt["isFallback"],
                     "sourceMode": source_mode,
+                    "usageMetadata": usage if attempt["ok"] else {},
+                    "estimatedCostUsd": estimated_cost if attempt["ok"] else 0.0,
                 },
+                parent_observation_id=analysis_span_id,
             )
 
         tutorial = {
@@ -658,7 +770,7 @@ def main(
             "whatToDoAboutIt": parsed.get("whatToDoAboutIt") or "",
             "analysisModel": active_model,
             "analysisMode": analysisMode,
-            "analysisCostUsd": estimate_cost_usd(active_model, generation.get("usage") or {}),
+            "analysisCostUsd": estimated_cost,
             "usageMetadata": generation.get("usage") or {},
             "steps": parsed.get("steps") or [],
             "generatedAt": int(time.time() * 1000),
@@ -670,13 +782,29 @@ def main(
         end_iso = iso_now()
         langfuse_event(
             trace_id=trace_id,
-            name="04. Normalize Result",
+            name="04d. Normalize Result",
             timestamp=end_iso,
             input_payload={
-                "parsed": parsed,
-                "geminiRawText": generation.get("raw_text"),
+                "parsedSummary": {
+                    "title": parsed.get("title"),
+                    "category": parsed.get("category"),
+                    "stepCount": len(parsed.get("steps") or []),
+                    "hypeLevel": parsed.get("hypeLevel"),
+                    "trustLevel": parsed.get("trustLevel"),
+                    "evidenceLevel": parsed.get("evidenceLevel"),
+                },
+                "geminiRawTextPreview": clip_text(generation.get("raw_text") or "", 2000),
             },
-            output_payload={"tutorial": tutorial},
+            output_payload={
+                "tutorialSummary": {
+                    "title": tutorial["title"],
+                    "analysisModel": tutorial["analysisModel"],
+                    "analysisMode": tutorial["analysisMode"],
+                    "analysisCostUsd": tutorial["analysisCostUsd"],
+                    "stepCount": len(tutorial["steps"]),
+                },
+                "tutorial": tutorial,
+            },
             metadata={
                 "videoId": videoId,
                 "sourceMode": source_mode,
@@ -685,6 +813,25 @@ def main(
                 "stepCount": len(tutorial["steps"]),
                 "hasCallback": bool(callbackUrl),
             },
+            parent_observation_id=analysis_span_id,
+        )
+        langfuse_span(
+            trace_id=trace_id,
+            span_id=analysis_span_id,
+            name="04. Analyze Source with Gemini",
+            start_time=start_iso,
+            end_time=end_iso,
+            input_payload={
+                "analysisModeRequested": analysisMode,
+                "sourceModeSelected": source_mode,
+                "requestedModel": model,
+            },
+            output_payload={
+                "actualModel": active_model,
+                "estimatedCostUsd": estimated_cost,
+                "stepCount": len(tutorial["steps"]),
+            },
+            metadata={"videoId": videoId},
         )
 
         if callbackUrl:

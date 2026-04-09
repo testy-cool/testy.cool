@@ -173,16 +173,67 @@ def call_gemini_json(gemini_api_key: str, model: str, body: dict) -> dict:
     if model == "gemini-3-flash-preview":
         model_candidates.append(fallback_model)
     attempts = []
+    read_timeout_seconds = 360
 
     for model_index, active_model in enumerate(model_candidates):
         for attempt in range(3):
             started_at = iso_now()
-            res = requests.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/{active_model}:generateContent",
-                params={"key": gemini_api_key},
-                json=body,
-                timeout=180,
-            )
+            try:
+                res = requests.post(
+                    f"https://generativelanguage.googleapis.com/v1beta/models/{active_model}:generateContent",
+                    params={"key": gemini_api_key},
+                    json=body,
+                    timeout=read_timeout_seconds,
+                )
+            except requests.exceptions.ReadTimeout:
+                finished_at = iso_now()
+                last_error = (
+                    "Gemini read timed out while waiting for a response "
+                    f"after {read_timeout_seconds}s"
+                )
+                attempts.append({
+                    "attemptIndex": attempt + 1,
+                    "requestedModel": model,
+                    "actualModel": active_model,
+                    "isFallback": active_model != model,
+                    "startedAt": started_at,
+                    "endedAt": finished_at,
+                    "statusCode": None,
+                    "requestBody": body,
+                    "error": last_error,
+                    "ok": False,
+                })
+                if attempt < 2:
+                    time.sleep(5 * (attempt + 1))
+                    continue
+                if model_index < len(model_candidates) - 1:
+                    break
+                error = RuntimeError(last_error)
+                setattr(error, "attempts", attempts)
+                raise error
+            except requests.exceptions.RequestException as exc:
+                finished_at = iso_now()
+                last_error = str(exc)
+                attempts.append({
+                    "attemptIndex": attempt + 1,
+                    "requestedModel": model,
+                    "actualModel": active_model,
+                    "isFallback": active_model != model,
+                    "startedAt": started_at,
+                    "endedAt": finished_at,
+                    "statusCode": None,
+                    "requestBody": body,
+                    "error": last_error,
+                    "ok": False,
+                })
+                if attempt < 2:
+                    time.sleep(3 * (attempt + 1))
+                    continue
+                if model_index < len(model_candidates) - 1:
+                    break
+                error = RuntimeError(last_error)
+                setattr(error, "attempts", attempts)
+                raise error
             try:
                 data = res.json()
             except Exception:

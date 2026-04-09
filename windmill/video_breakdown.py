@@ -137,6 +137,16 @@ def build_transcript(segments: list[dict]) -> str:
     )
 
 
+def normalize_parsed_payload(parsed: object) -> dict:
+    if isinstance(parsed, dict):
+        return parsed
+    if isinstance(parsed, list):
+        if len(parsed) == 1 and isinstance(parsed[0], dict):
+            return parsed[0]
+        raise RuntimeError("Gemini returned a JSON list instead of an object")
+    raise RuntimeError(f"Gemini returned {type(parsed).__name__} instead of an object")
+
+
 def call_gemini_json(gemini_api_key: str, model: str, body: dict) -> dict:
     last_error = "Gemini request failed"
     fallback_model = "gemini-3.1-flash-preview"
@@ -491,7 +501,7 @@ def main(
                 model,
                 gemini_body,
             )
-            parsed = generation["parsed"]
+            parsed = normalize_parsed_payload(generation["parsed"])
             active_model = generation.get("model") or model
         else:
             gemini_body = {
@@ -530,7 +540,7 @@ def main(
                 model,
                 gemini_body,
             )
-            parsed = generation["parsed"]
+            parsed = normalize_parsed_payload(generation["parsed"])
             active_model = generation.get("model") or model
 
         for attempt in generation.get("attempts", []):

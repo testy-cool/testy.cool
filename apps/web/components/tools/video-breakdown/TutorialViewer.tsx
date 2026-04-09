@@ -45,6 +45,7 @@ declare global {
 interface Props {
   tutorial: Tutorial;
   onBack: () => void;
+  godMode?: boolean;
   onRegenerate?: () => void;
   isRegenerating?: boolean;
   regenerateError?: string | null;
@@ -53,6 +54,13 @@ interface Props {
   currentVersion?: number;
   pendingVersion?: number | null;
   onDismissPending?: () => void;
+}
+
+function formatUsd(cost?: number): string {
+  if (!cost) return "$0.00";
+  if (cost < 0.01) return `$${cost.toFixed(4)}`;
+  if (cost < 1) return `$${cost.toFixed(3)}`;
+  return `$${cost.toFixed(2)}`;
 }
 
 function SignalBadge({
@@ -493,7 +501,7 @@ function RegenerateButton({ onRegenerate, isRegenerating }: { onRegenerate: () =
   );
 }
 
-export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegenerating, regenerateError, versions, onSelectVersion, currentVersion, pendingVersion, onDismissPending }: Props) {
+export default function TutorialViewer({ tutorial, godMode, onBack, onRegenerate, isRegenerating, regenerateError, versions, onSelectVersion, currentVersion, pendingVersion, onDismissPending }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -817,6 +825,13 @@ export default function TutorialViewer({ tutorial, onBack, onRegenerate, isRegen
               Back
             </button>
             <div className="flex items-center gap-3">
+              {godMode && (
+                <div className="text-[11px] font-mono text-green-400/80 hidden xl:flex items-center gap-3">
+                  <span>mode {tutorial.analysisMode || "auto"}</span>
+                  <span>model {tutorial.analysisModel || "unknown"}</span>
+                  <span>cost {formatUsd(tutorial.analysisCostUsd)}</span>
+                </div>
+              )}
               {onRegenerate && <RegenerateButton onRegenerate={onRegenerate} isRegenerating={isRegenerating} />}
               {versions && versions.length > 1 && onSelectVersion && currentVersion && (
                 <VersionDropdown versions={versions} currentVersion={currentVersion} onSelect={onSelectVersion} />

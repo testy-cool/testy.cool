@@ -31,6 +31,15 @@ export interface Tutorial {
   evidenceLevel?: string;
   whoShouldCare?: string;
   whatToDoAboutIt?: string;
+  analysisModel?: string;
+  analysisMode?: TutorialAnalysisMode;
+  analysisCostUsd?: number;
+  usageMetadata?: {
+    promptTokenCount?: number;
+    candidatesTokenCount?: number;
+    thoughtsTokenCount?: number;
+    totalTokenCount?: number;
+  };
   steps: TutorialStep[];
   generatedAt: number;
 }
@@ -61,7 +70,10 @@ export interface TutorialJob {
   error?: string;
   resultVersion?: number;
   model?: string;
+  analysisMode?: TutorialAnalysisMode;
 }
+
+export type TutorialAnalysisMode = "auto" | "transcript" | "video";
 
 export interface TutorialState {
   tutorial: Tutorial | null;

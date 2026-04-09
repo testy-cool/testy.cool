@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import type {
+  TutorialAnalysisMode,
   Tutorial,
   TutorialJob,
   TutorialSummary,
@@ -44,6 +45,13 @@ function timeAgo(timestamp: number): string {
   if (days === 1) return "yesterday";
   if (days < 7) return `${days}d ago`;
   return `${Math.floor(days / 7)}w ago`;
+}
+
+function formatUsd(cost?: number): string {
+  if (!cost) return "$0.00";
+  if (cost < 0.01) return `$${cost.toFixed(4)}`;
+  if (cost < 1) return `$${cost.toFixed(3)}`;
+  return `$${cost.toFixed(2)}`;
 }
 
 function RecentCard({
@@ -131,6 +139,7 @@ export default function TutorialApp() {
   const [godMode, setGodMode] = useState(false);
   const [spoonMode, setSpoonMode] = useState(false);
   const [selectedModel, setSelectedModel] = useState("gemini-3-flash-preview");
+  const [analysisMode, setAnalysisMode] = useState<TutorialAnalysisMode>("auto");
   const [customNote, setCustomNote] = useState("");
   const [noteHistory, setNoteHistory] = useState<string[]>([]);
   const cheatBuffer = useRef("");
@@ -207,13 +216,14 @@ export default function TutorialApp() {
 
     try {
       const model = godMode ? selectedModel : undefined;
+      const mode = godMode ? analysisMode : undefined;
       const note = customNote.trim();
       if (note) {
         const updated = [note, ...noteHistory.filter((n) => n !== note)].slice(0, 20);
         setNoteHistory(updated);
         try { localStorage.setItem("vtg-note-history", JSON.stringify(updated)); } catch {}
       }
-      const result = await generateTutorial(videoId, false, model, note || undefined);
+      const result = await generateTutorial(videoId, false, model, note || undefined, mode);
       if (result.tutorial) {
         setTutorial(result.tutorial);
         await refreshVersions(videoId, result.tutorial);
@@ -236,7 +246,7 @@ export default function TutorialApp() {
     } finally {
       if (!hasActiveJob) setIsLoading(false);
     }
-  }, [customNote, godMode, noteHistory, refreshVersions, selectedModel]);
+  }, [analysisMode, customNote, godMode, noteHistory, refreshVersions, selectedModel]);
 
   useEffect(() => {
     const v = new URLSearchParams(window.location.search).get("v");
@@ -344,8 +354,9 @@ export default function TutorialApp() {
     let hasActiveJob = false;
     try {
       const model = godMode ? selectedModel : undefined;
+      const mode = godMode ? analysisMode : undefined;
       const note = customNote.trim() || undefined;
-      const result = await generateTutorial(current.videoId, true, model, note);
+      const result = await generateTutorial(current.videoId, true, model, note, mode);
       if (result.tutorial) {
         setTutorial(result.tutorial);
         await refreshVersions(current.videoId, result.tutorial);
@@ -362,7 +373,7 @@ export default function TutorialApp() {
       if (elapsed < 600) await new Promise((r) => setTimeout(r, 600 - elapsed));
       if (!hasActiveJob) setIsLoading(false);
     }
-  }, [customNote, godMode, refreshVersions, selectedModel]);
+  }, [analysisMode, customNote, godMode, refreshVersions, selectedModel]);
 
   const handleSelectVersion = useCallback(async (version: number) => {
     if (!tutorial) return;
@@ -469,6 +480,7 @@ export default function TutorialApp() {
     return (
       <TutorialViewer
         tutorial={tutorial}
+        godMode={godMode}
         onBack={handleBack}
         onRegenerate={handleRegenerate}
         isRegenerating={isLoading}
@@ -603,7 +615,7 @@ export default function TutorialApp() {
 
             {/* God mode model selector */}
             {godMode && (
-              <div className="mt-3 flex items-center gap-2">
+              <div className="mt-3 flex items-center gap-2 flex-wrap">
                 <span className="text-[11px] font-mono text-green-500/80 uppercase tracking-wider">IDDQD</span>
                 <div className="flex rounded-lg border border-green-500/30 overflow-hidden">
                   {["gemini-3-flash-preview", "gemini-3.1-pro-preview"].map((m) => (
@@ -620,6 +632,28 @@ export default function TutorialApp() {
                     </button>
                   ))}
                 </div>
+                <div className="flex rounded-lg border border-green-500/30 overflow-hidden">
+                  {(["auto", "transcript", "video"] as TutorialAnalysisMode[]).map((mode) => (
+                    <button
+                      key={mode}
+                      onClick={() => setAnalysisMode(mode)}
+                      className={`px-3 py-1.5 text-[12px] font-mono transition-colors ${
+                        analysisMode === mode
+                          ? "bg-green-500/20 text-green-400"
+                          : "text-fd-muted-foreground/50 hover:text-green-400/70"
+                      }`}
+                    >
+                      {mode}
+                    </button>
+                  ))}
+                </div>
+                {tutorial && (
+                  <div className="ml-auto flex items-center gap-3 text-[11px] font-mono text-green-400/80">
+                    <span>mode {tutorial.analysisMode || "auto"}</span>
+                    <span>model {tutorial.analysisModel || "unknown"}</span>
+                    <span>cost {formatUsd(tutorial.analysisCostUsd)}</span>
+                  </div>
+                )}
               </div>
             )}
 

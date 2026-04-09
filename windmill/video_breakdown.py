@@ -147,6 +147,25 @@ def normalize_parsed_payload(parsed: object) -> dict:
     raise RuntimeError(f"Gemini returned {type(parsed).__name__} instead of an object")
 
 
+def estimate_cost_usd(model: str, usage: dict) -> float:
+    prompt_tokens = usage.get("promptTokenCount", 0) or 0
+    output_tokens = usage.get("candidatesTokenCount", 0) or 0
+    thought_tokens = usage.get("thoughtsTokenCount", 0) or 0
+    rates = {
+        "gemini-3-flash-preview": {"input": 0.50, "output": 3.00},
+        "gemini-3.1-pro-preview": {"input": 2.00, "output": 12.00},
+        "gemini-3.1-flash-preview": {"input": 0.25, "output": 1.50},
+    }
+    rate = rates.get(model)
+    if not rate:
+        return 0.0
+    return round(
+        (prompt_tokens / 1_000_000) * rate["input"]
+        + ((output_tokens + thought_tokens) / 1_000_000) * rate["output"],
+        6,
+    )
+
+
 def call_gemini_json(gemini_api_key: str, model: str, body: dict) -> dict:
     last_error = "Gemini request failed"
     fallback_model = "gemini-3.1-flash-preview"
@@ -408,6 +427,7 @@ def main(
     promptTemplate: str = "",
     customNote: str = "",
     model: str = "gemini-3-flash-preview",
+    analysisMode: str = "auto",
 ):
     if not jobId or not videoId:
         raise ValueError("Missing required job arguments")
@@ -417,6 +437,7 @@ def main(
         remote_config = fetch_remote_job_config(jobId)
         if remote_config:
             model = remote_config.get("model") or model
+            analysisMode = remote_config.get("analysisMode") or analysisMode
             customNote = remote_config.get("customNote") or ""
             promptTemplate = remote_config.get("promptTemplate") or ""
             callbackUrl = remote_config.get("callbackUrl") or ""
@@ -468,7 +489,11 @@ def main(
             metadata={"videoId": videoId},
         )
 
-        if len(transcript) > 200:
+        should_use_transcript = analysisMode == "transcript" or (
+            analysisMode == "auto" and len(transcript) > 200
+        )
+
+        if should_use_transcript:
             gemini_body = {
                 "contents": [
                     {
@@ -583,6 +608,10 @@ def main(
             "evidenceLevel": parsed.get("evidenceLevel") or "",
             "whoShouldCare": parsed.get("whoShouldCare") or "",
             "whatToDoAboutIt": parsed.get("whatToDoAboutIt") or "",
+            "analysisModel": active_model,
+            "analysisMode": analysisMode,
+            "analysisCostUsd": estimate_cost_usd(active_model, generation.get("usage") or {}),
+            "usageMetadata": generation.get("usage") or {},
             "steps": parsed.get("steps") or [],
             "generatedAt": int(time.time() * 1000),
         }

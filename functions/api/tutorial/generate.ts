@@ -42,6 +42,15 @@ interface TutorialPayload {
   evidenceLevel?: string;
   whoShouldCare?: string;
   whatToDoAboutIt?: string;
+  analysisModel?: string;
+  analysisMode?: "auto" | "transcript" | "video";
+  analysisCostUsd?: number;
+  usageMetadata?: {
+    promptTokenCount?: number;
+    candidatesTokenCount?: number;
+    thoughtsTokenCount?: number;
+    totalTokenCount?: number;
+  };
   steps: unknown[];
   generatedAt: number;
 }
@@ -56,6 +65,7 @@ interface TutorialJobRecord {
   error?: string;
   resultVersion?: number;
   model?: string;
+  analysisMode?: "auto" | "transcript" | "video";
   customNoteHash?: string;
   usedCustomPrompt?: boolean;
 }
@@ -64,6 +74,7 @@ interface TutorialJobConfigRecord {
   jobId: string;
   videoId: string;
   model: string;
+  analysisMode: "auto" | "transcript" | "video";
   customNote?: string;
   promptTemplate: string;
   callbackUrl: string;
@@ -110,6 +121,7 @@ function normalizePublicJob(job: TutorialJobRecord | null) {
     error: job.error,
     resultVersion: job.resultVersion,
     model: job.model,
+    analysisMode: job.analysisMode,
   };
 }
 
@@ -260,6 +272,10 @@ function ensureTutorialShape(videoId: string, tutorial: TutorialPayload | undefi
     evidenceLevel: tutorial.evidenceLevel || "",
     whoShouldCare: tutorial.whoShouldCare || "",
     whatToDoAboutIt: tutorial.whatToDoAboutIt || "",
+    analysisModel: tutorial.analysisModel || "",
+    analysisMode: tutorial.analysisMode || "auto",
+    analysisCostUsd: tutorial.analysisCostUsd || 0,
+    usageMetadata: tutorial.usageMetadata || {},
     steps: tutorial.steps,
     generatedAt: tutorial.generatedAt || Date.now(),
   };
@@ -484,6 +500,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       jobId: config.jobId,
       videoId: config.videoId,
       model: config.model,
+      analysisMode: config.analysisMode,
       customNote: config.customNote || "",
       promptTemplate: config.promptTemplate,
       callbackUrl: config.callbackUrl,
@@ -549,6 +566,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     action?: string;
     videoId?: string;
     customNote?: string;
+    analysisMode?: string;
     message?: string;
     history?: { role: string; text: string }[];
     convId?: string;
@@ -587,6 +605,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const force = intentFromUrl === "refresh";
   const customNote = typeof body.customNote === "string" ? body.customNote.slice(0, 500) : "";
   const model = DEFAULT_MODEL;
+  const analysisMode =
+    body.analysisMode === "transcript" || body.analysisMode === "video"
+      ? body.analysisMode
+      : "auto";
   if (!videoId || typeof videoId !== "string") {
     return json({ error: "Missing videoId" }, 400);
   }
@@ -643,6 +665,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     createdAt: Date.now(),
     updatedAt: Date.now(),
     model,
+    analysisMode,
     customNoteHash: customNote ? hashNote(customNote) : undefined,
     usedCustomPrompt: !!storedPrompt,
   };
@@ -655,6 +678,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       videoId,
       force,
       model,
+      analysisMode,
       customNote,
       promptTemplate: enforcePromptSchema(storedPrompt || "", "{videoTitle}"),
       existingTutorial: currentTutorial,
@@ -678,6 +702,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     jobId: job.id,
     videoId,
     model,
+    analysisMode,
     customNote,
     promptTemplate: resolvedPrompt,
     callbackUrl: callbackUrl.toString(),

@@ -1,4 +1,5 @@
 import type {
+  TutorialAnalysisMode,
   Tutorial,
   TutorialGenerateResponse,
   TutorialState,
@@ -41,9 +42,11 @@ export async function generateTutorial(
   force?: boolean,
   model?: string,
   customNote?: string,
+  analysisMode?: TutorialAnalysisMode,
 ): Promise<TutorialGenerateResponse> {
   const body: Record<string, unknown> = { videoId };
   if (customNote) body.customNote = customNote;
+  if (analysisMode && analysisMode !== "auto") body.analysisMode = analysisMode;
   const url = force ? "/api/tutorial/generate?intent=refresh" : "/api/tutorial/generate";
   const res = await fetch(url, {
     method: "POST",

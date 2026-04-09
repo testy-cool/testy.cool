@@ -326,15 +326,12 @@ def get_first_available_variable(paths: list[str]) -> str | None:
 
 def get_langfuse_config() -> tuple[str, str, str] | None:
     public_key = get_first_available_variable([
-        "u/vlad/langfuse_public_key",
         "u/bled/langfuse_public_key",
     ])
     secret_key = get_first_available_variable([
-        "u/vlad/langfuse_secret_key",
         "u/bled/langfuse_secret_key",
     ])
     base_url = get_first_available_variable([
-        "u/vlad/langfuse_base_url",
         "u/bled/langfuse_base_url",
     ])
     if not public_key or not secret_key or not base_url:

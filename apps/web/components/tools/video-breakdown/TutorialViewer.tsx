@@ -45,7 +45,7 @@ declare global {
 interface Props {
   tutorial: Tutorial;
   onBack: () => void;
-  godMode?: boolean;
+  _dbg?: boolean;
   onRegenerate?: () => void;
   isRegenerating?: boolean;
   regenerateError?: string | null;
@@ -501,7 +501,7 @@ function RegenerateButton({ onRegenerate, isRegenerating }: { onRegenerate: () =
   );
 }
 
-export default function TutorialViewer({ tutorial, godMode, onBack, onRegenerate, isRegenerating, regenerateError, versions, onSelectVersion, currentVersion, pendingVersion, onDismissPending }: Props) {
+export default function TutorialViewer({ tutorial, _dbg, onBack, onRegenerate, isRegenerating, regenerateError, versions, onSelectVersion, currentVersion, pendingVersion, onDismissPending }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -825,7 +825,7 @@ export default function TutorialViewer({ tutorial, godMode, onBack, onRegenerate
               Back
             </button>
             <div className="flex items-center gap-3">
-              {godMode && (
+              {_dbg && (
                 <div className="text-[11px] font-mono text-green-400/80 hidden xl:flex items-center gap-3">
                   <span>mode {tutorial.analysisMode || "auto"}</span>
                   <span>model {tutorial.analysisModel || "unknown"}</span>
@@ -952,8 +952,8 @@ export default function TutorialViewer({ tutorial, godMode, onBack, onRegenerate
               />
             ))}
 
-            {/* Chat */}
-            <ChatPanel videoId={tutorial.videoId} />
+            {/* Chat — _dbg only */}
+            {_dbg && <ChatPanel videoId={tutorial.videoId} />}
           </div>
         </div>
       </div>

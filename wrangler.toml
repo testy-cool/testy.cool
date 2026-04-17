@@ -2,8 +2,7 @@ name = "testy-cool"
 pages_build_output_dir = "apps/web/out"
 
 [vars]
-LANGFUSE_PUBLIC_KEY = "pk-lf-7221a823-3eda-4e96-a1f1-f4b5aee19491"
-LANGFUSE_SECRET_KEY = "sk-lf-a9baff4a-7e36-47a1-9639-d055bde6bb67"
+LANGFUSE_PUBLIC_KEY = "pk-lf-3bb9c1ff-043b-4810-9ea7-174350b836d3"
 LANGFUSE_BASE_URL = "https://langfuse-f6tim406p7bpze5wutvcm4jv.voidxd.cloud"
 WINDMILL_BASE_URL = "https://windmill.voidxd.cloud"
 WINDMILL_WORKSPACE = "main"

@@ -136,13 +136,13 @@ export default function TutorialApp() {
   const [promptPassword, setPromptPassword] = useState("");
   const [promptShowPassword, setPromptShowPassword] = useState(false);
   const [promptStatus, setPromptStatus] = useState<string | null>(null);
-  const [godMode, setGodMode] = useState(false);
-  const [spoonMode, setSpoonMode] = useState(false);
+  const [_dbg, _setDbg] = useState(false);
+  const [_adv, _setAdv] = useState(false);
   const [selectedModel, setSelectedModel] = useState("gemini-3-flash-preview");
   const [analysisMode, setAnalysisMode] = useState<TutorialAnalysisMode>("auto");
   const [customNote, setCustomNote] = useState("");
   const [noteHistory, setNoteHistory] = useState<string[]>([]);
-  const cheatBuffer = useRef("");
+  const _inputBuf = useRef("");
 
   // Load note history from localStorage
   useEffect(() => {
@@ -215,8 +215,8 @@ export default function TutorialApp() {
     }
 
     try {
-      const model = godMode ? selectedModel : undefined;
-      const mode = godMode ? analysisMode : undefined;
+      const model = _dbg ? selectedModel : undefined;
+      const mode = _dbg ? analysisMode : undefined;
       const note = customNote.trim();
       if (note) {
         const updated = [note, ...noteHistory.filter((n) => n !== note)].slice(0, 20);
@@ -246,7 +246,7 @@ export default function TutorialApp() {
     } finally {
       if (!hasActiveJob) setIsLoading(false);
     }
-  }, [analysisMode, customNote, godMode, noteHistory, refreshVersions, selectedModel]);
+  }, [analysisMode, customNote, _dbg, noteHistory, refreshVersions, selectedModel]);
 
   useEffect(() => {
     const v = new URLSearchParams(window.location.search).get("v");
@@ -284,16 +284,27 @@ export default function TutorialApp() {
   }, []);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
+    const _h = async (s: string) => {
+      const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+      return Array.from(new Uint8Array(d)).map(b => b.toString(16).padStart(2, "0")).join("");
+    };
+    const onKey = async (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      cheatBuffer.current = (cheatBuffer.current + e.key).slice(-14);
-      const buf = cheatBuffer.current;
-      if (buf.endsWith("iddqd")) {
-        setGodMode((prev) => !prev);
-        cheatBuffer.current = "";
-      } else if (buf.endsWith("thereisnospoon")) {
-        setSpoonMode((prev) => !prev);
-        cheatBuffer.current = "";
+      _inputBuf.current = (_inputBuf.current + e.key).slice(-14);
+      const buf = _inputBuf.current;
+      for (let len = 3; len <= buf.length; len++) {
+        const tail = buf.slice(-len);
+        const h = await _h(tail);
+        if (h === "6c58bc00fea09c8d7fdb97c7b58741ad37bd7ba8e5c76d35076e3b57071b172b") {
+          _setDbg((prev) => !prev);
+          _inputBuf.current = "";
+          return;
+        }
+        if (h === "21e19840459838caababf21557c8c78464b04cb89dbc5112a81c242ed4c6bea9") {
+          _setAdv((prev) => !prev);
+          _inputBuf.current = "";
+          return;
+        }
       }
     };
     window.addEventListener("keydown", onKey);
@@ -353,8 +364,8 @@ export default function TutorialApp() {
     const t0 = Date.now();
     let hasActiveJob = false;
     try {
-      const model = godMode ? selectedModel : undefined;
-      const mode = godMode ? analysisMode : undefined;
+      const model = _dbg ? selectedModel : undefined;
+      const mode = _dbg ? analysisMode : undefined;
       const note = customNote.trim() || undefined;
       const result = await generateTutorial(current.videoId, true, model, note, mode);
       if (result.tutorial) {
@@ -373,7 +384,7 @@ export default function TutorialApp() {
       if (elapsed < 600) await new Promise((r) => setTimeout(r, 600 - elapsed));
       if (!hasActiveJob) setIsLoading(false);
     }
-  }, [analysisMode, customNote, godMode, refreshVersions, selectedModel]);
+  }, [analysisMode, customNote, _dbg, refreshVersions, selectedModel]);
 
   const handleSelectVersion = useCallback(async (version: number) => {
     if (!tutorial) return;
@@ -480,7 +491,7 @@ export default function TutorialApp() {
     return (
       <TutorialViewer
         tutorial={tutorial}
-        godMode={godMode}
+        _dbg={_dbg}
         onBack={handleBack}
         onRegenerate={handleRegenerate}
         isRegenerating={isLoading}
@@ -614,7 +625,7 @@ export default function TutorialApp() {
             </div>
 
             {/* God mode model selector */}
-            {godMode && (
+            {_dbg && (
               <div className="mt-3 flex items-center gap-2 flex-wrap">
                 <span className="text-[11px] font-mono text-green-500/80 uppercase tracking-wider">IDDQD</span>
                 <div className="flex rounded-lg border border-green-500/30 overflow-hidden">
@@ -659,7 +670,7 @@ export default function TutorialApp() {
 
             {/* View Prompt (hidden behind thereisnospoon) */}
             <div className="mt-3">
-              {spoonMode && (
+              {_adv && (
               <button
                 onClick={handleTogglePrompt}
                 className="text-[13px] text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors"

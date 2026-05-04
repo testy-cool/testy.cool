@@ -30,6 +30,7 @@ import {
 } from "./components/tools/ClampCalculator";
 import { UCPDemo } from "./components/tools/UCPDemo";
 import { FaqSchema } from "./components/faq-schema";
+import StackPage from "./components/stack-page";
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
@@ -66,6 +67,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     TwoPointCalculator,
     UCPDemo,
     FaqSchema,
+    StackPage,
     ...components,
   };
 }

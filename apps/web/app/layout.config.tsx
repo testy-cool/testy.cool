@@ -49,6 +49,12 @@ export const linkItems: LinkItemType[] = [
     active: "nested-url",
   },
   {
+    icon: <Icons.laptop />,
+    text: "Stack",
+    url: "/stack",
+    active: "url",
+  },
+  {
     icon: <Icons.user />,
     text: "About",
     url: "/about",

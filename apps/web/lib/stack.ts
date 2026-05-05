@@ -96,6 +96,13 @@ export const stack: StackTool[] = [
     status: "using",
     take: "Love it. Still use Cloudflare Pages for some stuff, but Coolify is versatile as hell.",
   },
+  {
+    name: "OpenWhispr",
+    url: "https://github.com/OpenWhispr/OpenWhispr",
+    category: "CLI Tools",
+    status: "using",
+    take: "Open-source speech-to-text, works on Linux with OpenAI's Whisper model. No account needed, bring your own key. Polished UI for what it is. Two annoyances: doesn't pause system audio while recording, and Bluetooth headphones switch to hands-free profile (garbage quality) when the mic activates. Building a wrapper to handle audio profile switching automatically.",
+  },
 ];
 
 export function getStackByCategory(): Record<string, StackTool[]> {

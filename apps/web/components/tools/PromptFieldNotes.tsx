@@ -28,6 +28,12 @@ const notes: FieldNote[] = [
     rule: "Use markdown headers or XML tags to structure prompts. Not CAPS.",
     why: "Haven't benchmarked this either - I just don't like CAPS. They feel like yelling and I'm not convinced the model reads them the way we intend. Markdown headers or XML tags give clear, parseable structure. I reach for markdown first, XML when the prompt has nested sections or when I want the model to reference specific blocks by name.",
   },
+  {
+    id: "non-obvious-value-add",
+    when: "Having an LLM generate descriptions for content that only has a title",
+    rule: "Tell it to surface non-obvious information. The title already says what happened - the description's job is to add something the headline doesn't.",
+    why: "When you need the LLM to describe a news item that only has a title, the default is title expansion - rephrasing it longer. Zero value. Dropping \"non-obvious\" into the prompt pushes it past restatement into why it matters, what shifted, what's counterintuitive. Every time I've added it the output went from \"yeah, I knew that\" to \"oh, interesting.\"",
+  },
 ];
 
 function toMarkdown(note: FieldNote): string {
@@ -59,7 +65,7 @@ function CopyButton({ text, label }: { text: string; label: string }) {
 
 export function PromptFieldNotes() {
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {notes.map((note) => (
         <div
           key={note.id}

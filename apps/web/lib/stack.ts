@@ -105,6 +105,13 @@ export const stack: StackTool[] = [
     take: "My thinkboard. Obsidian canvas with Gemini connected via a custom plugin - I get a massive context window to branch ideas in different directions. Supports MCP, YouTube videos, images, image generation. Yes it costs money with Gemini, but prompt caching keeps it cheap - the API caches your conversation prefix so repeated turns only bill for the new tokens, not the full context every time. Turns a $2 brainstorm into a $0.30 one.",
   },
   {
+    name: "Warp",
+    url: "https://www.warp.dev",
+    category: "CLI Tools",
+    status: "using",
+    take: "I don't use the AI features - I just love how it handles organization. Tabs and panes (tabs within tabs) let me keep everything tidy without effort. The built-in file explorer is great, and the learning curve to start using panes and splits is basically zero. Was on Ghostty before this, and Windows Terminal when I was on Windows, but jumped back to Warp after they open-sourced it.",
+  },
+  {
     name: "OpenWhispr",
     url: "https://github.com/OpenWhispr/OpenWhispr",
     logo: "https://avatars.githubusercontent.com/u/254803777?s=48&v=4",

@@ -99,6 +99,7 @@ export const stack: StackTool[] = [
   {
     name: "OpenWhispr",
     url: "https://github.com/OpenWhispr/OpenWhispr",
+    logo: "https://avatars.githubusercontent.com/u/254803777?s=48&v=4",
     category: "CLI Tools",
     status: "using",
     take: "Open-source speech-to-text, works on Linux with OpenAI's Whisper model. No account needed, bring your own key. Polished UI for what it is. Two annoyances: doesn't pause system audio while recording, and Bluetooth headphones switch to hands-free profile (garbage quality) when the mic activates. Building a wrapper to handle audio profile switching automatically.",

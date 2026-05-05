@@ -97,6 +97,14 @@ export const stack: StackTool[] = [
     take: "Love it. Still use Cloudflare Pages for some stuff, but Coolify is versatile as hell.",
   },
   {
+    name: "Obsidian + AI Canvas",
+    url: "https://github.com/testy-cool/obsidian-ai-canvas",
+    logo: "https://obsidian.md/favicon.ico",
+    category: "CLI Tools",
+    status: "using",
+    take: "My thinkboard. Obsidian canvas with Gemini connected via a custom plugin - I get a massive context window to branch ideas in different directions. Supports MCP, YouTube videos, images, image generation. Yes it costs money with Gemini, but prompt caching keeps it cheap - the API caches your conversation prefix so repeated turns only bill for the new tokens, not the full context every time. Turns a $2 brainstorm into a $0.30 one.",
+  },
+  {
     name: "OpenWhispr",
     url: "https://github.com/OpenWhispr/OpenWhispr",
     logo: "https://avatars.githubusercontent.com/u/254803777?s=48&v=4",

@@ -12,6 +12,14 @@ export interface Tool {
 
 export const allTools: Tool[] = [
   {
+    slug: "prompt-field-notes",
+    title: "Prompt Field Notes",
+    description:
+      "Context-specific prompting observations. What worked, when it applies, and why. Copy as markdown or XML.",
+    tags: ["LLM", "Prompting"],
+    type: "Tool",
+  },
+  {
     slug: "ngram-viewer",
     title: "N-gram Viewer & Phrase Frames",
     description:

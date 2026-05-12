@@ -7,38 +7,30 @@ tags: [LLMs, inference, cost-optimization, Gemini, OpenAI, AWS, tool]
 ---
 
 <Callout title="TL;DR" type="info">
-Gemini, OpenAI, and AWS Bedrock all offer a "flex" inference tier - same models, same API, 50% cheaper. You add `service_tier: "flex"` to your request and accept that responses might take a few seconds longer, or occasionally fail during peak hours. It's ideal for anything that doesn't need sub-second latency: evals, pipelines, data enrichment, background agents. The trade-off is that you'll need longer timeouts, retry logic, and awareness of when peak hours are.
+All three major providers offer a "flex" tier - same models, same API, 50% off. Add `service_tier: "flex"` to your request, accept slightly higher latency. Good for anything that isn't user-facing chat. You'll need longer timeouts and retry logic.
 </Callout>
 
-Most LLM API calls don't need an instant response. If you're running evals, processing data in bulk, or building pipelines where each step feeds the next - you're paying for priority you don't actually need.
+Most LLM API calls don't need instant responses. If you're running evals, pipelines, or bulk processing - you're paying for priority you don't need.
 
-All three major providers now offer a way out of that. They call it flex inference, and from what I can tell, it doesn't get nearly as much attention as it should. When I searched for it, there wasn't a lot of practical discussion about what it's actually like to use - mostly just announcement posts and docs.
-
-To put some numbers on it: a pipeline doing 50,000 calls to Gemini 3 Flash with 2,000 input and 1,000 output tokens each would run about $200 on standard pricing. With flex, that's $100. On Gemini 3.1 Pro the same volume goes from $800 to $400. If you're also using prompt caching - which stacks with the flex discount - the numbers get even better.
-
-This post covers how to enable it, what it feels like in practice, and why providers can afford to give you 50% off.
+A pipeline doing 50,000 calls to Gemini 3 Flash (2k input, 1k output tokens each) costs ~$200 on standard. With flex, $100. On Gemini 3.1 Pro, $800 becomes $400. Prompt caching stacks on top.
 
 ## Calculate your savings
 
-Plug in your own numbers to see what flex would save you. The calculator includes prompt caching - slide it up if you're reusing the same system prompt across calls (which most pipelines do).
+Plug in your numbers. The caching slider compounds with the flex discount - slide it up if you're reusing the same system prompt across calls.
 
 <FlexSavingsCalculator />
 
-## What flex inference actually is
+## What flex inference is
 
-When you make a standard API call, your request gets priority access to a GPU. With flex, you're telling the provider "I'm fine waiting" - and in exchange, they charge you half price.
+Standard API calls get priority GPU access. Flex tells the provider "I can wait" - half price in exchange.
 
-The important thing to understand is that this is still synchronous. You send a request, you get a response back in real time, you can stream tokens, you can use the output in the next call. It's the same API. The only difference is lower priority in the queue.
+It's still synchronous. You get a real-time response, can stream tokens, can chain calls. The only difference is lower queue priority. Google calls it "sheddable compute" - when standard traffic spikes, flex gets bumped. When it's quiet, you barely notice.
 
-Google's documentation is the most transparent about the mechanics. They describe flex capacity as "sheddable compute" - when standard traffic spikes, your flex request gets bumped or preempted. When things are quiet, you get served at roughly normal speed.
-
-All three providers landed on the same parameter name: `service_tier` set to `"flex"`.
+All three providers use the same parameter: `service_tier` set to `"flex"`.
 
 ## How to enable it
 
-The actual code change is minimal. Here's what it looks like on each provider.
-
-**Gemini** (launched April 2026, supports all 3.x and 2.5 models):
+**Gemini** (April 2026, all 3.x and 2.5 models):
 
 ```python
 from google import genai
@@ -55,7 +47,7 @@ response = client.models.generate_content(
 )
 ```
 
-**OpenAI** (launched April 2025, supports gpt-5.5, gpt-5.4 variants, o3, o4-mini):
+**OpenAI** (April 2025, gpt-5.5, gpt-5.4 variants, o3, o4-mini):
 
 ```python
 from openai import OpenAI
@@ -69,7 +61,7 @@ response = client.chat.completions.create(
 )
 ```
 
-**AWS Bedrock** (launched November 2025, supports Nova, DeepSeek, Qwen3 - not Claude or Llama):
+**AWS Bedrock** (November 2025, Nova, DeepSeek, Qwen3 - no Claude, no Llama):
 
 ```python
 import boto3
@@ -83,15 +75,13 @@ response = client.converse(
 )
 ```
 
-That note about Bedrock is worth emphasizing - if you're using Claude through Bedrock and want a discount, flex won't help. You'd need to use the fully async Batch API instead, which is a different programming model entirely.
+If you're using Claude on Bedrock and want a discount, flex won't help - you'd need the fully async Batch API.
 
-## What you need to know before switching
+## What to watch out for
 
-Flex is straightforward to enable, but it changes more about your setup than you'd expect. I run multi-step LLM pipelines - extraction, verification, scoring, reformatting - and I had to adjust several things after switching.
+**Timeouts.** Defaults are too short. Flex requests can queue for 2-3 minutes during busy periods. Set to at least 10 minutes (`600_000` ms for Gemini).
 
-**Timeouts need to be much longer.** The default SDK timeouts are designed for standard-tier response times. With flex, requests can sit in a queue for 2-3 minutes during busy periods before they even start processing. I'd recommend setting timeouts to at least 10 minutes. Gemini's SDK takes timeouts in milliseconds, so that's `600_000`.
-
-**You'll need retry logic with a standard-tier fallback.** During peak hours, flex capacity can run out entirely. OpenAI returns 429 errors, Gemini returns 503s. You don't get charged for these failed requests, but your pipeline stalls if you don't handle them. Here's the pattern I ended up using:
+**Retry with fallback.** Peak hours mean 429s (OpenAI) or 503s (Gemini) when capacity runs out. You need backoff + a standard-tier fallback:
 
 ```python
 import time
@@ -109,69 +99,62 @@ def flex_with_fallback(client, prompt, max_retries=3):
             if attempt < max_retries - 1:
                 time.sleep(5 * (2 ** attempt))
             else:
-                # give up on flex, use standard
                 return client.models.generate_content(
                     model="gemini-3-flash-preview",
                     contents=prompt,
                 )
 ```
 
-**Time of day matters more than I expected.** Early mornings and weekends, flex feels nearly identical to standard - responses come back in a few seconds. Tuesday afternoon US time, you'll notice the difference. If you have heavy batch runs, scheduling them for off-peak hours makes a real difference.
+**Time of day.** Early mornings and weekends, flex is near-instant. Tuesday afternoon US time, you'll feel it. Schedule heavy runs accordingly.
 
-**Gemini specifically has no automatic fallback.** This surprised me. Their Priority tier gracefully degrades to Standard when capacity is full, but flex doesn't do that - it just fails with a 503. You have to build the fallback yourself, which is what the code above does.
+**No auto-fallback on Gemini.** Unlike Priority tier (which degrades to Standard gracefully), flex just fails with 503 when full. Build the fallback yourself.
 
-**One nice thing: caching discounts stack.** On both Gemini and OpenAI, the flex discount compounds with prompt caching. If you're sending the same system prompt across many calls - which is common in pipelines - you get 50% off the already-discounted cached input price. On Gemini 2.5 Flash, that works out to about $0.019 per million tokens for cached flex input.
+**Caching stacks.** Flex discount compounds with prompt caching. Same system prompt across many calls = 50% off the already-discounted cached price.
 
-## How it compares to batch processing
+## Flex vs batch
 
-Before flex existed, the only way to get a 50% discount was through batch APIs - upload a JSONL file with all your prompts, submit a job, poll for results, process the output. Same savings, but a completely different way of writing code.
+Both are 50% off. Different trade-offs.
 
 | | Flex | Batch |
 |---|---|---|
-| **API** | Same endpoint, add one parameter | Separate API with JSONL file upload |
+| **API** | Same endpoint, one parameter | Separate API, JSONL upload |
 | **Response** | Synchronous, seconds to minutes | Async, up to 24 hours |
-| **Streaming** | Supported | Not supported |
-| **Chaining calls** | Works naturally | Not practical for sequential steps |
-| **Code change** | One line | Significant rewrite |
+| **Streaming** | Yes | No |
+| **Chaining** | Yes | Not practical |
+| **Code change** | One line | Rewrite |
 
-The way I think about it: batch is for when you have 10,000 independent prompts and you can wait overnight. Flex is for everything else where you want the same discount but need your code to stay synchronous - especially pipelines where each step depends on the previous output.
+Batch is for 10,000 independent prompts you can leave overnight. Flex is for everything where you want the discount but need synchronous calls - especially pipelines where each step depends on the previous.
 
-## Why providers can offer 50% off
+## Why 50% off is possible
 
-The economics are actually pretty intuitive once you think about it.
+GPU clusters are sized for peak. Off-peak, a lot of that capacity sits idle - powered on, cooled, depreciating, producing nothing.
 
-GPU clusters are provisioned for peak traffic. During off-peak hours - nights, weekends, holidays - a meaningful portion of those GPUs sit idle. They're still powered on, still being cooled, still depreciating. They're just not doing any useful work.
+Same as airlines. The plane flies whether every seat is full or not. Selling an empty seat at half price beats leaving it empty. For GPU providers, flex requests on idle hardware are revenue they'd otherwise never see.
 
-It's the same dynamic as airline pricing. The plane flies whether every seat is full or not. An empty seat generates zero revenue but still costs the airline money (fuel, crew, depreciation). Selling that seat at half price is better than leaving it empty, because the marginal cost of one additional passenger is close to zero.
+The "sheddable" part is key. No capacity guarantees for flex. If standard spikes, flex gets preempted. No risk of cannibalization - genuinely different needs.
 
-For GPU providers, every flex request processed on otherwise-idle hardware is revenue they wouldn't have seen at all. Cloud providers typically maintain 15-30% spare capacity for maintenance windows, hardware failures, and demand spikes. Flex monetizes that idle capacity.
+## Where it came from
 
-The "sheddable" part is what makes it work financially. Providers aren't making capacity guarantees for flex traffic. If standard-tier requests spike, flex gets preempted. This means there's no risk of the discount tier cannibalizing the premium tier - they're serving genuinely different needs.
+AWS Spot Instances (2009) pioneered selling spare compute at a discount. GCP and Azure followed.
 
-## Where the idea came from
+For LLM inference specifically:
 
-The concept of selling spare compute at a discount goes back further than you might think. AWS launched Spot Instances in December 2009 - you could bid on surplus EC2 capacity at 60-90% off, with the catch that your instance could be reclaimed at any time. GCP and Azure later offered their own versions (Preemptible VMs, Spot VMs).
+- **SpotServe** (2023, ASPLOS 2024) - first serving system for preemptible GPUs. 54% cost savings.
+- **SkyServe** (2024, Berkeley) - multi-cloud spot serving.
+- **SageServe** (2025, Microsoft) - formalized the Interactive/Non-Interactive/Opportunistic model that maps to Standard/Batch/Flex.
 
-Applying this specifically to LLM inference is more recent. The key academic work:
+Commercial timeline:
 
-- **SpotServe** (2023, published at ASPLOS 2024) was the first serving system designed for preemptible GPU instances. They showed 54% cost savings by dynamically reparallelizing when instances get reclaimed.
-- **SkyServe** (2024, UC Berkeley) extended this across multiple cloud providers.
-- **SageServe** (2025, Microsoft) formalized the three-tier model - Interactive, Non-Interactive, Opportunistic - which maps almost exactly to what we now see as Standard, Batch, and Flex in the commercial APIs.
+- **April 2024** - OpenAI Batch API. First 50% discount on LLM inference.
+- **October 2024** - Anthropic Message Batches.
+- **April 2025** - OpenAI Flex Processing. First synchronous discount tier.
+- **November 2025** - Bedrock Flex and Priority tiers.
+- **April 2026** - Google Flex Inference for Gemini.
 
-The commercial timeline moved quickly once it started:
+OpenAI launched Flex the day after Google dropped Gemini 2.5 Flash. DeepSeek's cheaper inference earlier that year forced everyone to compete on price.
 
-- **April 2024** - OpenAI launches the Batch API. First 50% discount tier for LLM inference.
-- **October 2024** - Anthropic follows with Message Batches API.
-- **April 2025** - OpenAI introduces Flex Processing. First synchronous discount tier.
-- **November 2025** - AWS Bedrock adds Flex and Priority tiers.
-- **April 2026** - Google launches Flex Inference for Gemini.
+## When to use it
 
-It's worth noting that OpenAI launched Flex the day after Google released Gemini 2.5 Flash. DeepSeek's much cheaper inference earlier that year had already put pressure on pricing across the industry, and flex tiers were part of how the major providers responded.
+If a human is staring at a screen waiting - use standard. Everything else - flex.
 
-## When to use it and when not to
-
-The practical rule I've landed on: if a human is staring at a screen waiting for the response, use standard. For pretty much everything else, flex is worth trying.
-
-In practice, that means flex works well for evaluations, data enrichment, content generation pipelines, background agents, anything running on a schedule, and any workflow where you're processing items in bulk. The 50% savings add up fast when you're running hundreds of thousands of tokens through multi-step pipelines.
-
-Where it doesn't work: user-facing chat, real-time features, anything where adding 10-30 seconds of latency would be noticeable to someone interacting with your application. Also worth keeping in mind that if you're on Bedrock using Claude or Llama models, flex isn't available - you'd need to evaluate the Batch API instead.
+That means: evals, data enrichment, content pipelines, background agents, cron jobs, bulk processing. Where it doesn't work: user-facing chat, real-time features, or Claude/Llama on Bedrock (no flex support - use Batch API instead).

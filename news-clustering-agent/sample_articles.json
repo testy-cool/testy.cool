@@ -1,0 +1,22 @@
+{
+  "articles": [
+    {
+      "title": "Startup raises $40M to build AI coding agents",
+      "url": "https://example.com/ai-coding-startup",
+      "text": "A San Francisco startup announced a Series B round to expand its autonomous software engineering agents.",
+      "source": "Example Wire"
+    },
+    {
+      "title": "New open model claims state-of-the-art code generation",
+      "url": "https://example.com/open-code-model",
+      "text": "Researchers released an open-weight model that tops benchmarks for code generation and review.",
+      "source": "Example Wire"
+    },
+    {
+      "title": "Data breach exposes millions of user records",
+      "url": "https://example.com/data-breach",
+      "text": "A misconfigured database leaked personal records, prompting a regulatory inquiry.",
+      "source": "Example Wire"
+    }
+  ]
+}

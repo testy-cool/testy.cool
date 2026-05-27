@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-type Provider = "anthropic" | "openai" | "google" | "deepseek" | "xai" | "mistral" | "meta" | "qwen" | "amazon" | "cohere" | "zhipu";
+type Provider = "anthropic" | "openai" | "google" | "deepseek" | "xai" | "mistral" | "meta" | "qwen" | "xiaomi" | "amazon" | "cohere" | "zhipu";
 type Modality = "text" | "image" | "audio" | "video" | "pdf";
 type CalcMode = "cost" | "budget" | "chain";
 
@@ -560,6 +560,29 @@ const models: Model[] = [
     modalities: ["text", "image", "video"],
     reasoning: 1.12,
   },
+  // Xiaomi
+  {
+    name: "MiMo V2.5 Pro",
+    provider: "xiaomi",
+    input: 0.435,
+    output: 0.87,
+    cachedInput: 0.0036,
+    context: 1_000_000,
+    maxOutput: 131_000,
+    modalities: ["text"],
+    reasoning: 0.87,
+  },
+  {
+    name: "MiMo V2.5",
+    provider: "xiaomi",
+    input: 0.14,
+    output: 0.28,
+    cachedInput: 0.0028,
+    context: 1_000_000,
+    maxOutput: 131_000,
+    modalities: ["text", "image", "audio", "video"],
+    reasoning: 0.28,
+  },
   // Amazon
   {
     name: "Nova Premier",
@@ -674,12 +697,13 @@ const providerLabels: Record<Provider, string> = {
   mistral: "Mistral",
   meta: "Meta",
   qwen: "Qwen",
+  xiaomi: "Xiaomi",
   amazon: "Amazon",
   cohere: "Cohere",
   zhipu: "Zhipu AI",
 };
 
-const providerOrder: Provider[] = ["anthropic", "openai", "google", "deepseek", "xai", "mistral", "meta", "qwen", "amazon", "cohere", "zhipu"];
+const providerOrder: Provider[] = ["anthropic", "openai", "google", "deepseek", "xai", "mistral", "meta", "qwen", "xiaomi", "amazon", "cohere", "zhipu"];
 const allProviders = new Set<Provider>(providerOrder);
 
 const modalityOrder: Modality[] = ["text", "image", "audio", "video", "pdf"];

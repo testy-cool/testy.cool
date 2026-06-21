@@ -6,7 +6,7 @@ interface Env {
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const key = context.env.YOUTUBE_API_KEY;
-  if (!key) return new Response(JSON.stringify({ error: 'YouTube API key not configured' }), { status: 502 });
+  if (!key) return new Response(JSON.stringify({ error: 'YouTube API key not configured' }), { status: 503 });
 
   const url = new URL(context.request.url);
   const action = url.searchParams.get('action');
@@ -57,6 +57,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: e.message || 'YouTube API error' }), { status: 502 });
+    return new Response(JSON.stringify({ error: e.message || 'YouTube API error' }), { status: 503 });
   }
 };

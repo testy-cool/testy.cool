@@ -16,7 +16,7 @@ const TTL_SECONDS = 60 * 60 * 24 * 14; // 14 days
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const kv = context.env.PANTRY_CACHE;
-  if (!kv) return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 502 });
+  if (!kv) return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 503 });
 
   const url = new URL(context.request.url);
   const action = url.searchParams.get('action');
@@ -42,7 +42,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const kv = context.env.PANTRY_CACHE;
-  if (!kv) return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 502 });
+  if (!kv) return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 503 });
 
   let body: any;
   try {

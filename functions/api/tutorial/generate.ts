@@ -336,7 +336,7 @@ async function persistTutorialResult(
 
 async function handleCallback(context: EventContext<Env, string, unknown>, body: CallbackBody) {
   const kv = context.env.PANTRY_CACHE;
-  if (!kv) return json({ error: "KV not configured" }, 502);
+  if (!kv) return json({ error: "KV not configured" }, 503);
 
   const headerSecret = context.request.headers.get("x-tutorial-callback-secret");
   const expectedSecret = context.env.TUTORIAL_CALLBACK_SECRET;
@@ -449,7 +449,7 @@ async function handleCallback(context: EventContext<Env, string, unknown>, body:
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const kv = context.env.PANTRY_CACHE;
-  if (!kv) return json({ error: "KV not configured" }, 502);
+  if (!kv) return json({ error: "KV not configured" }, 503);
 
   const url = new URL(context.request.url);
   const action = url.searchParams.get("action");
@@ -528,7 +528,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
 export const onRequestPut: PagesFunction<Env> = async (context) => {
   const kv = context.env.PANTRY_CACHE;
-  if (!kv) return json({ error: "KV not configured" }, 502);
+  if (!kv) return json({ error: "KV not configured" }, 503);
 
   let body: { action?: string; prompt?: string; password?: string };
   try {
@@ -557,7 +557,7 @@ export const onRequestPut: PagesFunction<Env> = async (context) => {
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const kv = context.env.PANTRY_CACHE;
-  if (!kv) return json({ error: "KV not configured" }, 502);
+  if (!kv) return json({ error: "KV not configured" }, 503);
   const url = new URL(context.request.url);
   const actionFromUrl = url.searchParams.get("action");
   const intentFromUrl = url.searchParams.get("intent");
@@ -589,7 +589,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   if (body.action === "chat") {
     if (!context.env.GEMINI_API_KEY) {
-      return json({ error: "Gemini API key not configured" }, 502);
+      return json({ error: "Gemini API key not configured" }, 503);
     }
     return handleChat(
       context.env,
@@ -654,7 +654,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   const runUrl = getWindmillRunUrl(context.env);
   if (!runUrl || !context.env.WINDMILL_TOKEN || !context.env.TUTORIAL_CALLBACK_SECRET) {
-    return json({ error: "Windmill queue is not configured" }, 502);
+    return json({ error: "Windmill queue is not configured" }, 503);
   }
 
   const storedPrompt = await kv.get(PROMPT_KEY);
@@ -772,7 +772,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         jobId: job.id,
       },
     });
-    return json({ error: message }, 502);
+    return json({ error: message }, 503);
   }
 };
 
@@ -787,10 +787,10 @@ async function handleChat(
   if (!videoId || !message) return json({ error: "Missing videoId or message" }, 400);
 
   const apiKey = env.GEMINI_API_KEY;
-  if (!apiKey) return json({ error: "Gemini API key not configured" }, 502);
+  if (!apiKey) return json({ error: "Gemini API key not configured" }, 503);
 
   const kv = env.PANTRY_CACHE;
-  if (!kv) return json({ error: "KV not configured" }, 502);
+  if (!kv) return json({ error: "KV not configured" }, 503);
 
   const raw = await kv.get(`tutorial:${videoId}`);
   if (!raw) return json({ error: "No tutorial found for this video. Generate one first." }, 404);

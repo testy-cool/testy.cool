@@ -9,7 +9,7 @@ interface Env {
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const key = context.env.GEMINI_API_KEY;
-  if (!key) return new Response(JSON.stringify({ error: 'API key not configured' }), { status: 502 });
+  if (!key) return new Response(JSON.stringify({ error: 'API key not configured' }), { status: 503 });
 
   const raw = await context.request.text();
   if (raw.length > MAX_BODY) {
@@ -42,6 +42,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: e.message || 'Gemini error' }), { status: 502 });
+    return new Response(JSON.stringify({ error: e.message || 'Gemini error' }), { status: 503 });
   }
 };

@@ -21,6 +21,11 @@ export default function Layout({ children }: { children: ReactNode }) {
       icon: SocialIcons.github,
     },
     {
+      name: "LinkedIn",
+      href: "https://www.linkedin.com/in/vladeduard/",
+      icon: SocialIcons.linkedIn,
+    },
+    {
       name: "Bluesky",
       href: "https://bsky.app/profile/testycool.bsky.social",
       icon: SocialIcons.bluesky,

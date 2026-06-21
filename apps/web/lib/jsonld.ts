@@ -8,6 +8,7 @@ export function organizationSchema() {
     sameAs: [
       "https://x.com/testy_cool",
       "https://github.com/testy-cool",
+      "https://www.linkedin.com/in/vladeduard/",
       "https://bsky.app/profile/testycool.bsky.social",
     ],
   };

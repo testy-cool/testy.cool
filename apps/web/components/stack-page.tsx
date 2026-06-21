@@ -3,36 +3,38 @@
 import { useState } from "react";
 import { getStackByCategory } from "@/lib/stack";
 import type { StackTool, StackStatus } from "@/lib/stack";
+import { MetaPill, SectionHeading, SiteSurface } from "@/components/site";
 
 const statusConfig: Record<StackStatus, { label: string; className: string }> =
   {
     using: {
       label: "Using",
-      className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+      className: "border-fd-primary/25 bg-fd-primary/10 text-fd-primary",
     },
     dropped: {
       label: "Dropped",
-      className: "bg-red-500/10 text-red-500 border-red-500/20",
+      className: "border-red-500/20 bg-red-500/10 text-red-500",
     },
     watching: {
       label: "Watching",
-      className: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+      className:
+        "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400",
     },
     replaced: {
       label: "Replaced",
-      className:
-        "bg-fd-muted text-fd-muted-foreground border-fd-border",
+      className: "border-fd-border bg-fd-muted text-fd-muted-foreground",
     },
   };
 
 function ToolLogo({ tool }: { tool: StackTool }) {
   const [failed, setFailed] = useState(false);
   const isGitHub = tool.url?.includes("github.com");
-  const src = tool.logo || (!isGitHub && tool.url ? getFaviconUrl(tool.url) : null);
+  const src =
+    tool.logo || (!isGitHub && tool.url ? getFaviconUrl(tool.url) : null);
 
   if (!src || failed) {
     return (
-      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-fd-border bg-fd-muted text-[11px] font-bold text-fd-foreground/70">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-fd-border bg-fd-muted text-[13px] font-bold text-fd-foreground/70">
         {tool.name[0]}
       </div>
     );
@@ -42,9 +44,9 @@ function ToolLogo({ tool }: { tool: StackTool }) {
     <img
       src={src}
       alt=""
-      width={20}
-      height={20}
-      className="h-5 w-5 shrink-0 rounded object-contain"
+      width={28}
+      height={28}
+      className="h-7 w-7 shrink-0 rounded-lg object-contain"
       onError={() => setFailed(true)}
     />
   );
@@ -54,7 +56,7 @@ function StatusBadge({ status }: { status: StackStatus }) {
   const config = statusConfig[status];
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${config.className}`}
+      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[13px] font-medium ${config.className}`}
     >
       {config.label}
     </span>
@@ -74,95 +76,102 @@ function getFaviconUrl(url: string): string {
   return `https://icons.duckduckgo.com/ip3/${domain}.ico`;
 }
 
-function ToolCard({ tool }: { tool: StackTool }) {
+function StackToolRow({ tool }: { tool: StackTool }) {
   return (
-    <div className="rounded-xl border border-fd-border bg-fd-card p-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5">
+    <article className="-mx-3 min-w-0 rounded-2xl border-b border-fd-border/80 px-3 py-4 transition-colors hover:bg-fd-background/75 last:border-b-0">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
+        <div className="flex min-w-0 items-start gap-3">
           <ToolLogo tool={tool} />
-          <h3 className="text-sm font-semibold">
-            {tool.url ? (
+          <div className="min-w-0">
+            <h3 className="text-base font-semibold leading-tight tracking-tight text-fd-foreground">
+              {tool.url ? (
+                <a
+                  href={tool.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-fd-primary"
+                >
+                  {tool.name}
+                </a>
+              ) : (
+                tool.name
+              )}
+            </h3>
+
+            {tool.url && (
               <a
                 href={tool.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-fd-primary transition-colors"
+                className="mt-1 inline-flex max-w-full break-all text-[13px] text-fd-muted-foreground transition-colors hover:text-fd-primary"
               >
-                {tool.name}
+                {getDomain(tool.url)}
               </a>
-            ) : (
-              tool.name
             )}
-          </h3>
+          </div>
         </div>
         <StatusBadge status={tool.status} />
       </div>
-      <div className="mt-1 pl-[30px]">
 
-          {tool.url && (
-            <a
-              href={tool.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[11px] text-fd-muted-foreground hover:text-fd-primary transition-colors"
-            >
-              {getDomain(tool.url)}
-            </a>
-          )}
+      <div className="mt-3 sm:pl-10">
+        {tool.replacedBy && (
+          <p className="text-[13px] text-fd-muted-foreground">
+            Replaced by {tool.replacedBy}
+          </p>
+        )}
 
-          {tool.replacedBy && (
-            <p className="mt-1 text-xs text-fd-muted-foreground">
-              Replaced by {tool.replacedBy}
-            </p>
-          )}
+        {tool.take && (
+          <p className="mt-2 text-sm leading-6 text-fd-foreground/76">
+            {tool.take}
+          </p>
+        )}
 
-          {tool.take && (
-            <p className="mt-2 text-sm leading-relaxed text-fd-foreground/90">
-              {tool.take}
-            </p>
-          )}
-
-          {tool.history && tool.history.length > 0 && (
-            <details className="mt-3 group">
-              <summary className="cursor-pointer text-xs text-fd-muted-foreground hover:text-fd-foreground transition-colors select-none">
-                Changelog ({tool.history.length})
-              </summary>
-              <ul className="mt-2 space-y-1.5 border-l-2 border-fd-border pl-3">
-                {tool.history.map((entry, i) => (
-                  <li key={i} className="text-xs">
-                    <span className="text-fd-muted-foreground">
-                      {entry.date}
-                    </span>
-                    <span className="ml-2 text-fd-foreground/80">
-                      {entry.note}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </details>
-          )}
+        {tool.history && tool.history.length > 0 && (
+          <details className="group mt-3">
+            <summary className="cursor-pointer select-none text-[13px] text-fd-muted-foreground transition-colors hover:text-fd-foreground">
+              Changelog ({tool.history.length})
+            </summary>
+            <ul className="mt-2 space-y-2 border-l border-fd-border pl-3">
+              {tool.history.map((entry, i) => (
+                <li key={i} className="text-[13px] leading-5">
+                  <span className="font-medium text-fd-muted-foreground">
+                    {entry.date}
+                  </span>
+                  <span className="ml-2 text-fd-foreground/78">
+                    {entry.note}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
       </div>
-    </div>
+    </article>
   );
 }
 
 export default function StackPage() {
   const grouped = getStackByCategory();
-  const categories = Object.keys(grouped);
+  const categories = Object.entries(grouped);
 
   return (
-    <div className="space-y-8 not-prose">
-      {categories.map((category) => (
-        <section key={category}>
-          <h2 className="mb-3 text-lg font-semibold text-fd-foreground">
-            {category}
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {grouped[category].map((tool) => (
-              <ToolCard key={tool.name} tool={tool} />
+    <div className="not-prose space-y-6">
+      {categories.map(([category, tools]) => (
+        <SiteSurface key={category} variant="muted">
+          <div className="flex flex-col items-start gap-4 md:flex-row md:justify-between">
+            <SectionHeading
+              eyebrow="Stack"
+              title={category}
+              titleClassName="text-xl md:text-2xl"
+            />
+            <MetaPill>{tools.length} entries</MetaPill>
+          </div>
+          <div className="mt-5">
+            {tools.map((tool) => (
+              <StackToolRow key={tool.name} tool={tool} />
             ))}
           </div>
-        </section>
+        </SiteSurface>
       ))}
     </div>
   );

@@ -162,8 +162,13 @@ async function dedup(
   }
 
   try {
-    // Strip videoQuantities before sending to LLM
-    const stripped = ingredients.map(({ videoQuantities, ...rest }) => rest);
+    // Strip videoQuantities before sending to LLM.
+    const stripped = ingredients.map((ing) => ({
+      name: ing.name,
+      category: ing.category,
+      count: ing.count,
+      videoIds: ing.videoIds,
+    }));
     const data = await callGemini(
       `${DEDUP_PROMPT}\n\n${JSON.stringify(stripped)}`,
       costTracker,

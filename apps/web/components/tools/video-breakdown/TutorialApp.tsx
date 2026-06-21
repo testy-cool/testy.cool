@@ -23,7 +23,9 @@ import {
 import TutorialViewer from "./TutorialViewer";
 import dynamic from "next/dynamic";
 
-const MonacoEditor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
+const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
+  ssr: false,
+});
 
 function slugify(text: string): string {
   return text
@@ -45,13 +47,6 @@ function timeAgo(timestamp: number): string {
   if (days === 1) return "yesterday";
   if (days < 7) return `${days}d ago`;
   return `${Math.floor(days / 7)}w ago`;
-}
-
-function formatUsd(cost?: number): string {
-  if (!cost) return "$0.00";
-  if (cost < 0.01) return `$${cost.toFixed(4)}`;
-  if (cost < 1) return `$${cost.toFixed(3)}`;
-  return `$${cost.toFixed(2)}`;
 }
 
 function RecentCard({
@@ -139,7 +134,8 @@ export default function TutorialApp() {
   const [_dbg, _setDbg] = useState(false);
   const [_adv, _setAdv] = useState(false);
   const [selectedModel, setSelectedModel] = useState("gemini-3-flash-preview");
-  const [analysisMode, setAnalysisMode] = useState<TutorialAnalysisMode>("auto");
+  const [analysisMode, setAnalysisMode] =
+    useState<TutorialAnalysisMode>("auto");
   const [customNote, setCustomNote] = useState("");
   const [noteHistory, setNoteHistory] = useState<string[]>([]);
   const _inputBuf = useRef("");
@@ -149,7 +145,9 @@ export default function TutorialApp() {
     try {
       const saved = localStorage.getItem("vtg-note-history");
       if (saved) setNoteHistory(JSON.parse(saved));
-    } catch {}
+    } catch {
+      // Ignore corrupt or unavailable localStorage history.
+    }
   }, []);
 
   const previewId = useMemo(() => parseVideoId(input), [input]);
@@ -158,95 +156,130 @@ export default function TutorialApp() {
   const jobRef = useRef(job);
   jobRef.current = job;
 
-  const refreshVersions = useCallback(async (videoId: string, nextTutorial?: Tutorial | null) => {
-    const v = await getVersions(videoId);
-    setVersions(v);
-    if (v.length === 0) {
-      setCurrentVersion(0);
-      return;
-    }
-    const matchedVersion = nextTutorial
-      ? v.find((entry) => entry.timestamp === nextTutorial.generatedAt)
-      : null;
-    const latestVersion = v[v.length - 1]!;
-    setCurrentVersion((matchedVersion || latestVersion).version);
-    if (
-      nextTutorial &&
-      tutorialRef.current &&
-      tutorialRef.current.videoId === nextTutorial.videoId &&
-      tutorialRef.current.generatedAt !== nextTutorial.generatedAt
-    ) {
-      setPendingVersion((matchedVersion || latestVersion).version);
-    }
-  }, []);
-
-  const applyTutorialState = useCallback(async (state: TutorialState, opts?: { preserveOld?: boolean }) => {
-    if (state.tutorial) {
-      setTutorial(state.tutorial);
-      setActiveVideoId(state.tutorial.videoId);
-      await refreshVersions(state.tutorial.videoId, state.tutorial);
-    } else if (!opts?.preserveOld) {
-      setTutorial(null);
-      setVersions([]);
-      setCurrentVersion(0);
-    }
-    setJob(state.job);
-    setIsLoading(state.pending);
-    setError(state.error || null);
-  }, [refreshVersions]);
-
-  const handleGenerate = useCallback(async (videoIdOrUrl: string) => {
-    const videoId = parseVideoId(videoIdOrUrl);
-    if (!videoId) {
-      setError("Invalid YouTube URL or video ID");
-      return;
-    }
-    setError(null);
-    setIsLoading(true);
-    setJob(null);
-    setActiveVideoId(videoId);
-    const prevTutorial = tutorialRef.current;
-    let hasActiveJob = false;
-
-    if (!prevTutorial || prevTutorial.videoId !== videoId) {
-      setTutorial(null);
-      setVersions([]);
-      setCurrentVersion(0);
-    }
-
-    try {
-      const model = _dbg ? selectedModel : undefined;
-      const mode = _dbg ? analysisMode : undefined;
-      const note = customNote.trim();
-      if (note) {
-        const updated = [note, ...noteHistory.filter((n) => n !== note)].slice(0, 20);
-        setNoteHistory(updated);
-        try { localStorage.setItem("vtg-note-history", JSON.stringify(updated)); } catch {}
+  const refreshVersions = useCallback(
+    async (videoId: string, nextTutorial?: Tutorial | null) => {
+      const v = await getVersions(videoId);
+      setVersions(v);
+      if (v.length === 0) {
+        setCurrentVersion(0);
+        return;
       }
-      const result = await generateTutorial(videoId, false, model, note || undefined, mode);
-      if (result.tutorial) {
-        setTutorial(result.tutorial);
-        await refreshVersions(videoId, result.tutorial);
+      const matchedVersion = nextTutorial
+        ? v.find((entry) => entry.timestamp === nextTutorial.generatedAt)
+        : null;
+      const latestVersion = v[v.length - 1]!;
+      setCurrentVersion((matchedVersion || latestVersion).version);
+      if (
+        nextTutorial &&
+        tutorialRef.current &&
+        tutorialRef.current.videoId === nextTutorial.videoId &&
+        tutorialRef.current.generatedAt !== nextTutorial.generatedAt
+      ) {
+        setPendingVersion((matchedVersion || latestVersion).version);
       }
-      setJob(result.job || null);
-      hasActiveJob = !!result.job;
-      setIsLoading(!!result.job);
-      const titleSource = result.tutorial?.title || result.tutorial?.videoTitle || prevTutorial?.title || "";
-      const slug = slugify(titleSource);
-      const url = slug ? `?v=${videoId}&t=${slug}` : `?v=${videoId}`;
-      window.history.pushState(null, "", url);
-      getRecentTutorials().then(setRecentTutorials);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to generate tutorial");
-      // If previous tutorial had empty steps, keep it so retry screen reappears
-      if (prevTutorial && prevTutorial.steps.length === 0) {
-        setTutorial(prevTutorial);
+    },
+    [],
+  );
+
+  const applyTutorialState = useCallback(
+    async (state: TutorialState, opts?: { preserveOld?: boolean }) => {
+      if (state.tutorial) {
+        setTutorial(state.tutorial);
+        setActiveVideoId(state.tutorial.videoId);
+        await refreshVersions(state.tutorial.videoId, state.tutorial);
+      } else if (!opts?.preserveOld) {
+        setTutorial(null);
+        setVersions([]);
+        setCurrentVersion(0);
       }
-      setJob(jobRef.current);
-    } finally {
-      if (!hasActiveJob) setIsLoading(false);
-    }
-  }, [analysisMode, customNote, _dbg, noteHistory, refreshVersions, selectedModel]);
+      setJob(state.job);
+      setIsLoading(state.pending);
+      setError(state.error || null);
+    },
+    [refreshVersions],
+  );
+
+  const handleGenerate = useCallback(
+    async (videoIdOrUrl: string) => {
+      const videoId = parseVideoId(videoIdOrUrl);
+      if (!videoId) {
+        setError("Invalid YouTube URL or video ID");
+        return;
+      }
+      setError(null);
+      setIsLoading(true);
+      setJob(null);
+      setActiveVideoId(videoId);
+      const prevTutorial = tutorialRef.current;
+      let hasActiveJob = false;
+
+      if (!prevTutorial || prevTutorial.videoId !== videoId) {
+        setTutorial(null);
+        setVersions([]);
+        setCurrentVersion(0);
+      }
+
+      try {
+        const model = _dbg ? selectedModel : undefined;
+        const mode = _dbg ? analysisMode : undefined;
+        const note = customNote.trim();
+        if (note) {
+          const updated = [
+            note,
+            ...noteHistory.filter((n) => n !== note),
+          ].slice(0, 20);
+          setNoteHistory(updated);
+          try {
+            localStorage.setItem("vtg-note-history", JSON.stringify(updated));
+          } catch {
+            // Ignore unavailable localStorage.
+          }
+        }
+        const result = await generateTutorial(
+          videoId,
+          false,
+          model,
+          note || undefined,
+          mode,
+        );
+        if (result.tutorial) {
+          setTutorial(result.tutorial);
+          await refreshVersions(videoId, result.tutorial);
+        }
+        setJob(result.job || null);
+        hasActiveJob = !!result.job;
+        setIsLoading(!!result.job);
+        const titleSource =
+          result.tutorial?.title ||
+          result.tutorial?.videoTitle ||
+          prevTutorial?.title ||
+          "";
+        const slug = slugify(titleSource);
+        const url = slug ? `?v=${videoId}&t=${slug}` : `?v=${videoId}`;
+        window.history.pushState(null, "", url);
+        getRecentTutorials().then(setRecentTutorials);
+      } catch (e: unknown) {
+        setError(
+          e instanceof Error ? e.message : "Failed to generate tutorial",
+        );
+        // If previous tutorial had empty steps, keep it so retry screen reappears
+        if (prevTutorial && prevTutorial.steps.length === 0) {
+          setTutorial(prevTutorial);
+        }
+        setJob(jobRef.current);
+      } finally {
+        if (!hasActiveJob) setIsLoading(false);
+      }
+    },
+    [
+      analysisMode,
+      customNote,
+      _dbg,
+      noteHistory,
+      refreshVersions,
+      selectedModel,
+    ],
+  );
 
   useEffect(() => {
     const v = new URLSearchParams(window.location.search).get("v");
@@ -285,22 +318,37 @@ export default function TutorialApp() {
 
   useEffect(() => {
     const _h = async (s: string) => {
-      const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
-      return Array.from(new Uint8Array(d)).map(b => b.toString(16).padStart(2, "0")).join("");
+      const d = await crypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode(s),
+      );
+      return Array.from(new Uint8Array(d))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
     };
     const onKey = async (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      )
+        return;
       _inputBuf.current = (_inputBuf.current + e.key).slice(-14);
       const buf = _inputBuf.current;
       for (let len = 3; len <= buf.length; len++) {
         const tail = buf.slice(-len);
         const h = await _h(tail);
-        if (h === "6c58bc00fea09c8d7fdb97c7b58741ad37bd7ba8e5c76d35076e3b57071b172b") {
+        if (
+          h ===
+          "6c58bc00fea09c8d7fdb97c7b58741ad37bd7ba8e5c76d35076e3b57071b172b"
+        ) {
           _setDbg((prev) => !prev);
           _inputBuf.current = "";
           return;
         }
-        if (h === "21e19840459838caababf21557c8c78464b04cb89dbc5112a81c242ed4c6bea9") {
+        if (
+          h ===
+          "21e19840459838caababf21557c8c78464b04cb89dbc5112a81c242ed4c6bea9"
+        ) {
           _setAdv((prev) => !prev);
           _inputBuf.current = "";
           return;
@@ -326,7 +374,9 @@ export default function TutorialApp() {
         }
       } catch (e: unknown) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : "Failed to refresh job status");
+          setError(
+            e instanceof Error ? e.message : "Failed to refresh job status",
+          );
         }
       }
     };
@@ -367,7 +417,13 @@ export default function TutorialApp() {
       const model = _dbg ? selectedModel : undefined;
       const mode = _dbg ? analysisMode : undefined;
       const note = customNote.trim() || undefined;
-      const result = await generateTutorial(current.videoId, true, model, note, mode);
+      const result = await generateTutorial(
+        current.videoId,
+        true,
+        model,
+        note,
+        mode,
+      );
       if (result.tutorial) {
         setTutorial(result.tutorial);
         await refreshVersions(current.videoId, result.tutorial);
@@ -386,20 +442,23 @@ export default function TutorialApp() {
     }
   }, [analysisMode, customNote, _dbg, refreshVersions, selectedModel]);
 
-  const handleSelectVersion = useCallback(async (version: number) => {
-    if (!tutorial) return;
-    setPendingVersion(null);
-    setIsLoading(true);
-    try {
-      const result = await getVersion(tutorial.videoId, version);
-      setTutorial(result);
-      setCurrentVersion(version);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to load version");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [tutorial]);
+  const handleSelectVersion = useCallback(
+    async (version: number) => {
+      if (!tutorial) return;
+      setPendingVersion(null);
+      setIsLoading(true);
+      try {
+        const result = await getVersion(tutorial.videoId, version);
+        setTutorial(result);
+        setCurrentVersion(version);
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "Failed to load version");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [tutorial],
+  );
 
   const handleTogglePrompt = useCallback(async () => {
     if (showPromptEditor) {
@@ -454,7 +513,15 @@ export default function TutorialApp() {
           ) : (
             <>
               <div className="mx-auto mb-5 h-12 w-12 rounded-full bg-red-100 dark:bg-red-950/30 flex items-center justify-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-500">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="text-red-500"
+                >
                   <circle cx="12" cy="12" r="10" />
                   <line x1="12" y1="8" x2="12" y2="12" />
                   <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -464,7 +531,8 @@ export default function TutorialApp() {
                 This tutorial failed to generate properly.
               </h2>
               <p className="text-base text-fd-muted-foreground/70 mb-6">
-                {error || "The video may be too short, private, or unsupported. You can try again or go back and pick a different video."}
+                {error ||
+                  "The video may be too short, private, or unsupported. You can try again or go back and pick a different video."}
               </p>
               <div className="flex items-center justify-center gap-3">
                 <button
@@ -509,22 +577,39 @@ export default function TutorialApp() {
     <>
       <style jsx global>{`
         @keyframes vtg-scanline {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(200%); }
+          0% {
+            transform: translateY(-100%);
+          }
+          100% {
+            transform: translateY(200%);
+          }
         }
         @keyframes vtg-card-in {
-          from { opacity: 0; transform: translateY(12px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
         @keyframes vtg-pulse-ring {
-          0%, 100% { transform: scale(1); opacity: 0.4; }
-          50% { transform: scale(1.15); opacity: 0.1; }
+          0%,
+          100% {
+            transform: scale(1);
+            opacity: 0.4;
+          }
+          50% {
+            transform: scale(1.15);
+            opacity: 0.1;
+          }
         }
         .vtg-card {
           animation: vtg-card-in 0.5s ease-out both;
         }
         .vtg-scanline::after {
-          content: '';
+          content: "";
           position: absolute;
           inset: 0;
           background: linear-gradient(
@@ -539,8 +624,9 @@ export default function TutorialApp() {
           animation: vtg-scanline 2.5s ease-in-out infinite;
         }
         .vtg-input-glow:focus-within {
-          box-shadow: 0 0 0 1px hsl(var(--fd-primary)),
-                      0 0 20px -4px hsl(var(--fd-primary) / 0.25);
+          box-shadow:
+            0 0 0 1px hsl(var(--fd-primary)),
+            0 0 20px -4px hsl(var(--fd-primary) / 0.25);
         }
       `}</style>
 
@@ -548,9 +634,19 @@ export default function TutorialApp() {
         <section className="max-w-3xl lg:max-w-4xl mx-auto px-5 sm:px-8 pt-12 sm:pt-16 pb-20">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-1.5 text-[13px] text-fd-muted-foreground/50 mb-10">
-            <Link href="/" className="hover:text-fd-foreground transition-colors">Home</Link>
+            <Link
+              href="/"
+              className="hover:text-fd-foreground transition-colors"
+            >
+              Home
+            </Link>
             <span className="opacity-40">/</span>
-            <Link href="/tools" className="hover:text-fd-foreground transition-colors">Tools</Link>
+            <Link
+              href="/tools"
+              className="hover:text-fd-foreground transition-colors"
+            >
+              Tools
+            </Link>
             <span className="opacity-40">/</span>
             <span className="text-fd-muted-foreground">Video Breakdown</span>
           </nav>
@@ -562,8 +658,8 @@ export default function TutorialApp() {
             <span className="text-fd-muted-foreground/40">Breakdown</span>
           </h1>
           <p className="mt-4 text-base sm:text-lg text-fd-muted-foreground/70 max-w-md leading-relaxed">
-            Paste a YouTube URL. The site queues a durable job and turns the video
-            into a scroll-synced text breakdown.
+            Paste a YouTube URL. The site queues a durable job and turns the
+            video into a scroll-synced text breakdown.
           </p>
 
           {/* Input */}
@@ -606,7 +702,9 @@ export default function TutorialApp() {
               />
               {noteHistory.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
-                  <span className="text-[11px] text-fd-muted-foreground/30 self-center mr-1">Previous:</span>
+                  <span className="text-[11px] text-fd-muted-foreground/30 self-center mr-1">
+                    Previous:
+                  </span>
                   {noteHistory.slice(0, 8).map((note, i) => (
                     <button
                       key={i}
@@ -617,34 +715,41 @@ export default function TutorialApp() {
                           : "border-fd-border/50 text-fd-muted-foreground/50 hover:text-fd-muted-foreground hover:border-fd-border"
                       }`}
                     >
-                      {note.slice(0, 40)}{note.length > 40 ? "..." : ""}
+                      {note.slice(0, 40)}
+                      {note.length > 40 ? "..." : ""}
                     </button>
-                    ))}
-                  </div>
-                )}
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* God mode model selector */}
             {_dbg && (
               <div className="mt-3 flex items-center gap-2 flex-wrap">
-                <span className="text-[11px] font-mono text-green-500/80 uppercase tracking-wider">IDDQD</span>
+                <span className="text-[11px] font-mono text-green-500/80 uppercase tracking-wider">
+                  IDDQD
+                </span>
                 <div className="flex rounded-lg border border-green-500/30 overflow-hidden">
-                  {["gemini-3-flash-preview", "gemini-3.1-pro-preview"].map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => setSelectedModel(m)}
-                      className={`px-3 py-1.5 text-[12px] font-mono transition-colors ${
-                        selectedModel === m
-                          ? "bg-green-500/20 text-green-400"
-                          : "text-fd-muted-foreground/50 hover:text-green-400/70"
-                      }`}
-                    >
-                      {m.replace("gemini-", "").replace("-preview", "")}
-                    </button>
-                  ))}
+                  {["gemini-3-flash-preview", "gemini-3.1-pro-preview"].map(
+                    (m) => (
+                      <button
+                        key={m}
+                        onClick={() => setSelectedModel(m)}
+                        className={`px-3 py-1.5 text-[12px] font-mono transition-colors ${
+                          selectedModel === m
+                            ? "bg-green-500/20 text-green-400"
+                            : "text-fd-muted-foreground/50 hover:text-green-400/70"
+                        }`}
+                      >
+                        {m.replace("gemini-", "").replace("-preview", "")}
+                      </button>
+                    ),
+                  )}
                 </div>
                 <div className="flex rounded-lg border border-green-500/30 overflow-hidden">
-                  {(["auto", "transcript", "video"] as TutorialAnalysisMode[]).map((mode) => (
+                  {(
+                    ["auto", "transcript", "video"] as TutorialAnalysisMode[]
+                  ).map((mode) => (
                     <button
                       key={mode}
                       onClick={() => setAnalysisMode(mode)}
@@ -658,36 +763,33 @@ export default function TutorialApp() {
                     </button>
                   ))}
                 </div>
-                {tutorial && (
-                  <div className="ml-auto flex items-center gap-3 text-[11px] font-mono text-green-400/80">
-                    <span>mode {tutorial.analysisMode || "auto"}</span>
-                    <span>model {tutorial.analysisModel || "unknown"}</span>
-                    <span>cost {formatUsd(tutorial.analysisCostUsd)}</span>
-                  </div>
-                )}
               </div>
             )}
 
             {/* View Prompt (hidden behind thereisnospoon) */}
             <div className="mt-3">
               {_adv && (
-              <button
-                onClick={handleTogglePrompt}
-                className="text-[13px] text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors"
-              >
-                {showPromptEditor ? "Hide prompt" : "View prompt"}
-              </button>
+                <button
+                  onClick={handleTogglePrompt}
+                  className="text-[13px] text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors"
+                >
+                  {showPromptEditor ? "Hide prompt" : "View prompt"}
+                </button>
               )}
               {showPromptEditor && (
                 <div className="mt-3 border border-fd-border rounded-xl overflow-hidden">
                   {promptLoading ? (
-                    <div className="p-4 text-fd-muted-foreground/50 text-base">Loading...</div>
+                    <div className="p-4 text-fd-muted-foreground/50 text-base">
+                      Loading...
+                    </div>
                   ) : (
                     <>
                       <div className="h-[60vh]">
                         <MonacoEditor
                           value={promptText}
-                          onChange={(v) => promptEditing && setPromptText(v || "")}
+                          onChange={(v) =>
+                            promptEditing && setPromptText(v || "")
+                          }
                           language="markdown"
                           theme="vs-dark"
                           options={{
@@ -735,7 +837,9 @@ export default function TutorialApp() {
                             <input
                               type="password"
                               value={promptPassword}
-                              onChange={(e) => setPromptPassword(e.target.value)}
+                              onChange={(e) =>
+                                setPromptPassword(e.target.value)
+                              }
                               placeholder="Password"
                               className="px-3 py-1.5 text-[13px] bg-transparent border border-fd-border rounded-lg text-fd-foreground placeholder:text-fd-muted-foreground/40 focus:outline-none focus:border-fd-primary/50"
                               autoFocus
@@ -750,14 +854,19 @@ export default function TutorialApp() {
                         )}
                         {promptEditing && (
                           <button
-                            onClick={() => { setPromptEditing(false); setPromptPassword(""); }}
+                            onClick={() => {
+                              setPromptEditing(false);
+                              setPromptPassword("");
+                            }}
                             className="text-[13px] text-fd-muted-foreground/60 hover:text-fd-foreground transition-colors"
                           >
                             Cancel
                           </button>
                         )}
                         {promptStatus && (
-                          <span className={`text-[13px] ml-auto ${promptStatus === "Saved" ? "text-green-500" : "text-red-500"}`}>
+                          <span
+                            className={`text-[13px] ml-auto ${promptStatus === "Saved" ? "text-green-500" : "text-red-500"}`}
+                          >
                             {promptStatus}
                           </span>
                         )}
@@ -791,11 +900,18 @@ export default function TutorialApp() {
                 <div className="mt-7 flex items-center gap-3">
                   {/* Pulse ring */}
                   <div className="relative flex items-center justify-center">
-                    <span className="absolute h-8 w-8 rounded-full border border-fd-primary/30" style={{ animation: "vtg-pulse-ring 2s ease-in-out infinite" }} />
+                    <span
+                      className="absolute h-8 w-8 rounded-full border border-fd-primary/30"
+                      style={{
+                        animation: "vtg-pulse-ring 2s ease-in-out infinite",
+                      }}
+                    />
                     <span className="h-2.5 w-2.5 rounded-full bg-fd-primary" />
                   </div>
                   <span className="text-fd-muted-foreground text-[15px]">
-                    {job ? `Job ${job.state}. Gemini is processing in Windmill...` : "Queueing video job..."}
+                    {job
+                      ? `Job ${job.state}. Gemini is processing in Windmill...`
+                      : "Queueing video job..."}
                   </span>
                 </div>
                 <p className="mt-2 text-[13px] text-fd-muted-foreground/40">

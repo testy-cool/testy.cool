@@ -56,14 +56,11 @@ export function FloatingPaths({
 }
 
 export default function BackgroundPaths({
-  title = "Background Paths",
   color = "text-slate-950 dark:text-white",
 }: {
   title?: string;
   color?: string;
 }) {
-  const words = title.split(" ");
-
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-white dark:bg-neutral-950">
       <div className="absolute inset-0">

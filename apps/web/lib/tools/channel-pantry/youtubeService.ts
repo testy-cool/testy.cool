@@ -21,7 +21,9 @@ export function parseChannelInput(input: string): { type: 'channel'; value: stri
     if (channelMatch?.[1]) return { type: 'channel', value: channelMatch[1] };
     const cMatch = path.match(/\/c\/([^/]+)/);
     if (cMatch?.[1]) return { type: 'channel', value: '@' + cMatch[1] };
-  } catch {}
+  } catch {
+    // Fall through to handle bare channel/video input below.
+  }
   if (/^UC[a-zA-Z0-9_-]{22}$/.test(trimmed)) return { type: 'channel', value: trimmed };
   if (/^[a-zA-Z0-9_.-]+$/.test(trimmed)) return { type: 'channel', value: '@' + trimmed };
   throw new Error('Could not parse channel or video from input: ' + trimmed);

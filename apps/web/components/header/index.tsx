@@ -19,23 +19,31 @@ import {
 import type { LinkItemType } from "fumadocs-ui/layouts/links";
 import { SearchOnly } from "fumadocs-ui/provider";
 import { ChevronDown, Languages } from "lucide-react";
+import type { ReactNode } from "react";
 import { ThemeToggle } from "../theme-toggle";
 import { Menu, MenuContent, MenuLinkItem, MenuTrigger } from "./menu";
 import { Navbar, NavbarMenuLink } from "./navbar";
-import { cn } from "@repo/shadverse/lib/utils";
+
+type HeaderNavOptions = NonNullable<HomeLayoutProps["nav"]> & {
+  enableSearch?: boolean;
+};
+
+type HeaderProps = Omit<HomeLayoutProps, "nav"> & {
+  nav?: HeaderNavOptions;
+  finalLinks: LinkItemType[];
+};
 
 export const Header = ({
-  nav: { enableSearch = true, ...nav } = {},
+  nav: navOptions = {},
   i18n = false,
   finalLinks,
-}: HomeLayoutProps & {
-  finalLinks: LinkItemType[];
-}) => {
+}: HeaderProps) => {
+  const { enableSearch = true, ...nav } = navOptions;
   const navItems = finalLinks.filter((item) =>
-    ["nav", "all"].includes(item.on ?? "all")
+    ["nav", "all"].includes(item.on ?? "all"),
   );
   const menuItems = finalLinks.filter((item) =>
-    ["menu", "all"].includes(item.on ?? "all")
+    ["menu", "all"].includes(item.on ?? "all"),
   );
 
   return (
@@ -127,7 +135,9 @@ const NavbarLinkItem = ({
       if (child.type === "custom")
         return <div key={j.toString()}>{child.children}</div>;
 
-      const { banner, footer, ...rest } = child.menu ?? {};
+      const { banner, footer, ...rest } = (child.menu ?? {}) as NonNullable<
+        typeof child.menu
+      > & { footer?: ReactNode };
 
       return (
         <NavbarMenuLink key={j.toString()} href={child.url} {...rest}>

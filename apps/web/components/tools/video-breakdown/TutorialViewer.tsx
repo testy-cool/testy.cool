@@ -34,7 +34,6 @@ function simpleMarkdown(text: string): string {
     .replace(/<\/(h[123]|ul|ol|pre)><\/p>/g, "</$1>");
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 declare global {
   interface Window {
     onYouTubeIframeAPIReady?: () => void;

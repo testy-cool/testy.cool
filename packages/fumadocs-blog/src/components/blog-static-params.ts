@@ -4,7 +4,7 @@ import { getSeriesNames } from "./utils";
 export async function generateAllParams(
   blogSource: any,
   posts: BlogPost[],
-  includeBlogPosts = true
+  includeBlogPosts = true,
 ) {
   const blogPostsParams = await blogSource.generateParams();
 
@@ -37,7 +37,7 @@ export async function generateAllParams(
  */
 export async function generateBlogStaticParams(
   blogSource: any,
-  posts: BlogPost[]
+  posts: BlogPost[],
 ) {
   return await generateAllParams(blogSource, posts, true);
 }
@@ -46,7 +46,7 @@ export async function generateBlogStaticParams(
  * Builds URLs for the blog root path and its paginated versions
  */
 export function generateRootPathParams(
-  blogPostsParams: Array<{ slug: string[] }>
+  blogPostsParams: Array<{ slug: string[] }>,
 ) {
   const postsPerPage = 5;
   const totalPages = Math.ceil(blogPostsParams.length / postsPerPage);
@@ -56,7 +56,7 @@ export function generateRootPathParams(
     { length: totalPages - 1 },
     (_, i) => ({
       slug: ["page", (i + 2).toString()],
-    })
+    }),
   );
 
   // Return root route and pagination params
@@ -70,24 +70,27 @@ export function generateRootPathParams(
  * Builds URLs for category paths and their paginated versions
  */
 export function generateCategoryPathParams(
-  blogPostsParams: Array<{ slug: string[] }>
+  blogPostsParams: Array<{ slug: string[] }>,
 ) {
   const postsPerPage = 5;
 
   // Extract categories from two-part slugs
   const categoryPages = blogPostsParams
     .filter((param) => param.slug && param.slug.length === 2)
-    .map((param) => ({ slug: [param.slug[0]] }))
+    .map((param) => param.slug[0])
+    .filter((slug): slug is string => typeof slug === "string")
+    .map((slug) => ({ slug: [slug] }))
     .filter(
       (category, index, self) =>
         // Remove duplicates
-        index === self.findIndex((c) => c.slug[0] === category.slug[0])
+        index === self.findIndex((c) => c.slug[0] === category.slug[0]),
     );
 
   const categoryPaginationParams = [];
 
   for (const category of categoryPages) {
     const categorySlug = category.slug[0];
+    if (!categorySlug) continue;
 
     // Get posts for this category by checking the URL structure
     const categoryPosts = blogPostsParams.filter((postSlug) => {
@@ -123,7 +126,7 @@ export function generateSeriesPathParams(posts: BlogPost[]) {
  */
 export async function generateOgImageStaticParams(
   blogSource: any,
-  posts: BlogPost[]
+  posts: BlogPost[],
 ) {
   // Get all the regular params first
   const params = await generateAllParams(blogSource, posts, true);

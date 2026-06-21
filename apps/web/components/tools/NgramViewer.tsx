@@ -84,10 +84,7 @@ function computeNgrams(
  * with fillers on either or both sides, e.g.
  *   (intrat|impus|pătruns) s-a impus pe piața (din|românească)
  */
-function computeFrames(
-  lines: Token[][],
-  n: number,
-): PhraseFrame[] {
+function computeFrames(lines: Token[][], n: number): PhraseFrame[] {
   const cores = new Map<
     string,
     {
@@ -109,12 +106,18 @@ function computeFrames(
       }
       entry.count++;
       if (i > 0) {
-        const lw = tokens[i - 1].text;
-        entry.left.set(lw, (entry.left.get(lw) ?? 0) + 1);
+        const leftToken = tokens[i - 1];
+        if (leftToken) {
+          const lw = leftToken.text;
+          entry.left.set(lw, (entry.left.get(lw) ?? 0) + 1);
+        }
       }
       if (i + n < tokens.length) {
-        const rw = tokens[i + n].text;
-        entry.right.set(rw, (entry.right.get(rw) ?? 0) + 1);
+        const rightToken = tokens[i + n];
+        if (rightToken) {
+          const rw = rightToken.text;
+          entry.right.set(rw, (entry.right.get(rw) ?? 0) + 1);
+        }
       }
     }
   }
@@ -250,8 +253,8 @@ export function NgramViewer() {
           </label>
           <div className="text-sm text-fd-muted-foreground">
             {totalTokens.toLocaleString()} tokens ·{" "}
-            {uniqueTokens.toLocaleString()} unique ·{" "}
-            {segments.toLocaleString()} segments
+            {uniqueTokens.toLocaleString()} unique · {segments.toLocaleString()}{" "}
+            segments
           </div>
         </div>
         <textarea
@@ -381,7 +384,14 @@ export function NgramViewer() {
               ]);
             } else {
               downloadCSV("phrase-frames.csv", [
-                ["core", "count", "left_variants", "right_variants", "left", "right"],
+                [
+                  "core",
+                  "count",
+                  "left_variants",
+                  "right_variants",
+                  "left",
+                  "right",
+                ],
                 ...filteredFrames.map((f) => [
                   f.core,
                   String(f.count),
@@ -416,8 +426,8 @@ export function NgramViewer() {
           </div>
           <div className="text-sm text-fd-muted-foreground italic">
             A phrase frame is a core n-gram with the words that appear on its
-            left and right sides across the text. Min variants = the maximum
-            of left/right distinct fillers must be ≥ this value.
+            left and right sides across the text. Min variants = the maximum of
+            left/right distinct fillers must be ≥ this value.
           </div>
         </div>
       )}
@@ -492,8 +502,8 @@ export function NgramViewer() {
                     colSpan={5}
                     className="px-4 py-8 text-center text-fd-muted-foreground"
                   >
-                    No phrase frames found. Try a smaller N, lower min count,
-                    or lower min variants.
+                    No phrase frames found. Try a smaller N, lower min count, or
+                    lower min variants.
                   </td>
                 </tr>
               ) : (

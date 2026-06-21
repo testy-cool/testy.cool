@@ -7,7 +7,11 @@ export function createCostTracker(): {
   track: (promptTokens: number, outputTokens: number) => void;
   get: () => CostAccumulator;
 } {
-  let acc: CostAccumulator = { promptTokens: 0, outputTokens: 0, totalCost: 0 };
+  const acc: CostAccumulator = {
+    promptTokens: 0,
+    outputTokens: 0,
+    totalCost: 0,
+  };
 
   return {
     track(promptTokens: number, outputTokens: number) {

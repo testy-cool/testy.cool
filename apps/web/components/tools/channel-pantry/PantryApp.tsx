@@ -44,7 +44,9 @@ async function saveGlobalResult(result: ChannelAnalysisResult): Promise<void> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ channelId: result.channelId, result }),
     });
-  } catch {}
+  } catch {
+    // Ignore cache write failures.
+  }
 }
 
 export default function PantryApp() {

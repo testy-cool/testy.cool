@@ -232,7 +232,7 @@ export function ChainCostPreview() {
       data.push({ turn: t, inputTokens, cost, cumCost });
     }
     return data;
-  }, [turns]);
+  }, [model.input, model.output, turns]);
 
   const maxInput = Math.max(...turnData.map((d) => d.inputTokens));
   const totalCost = turnData[turnData.length - 1]?.cumCost ?? 0;

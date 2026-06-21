@@ -124,8 +124,9 @@ export const stack: StackTool[] = [
 export function getStackByCategory(): Record<string, StackTool[]> {
   const grouped: Record<string, StackTool[]> = {};
   for (const tool of stack) {
-    if (!grouped[tool.category]) grouped[tool.category] = [];
-    grouped[tool.category].push(tool);
+    const categoryTools = grouped[tool.category] ?? [];
+    categoryTools.push(tool);
+    grouped[tool.category] = categoryTools;
   }
   return grouped;
 }

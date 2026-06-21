@@ -15,7 +15,7 @@ export default function KeyframesBox() {
     if (isInView) {
       animate(scope.current, { x: 0 }, { type: "spring", duration: 1 });
     }
-  }, [isInView]);
+  }, [animate, isInView, scope]);
 
   return (
     <div className="flex flex-col gap-4">

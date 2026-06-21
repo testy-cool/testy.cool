@@ -88,7 +88,7 @@ function parseGitHubUrl(url: string): GitHubReference {
       throw new Error("Invalid GitHub repository path");
     }
 
-    const [org, repo, _, branch, ...pathSeg] = pathParts;
+    const [org, repo, , branch, ...pathSeg] = pathParts;
 
     if (!org || !repo || !branch || pathSeg.length === 0) {
       throw new Error("Missing required GitHub path components");

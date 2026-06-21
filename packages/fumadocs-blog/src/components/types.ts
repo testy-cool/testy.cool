@@ -88,7 +88,7 @@ export interface BlogConfiguration extends Record<string, any> {
   /**
    * Blog configuration for URLs and pagination
    */
-  config: BlogConfig;
+  config?: BlogConfig;
 }
 
 export interface MetadataImageResult {

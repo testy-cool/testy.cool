@@ -6,13 +6,15 @@ import { Button } from "@repo/shadverse/components/button";
 import { MoveRight } from "lucide-react";
 
 const topics = ["LLMs", "agents", "automation", "tools"];
-const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
+const firstTopic = topics[0] ?? "LLMs";
+const chars =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
 const SCRAMBLE_SPEED = 30;
 const SETTLE_DELAY = 3;
 
 export default function Hero({ postCount }: { postCount?: number }) {
-  const [display, setDisplay] = useState(topics[0]);
-  const [targetLen, setTargetLen] = useState(topics[0].length);
+  const [display, setDisplay] = useState(firstTopic);
+  const [targetLen, setTargetLen] = useState(firstTopic.length);
   const [settled, setSettled] = useState(true);
   const indexRef = useRef(0);
   const timerRef = useRef<number | null>(null);
@@ -47,7 +49,10 @@ export default function Hero({ postCount }: { postCount?: number }) {
       } else {
         setSettled(true);
         // Reset settled after the glow fades
-        settleTimerRef.current = window.setTimeout(() => setSettled(false), 600);
+        settleTimerRef.current = window.setTimeout(
+          () => setSettled(false),
+          600,
+        );
       }
     };
 
@@ -57,7 +62,7 @@ export default function Hero({ postCount }: { postCount?: number }) {
   useEffect(() => {
     const interval = setInterval(() => {
       indexRef.current = (indexRef.current + 1) % topics.length;
-      scrambleTo(topics[indexRef.current]);
+      scrambleTo(topics[indexRef.current] ?? firstTopic);
     }, 2500);
 
     return () => {
@@ -71,9 +76,15 @@ export default function Hero({ postCount }: { postCount?: number }) {
     <div className="w-full">
       <style jsx global>{`
         @keyframes settle-glow {
-          0% { opacity: 0.7; }
-          50% { opacity: 1; }
-          100% { opacity: 0.7; }
+          0% {
+            opacity: 0.7;
+          }
+          50% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0.7;
+          }
         }
       `}</style>
       <div className="container mx-auto">
@@ -97,12 +108,21 @@ export default function Hero({ postCount }: { postCount?: number }) {
             , mostly ramblings.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <Button asChild size="lg" className="gap-2 hover:shadow-md transition-all">
+            <Button
+              asChild
+              size="lg"
+              className="gap-2 hover:shadow-md transition-all"
+            >
               <Link href="/blog">
                 Browse notes <MoveRight className="w-4 h-4" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="gap-2 hover:shadow-md transition-all">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="gap-2 hover:shadow-md transition-all"
+            >
               <Link href="/tools">
                 Tools <MoveRight className="w-4 h-4" />
               </Link>

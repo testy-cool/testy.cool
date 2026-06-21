@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Clock } from "lucide-react";
 import type { BlogPost, BlogConfiguration } from "./types";
-import { cn, getReadingTime } from "./utils";
+import { getReadingTime } from "./utils";
 
 interface PostCardProps {
   post: NonNullable<BlogPost>;

@@ -10,12 +10,11 @@ import {
 } from "@/blog-configuration";
 import { blogSource, getBlogPosts } from "@/lib/source";
 
-export const contentType = "image/png";
 export const dynamic = "force-static";
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ slug?: string[] }> }
+  { params }: { params: Promise<{ slug?: string[] }> },
 ) {
   const resolvedParams = await params;
 

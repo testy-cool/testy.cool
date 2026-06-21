@@ -32,8 +32,11 @@ export const config = [
     settings: { react: { version: "detect" } },
     rules: {
       ...pluginReactHooks.configs.recommended.rules,
+      "@typescript-eslint/no-explicit-any": "off",
       // React scope no longer necessary with new JSX transform.
       "react/react-in-jsx-scope": "off",
+      // TypeScript checks component props in this repo.
+      "react/prop-types": "off",
     },
   },
 ];

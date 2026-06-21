@@ -3,7 +3,19 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-type Provider = "anthropic" | "openai" | "google" | "deepseek" | "xai" | "mistral" | "meta" | "qwen" | "xiaomi" | "amazon" | "cohere" | "zhipu";
+type Provider =
+  | "anthropic"
+  | "openai"
+  | "google"
+  | "deepseek"
+  | "xai"
+  | "mistral"
+  | "meta"
+  | "qwen"
+  | "xiaomi"
+  | "amazon"
+  | "cohere"
+  | "zhipu";
 type Modality = "text" | "image" | "audio" | "video" | "pdf";
 type CalcMode = "cost" | "budget" | "chain";
 
@@ -703,7 +715,21 @@ const providerLabels: Record<Provider, string> = {
   zhipu: "Zhipu AI",
 };
 
-const providerOrder: Provider[] = ["anthropic", "openai", "google", "deepseek", "xai", "mistral", "meta", "qwen", "xiaomi", "amazon", "cohere", "zhipu"];
+const providerOrder: Provider[] = [
+  "anthropic",
+  "openai",
+  "google",
+  "deepseek",
+  "xai",
+  "mistral",
+  "meta",
+  "qwen",
+  "xiaomi",
+  "amazon",
+  "cohere",
+  "zhipu",
+];
+const defaultProvider = providerOrder[0] ?? "anthropic";
 const allProviders = new Set<Provider>(providerOrder);
 
 const modalityOrder: Modality[] = ["text", "image", "audio", "video", "pdf"];
@@ -717,19 +743,78 @@ const modalityFullLabels: Record<Modality, string> = {
 
 const modalityIcons: Record<Modality, React.ReactNode> = {
   text: (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 6.1H3M21 12.1H3M15.1 18H3" /></svg>
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M17 6.1H3M21 12.1H3M15.1 18H3" />
+    </svg>
   ),
   image: (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+      <circle cx="9" cy="9" r="2" />
+      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+    </svg>
   ),
   audio: (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 10v3M6 6v11M10 3v18M14 8v7M18 5v13M22 10v3" /></svg>
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M2 10v3M6 6v11M10 3v18M14 8v7M18 5v13M22 10v3" />
+    </svg>
   ),
   video: (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.934a.5.5 0 0 0-.777-.416L16 11" /><rect width="14" height="12" x="2" y="6" rx="2" /></svg>
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.934a.5.5 0 0 0-.777-.416L16 11" />
+      <rect width="14" height="12" x="2" y="6" rx="2" />
+    </svg>
   ),
   pdf: (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /></svg>
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+    </svg>
   ),
 };
 
@@ -825,7 +910,8 @@ function readParams(): {
     const parsed = providerParam
       .split(",")
       .filter((v) => providerOrder.includes(v as Provider)) as Provider[];
-    providerFilter = parsed.length > 0 ? new Set(parsed) : new Set(allProviders);
+    providerFilter =
+      parsed.length > 0 ? new Set(parsed) : new Set(allProviders);
   } else {
     providerFilter = new Set(allProviders);
   }
@@ -840,7 +926,12 @@ function readParams(): {
     modalityFilter = new Set<Modality>();
   }
   const modeParam = p.get("mode");
-  const mode: CalcMode = modeParam === "budget" ? "budget" : modeParam === "chain" ? "chain" : "cost";
+  const mode: CalcMode =
+    modeParam === "budget"
+      ? "budget"
+      : modeParam === "chain"
+        ? "chain"
+        : "cost";
   return {
     inputTokens: Number(p.get("in")) || DEFAULTS.in,
     outputTokens: Number(p.get("out")) || DEFAULTS.out,
@@ -854,7 +945,10 @@ function readParams(): {
     sortBy: p.get("sort") === "price" ? "price" : "provider",
     mode,
     budget: Number(p.get("budget")) || DEFAULTS.budget,
-    reasoningTokens: Math.max(0, Number(p.get("reasoning")) || DEFAULTS.reasoning),
+    reasoningTokens: Math.max(
+      0,
+      Number(p.get("reasoning")) || DEFAULTS.reasoning,
+    ),
     turnTokens: Math.max(0, Number(p.get("turn")) || DEFAULTS.turn),
   };
 }
@@ -862,8 +956,16 @@ function readParams(): {
 function InfoTip({ text }: { text: string }) {
   return (
     <span className="group relative inline-flex cursor-help">
-      <svg className="h-3.5 w-3.5 text-fd-foreground/35 transition-colors group-hover:text-fd-foreground/60" viewBox="0 0 16 16" fill="currentColor">
-        <path fillRule="evenodd" d="M15 8A7 7 0 1 1 1 8a7 7 0 0 1 14 0ZM9 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM6.75 8a.75.75 0 0 0 0 1.5h.75v1.75a.75.75 0 0 0 1.5 0v-2.5A.75.75 0 0 0 8.25 8h-1.5Z" clipRule="evenodd" />
+      <svg
+        className="h-3.5 w-3.5 text-fd-foreground/35 transition-colors group-hover:text-fd-foreground/60"
+        viewBox="0 0 16 16"
+        fill="currentColor"
+      >
+        <path
+          fillRule="evenodd"
+          d="M15 8A7 7 0 1 1 1 8a7 7 0 0 1 14 0ZM9 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM6.75 8a.75.75 0 0 0 0 1.5h.75v1.75a.75.75 0 0 0 1.5 0v-2.5A.75.75 0 0 0 8.25 8h-1.5Z"
+          clipRule="evenodd"
+        />
       </svg>
       <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-52 -translate-x-1/2 rounded-lg border border-fd-border bg-fd-card px-3 py-2 text-xs font-normal leading-relaxed text-fd-foreground/80 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
         {text}
@@ -897,11 +999,12 @@ function chainCumulativeAt(
   },
   N: number,
 ): number {
-  const { base, turnSize, inputRate, cachedRate, outputCost, reasoningCost } = params;
+  const { base, turnSize, inputRate, cachedRate, outputCost, reasoningCost } =
+    params;
   const call1 = base * inputRate + outputCost + reasoningCost;
   if (N <= 1) return call1;
   const freshPerCall = turnSize * inputRate + outputCost + reasoningCost;
-  const cachedSum = (N - 1) * base + turnSize * ((N - 2) * (N - 1)) / 2;
+  const cachedSum = (N - 1) * base + (turnSize * ((N - 2) * (N - 1))) / 2;
   return call1 + (N - 1) * freshPerCall + cachedRate * cachedSum;
 }
 
@@ -920,7 +1023,9 @@ export function LlmPriceCalculator() {
   const [sortBy, setSortBy] = useState<"provider" | "price">(initial.sortBy);
   const [mode, setMode] = useState<CalcMode>(initial.mode);
   const [budget, setBudget] = useState(initial.budget);
-  const [reasoningTokens, setReasoningTokens] = useState(initial.reasoningTokens);
+  const [reasoningTokens, setReasoningTokens] = useState(
+    initial.reasoningTokens,
+  );
   const [turnTokens, setTurnTokens] = useState(initial.turnTokens);
   const [pinnedModels, setPinnedModels] = useState<Set<string>>(new Set());
   const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
@@ -949,7 +1054,9 @@ export function LlmPriceCalculator() {
 
   const toggleAllProviders = useCallback(() => {
     setProviderFilter((prev) =>
-      prev.size === allProviders.size ? new Set<Provider>([providerOrder[0]]) : new Set(allProviders),
+      prev.size === allProviders.size
+        ? new Set<Provider>([defaultProvider])
+        : new Set(allProviders),
     );
   }, []);
 
@@ -977,7 +1084,7 @@ export function LlmPriceCalculator() {
     });
   }, []);
 
-  const applyPreset = useCallback((preset: typeof presets[0]) => {
+  const applyPreset = useCallback((preset: (typeof presets)[0]) => {
     setInputTokens(preset.in);
     setOutputTokens(preset.out);
     setApiCalls(preset.calls);
@@ -1003,9 +1110,12 @@ export function LlmPriceCalculator() {
     if (modalityKey) params.set("modality", modalityKey);
     if (sortBy !== DEFAULTS.sort) params.set("sort", sortBy);
     if (mode !== DEFAULTS.mode) params.set("mode", mode);
-    if (mode === "budget" && budget !== DEFAULTS.budget) params.set("budget", String(budget));
-    if (reasoningTokens !== DEFAULTS.reasoning) params.set("reasoning", String(reasoningTokens));
-    if (mode === "chain" && turnTokens !== DEFAULTS.turn) params.set("turn", String(turnTokens));
+    if (mode === "budget" && budget !== DEFAULTS.budget)
+      params.set("budget", String(budget));
+    if (reasoningTokens !== DEFAULTS.reasoning)
+      params.set("reasoning", String(reasoningTokens));
+    if (mode === "chain" && turnTokens !== DEFAULTS.turn)
+      params.set("turn", String(turnTokens));
     const qs = params.toString();
     const url = window.location.pathname + (qs ? `?${qs}` : "");
     window.history.replaceState(null, "", url);
@@ -1070,7 +1180,8 @@ export function LlmPriceCalculator() {
 
       // Budget mode: how many calls can you make?
       const effectivePerCall = showCache ? cachedPerCall : perCall;
-      const maxCalls = effectivePerCall > 0 ? budget / effectivePerCall : Infinity;
+      const maxCalls =
+        effectivePerCall > 0 ? budget / effectivePerCall : Infinity;
 
       // Chain mode calculations
       const chainTurnSize = turnTokens + outputTokens;
@@ -1109,7 +1220,8 @@ export function LlmPriceCalculator() {
         chainExceedsAt = 1;
       } else if (chainTurnSize > 0) {
         // totalInputAtN = base + (N-1) * turnSize
-        const maxN = Math.floor((model.context - inputTokens) / chainTurnSize) + 1;
+        const maxN =
+          Math.floor((model.context - inputTokens) / chainTurnSize) + 1;
         if (maxN < apiCalls) chainExceedsAt = maxN + 1;
       }
 
@@ -1133,7 +1245,16 @@ export function LlmPriceCalculator() {
         chainParams,
       };
     });
-  }, [inputTokens, outputTokens, reasoningTokens, apiCalls, cacheRatio, budget, showCache, turnTokens]);
+  }, [
+    inputTokens,
+    outputTokens,
+    reasoningTokens,
+    apiCalls,
+    cacheRatio,
+    budget,
+    showCache,
+    turnTokens,
+  ]);
 
   const visibleModels = useMemo(() => {
     let filtered = allSelected
@@ -1160,12 +1281,27 @@ export function LlmPriceCalculator() {
     }
     return filtered;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [calculated, providerKey, allSelected, modalityKey, sortBy, showCache, isBudgetMode, isChainMode]);
+  }, [
+    calculated,
+    providerKey,
+    allSelected,
+    modalityKey,
+    sortBy,
+    showCache,
+    isBudgetMode,
+    isChainMode,
+  ]);
 
   // Compute min/max for highlights and bars
   const maxCost = useMemo(() => {
     if (visibleModels.length === 0) return 0;
-    const costKey = isBudgetMode ? "maxCalls" : isChainMode ? "chainTotal" : (showCache ? "cachedTotal" : "total");
+    const costKey = isBudgetMode
+      ? "maxCalls"
+      : isChainMode
+        ? "chainTotal"
+        : showCache
+          ? "cachedTotal"
+          : "total";
     let max = 0;
     for (const m of visibleModels) {
       const val = m[costKey];
@@ -1182,7 +1318,11 @@ export function LlmPriceCalculator() {
 
   const pinnedCheapest = useMemo(() => {
     if (pinnedData.length < 2) return "";
-    const key = isChainMode ? "chainTotal" : showCache ? "cachedTotal" : "total";
+    const key = isChainMode
+      ? "chainTotal"
+      : showCache
+        ? "cachedTotal"
+        : "total";
     return pinnedData.reduce((a, b) => (a[key] < b[key] ? a : b)).name;
   }, [pinnedData, showCache, isChainMode]);
 
@@ -1204,15 +1344,19 @@ export function LlmPriceCalculator() {
     return rankMap;
   }, [visibleModels, showCache, isBudgetMode, isChainMode]);
 
-
   // Auto-expand the first visible model when cache is enabled so users discover the feature
   useEffect(() => {
-    if (showCache && !isBudgetMode && !isChainMode && selectedModels.size === 0) {
+    if (
+      showCache &&
+      !isBudgetMode &&
+      !isChainMode &&
+      selectedModels.size === 0
+    ) {
       if (visibleModels[0]) setSelectedModels(new Set([visibleModels[0].name]));
     }
   }, [showCache, isBudgetMode, isChainMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  function getCostBarWidth(model: typeof visibleModels[0]): number {
+  function getCostBarWidth(model: (typeof visibleModels)[0]): number {
     if (isBudgetMode) {
       return maxCost > 0 ? (model.maxCalls / maxCost) * 100 : 0;
     }
@@ -1223,8 +1367,11 @@ export function LlmPriceCalculator() {
     return maxCost > 0 ? (cost / maxCost) * 100 : 0;
   }
 
-  const isMatchingPreset = (p: typeof presets[0]) =>
-    inputTokens === p.in && outputTokens === p.out && apiCalls === p.calls && cachePercent === p.cache;
+  const isMatchingPreset = (p: (typeof presets)[0]) =>
+    inputTokens === p.in &&
+    outputTokens === p.out &&
+    apiCalls === p.calls &&
+    cachePercent === p.cache;
 
   return (
     <div className="not-prose">
@@ -1347,7 +1494,9 @@ export function LlmPriceCalculator() {
                 id="chain-turn-tokens"
                 type="number"
                 value={turnTokens}
-                onChange={(e) => setTurnTokens(Math.max(0, Number(e.target.value)))}
+                onChange={(e) =>
+                  setTurnTokens(Math.max(0, Number(e.target.value)))
+                }
                 min={0}
                 inputMode="numeric"
                 autoComplete="off"
@@ -1355,7 +1504,10 @@ export function LlmPriceCalculator() {
               />
             </div>
             <div>
-              <label htmlFor="chain-output-tokens" className={controlLabelClass}>
+              <label
+                htmlFor="chain-output-tokens"
+                className={controlLabelClass}
+              >
                 Output tokens
                 <InfoTip text="Tokens the model generates per response. Usually costs 3-5x more than input tokens." />
               </label>
@@ -1379,7 +1531,9 @@ export function LlmPriceCalculator() {
                 id="chain-calls"
                 type="number"
                 value={apiCalls}
-                onChange={(e) => setApiCalls(Math.max(1, Number(e.target.value)))}
+                onChange={(e) =>
+                  setApiCalls(Math.max(1, Number(e.target.value)))
+                }
                 min={1}
                 inputMode="numeric"
                 autoComplete="off"
@@ -1387,7 +1541,10 @@ export function LlmPriceCalculator() {
               />
             </div>
             <div>
-              <label htmlFor="chain-reasoning-tokens" className={controlLabelClass}>
+              <label
+                htmlFor="chain-reasoning-tokens"
+                className={controlLabelClass}
+              >
                 Reasoning tokens
                 <InfoTip text="Internal thinking tokens used by reasoning models per call. Billed at the output token rate." />
               </label>
@@ -1395,7 +1552,9 @@ export function LlmPriceCalculator() {
                 id="chain-reasoning-tokens"
                 type="number"
                 value={reasoningTokens}
-                onChange={(e) => setReasoningTokens(Math.max(0, Number(e.target.value)))}
+                onChange={(e) =>
+                  setReasoningTokens(Math.max(0, Number(e.target.value)))
+                }
                 min={0}
                 inputMode="numeric"
                 autoComplete="off"
@@ -1423,7 +1582,10 @@ export function LlmPriceCalculator() {
               />
             </div>
             <div>
-              <label htmlFor="budget-input-tokens" className={controlLabelClass}>
+              <label
+                htmlFor="budget-input-tokens"
+                className={controlLabelClass}
+              >
                 Input Tokens / call
                 <InfoTip text="Tokens you send to the model per API call - your prompt, system instructions, and any context." />
               </label>
@@ -1439,7 +1601,10 @@ export function LlmPriceCalculator() {
               />
             </div>
             <div>
-              <label htmlFor="budget-output-tokens" className={controlLabelClass}>
+              <label
+                htmlFor="budget-output-tokens"
+                className={controlLabelClass}
+              >
                 Output Tokens / call
                 <InfoTip text="Tokens the model generates in its response. Usually costs 3-5x more than input tokens." />
               </label>
@@ -1455,7 +1620,10 @@ export function LlmPriceCalculator() {
               />
             </div>
             <div>
-              <label htmlFor="budget-reasoning-tokens" className={controlLabelClass}>
+              <label
+                htmlFor="budget-reasoning-tokens"
+                className={controlLabelClass}
+              >
                 Reasoning Tokens
                 <InfoTip text="Internal thinking tokens used by reasoning models (o3, o4-mini, Claude with extended thinking). Billed at the output token rate. Set to 0 for non-reasoning models." />
               </label>
@@ -1463,7 +1631,9 @@ export function LlmPriceCalculator() {
                 id="budget-reasoning-tokens"
                 type="number"
                 value={reasoningTokens}
-                onChange={(e) => setReasoningTokens(Math.max(0, Number(e.target.value)))}
+                onChange={(e) =>
+                  setReasoningTokens(Math.max(0, Number(e.target.value)))
+                }
                 min={0}
                 inputMode="numeric"
                 autoComplete="off"
@@ -1517,7 +1687,9 @@ export function LlmPriceCalculator() {
                 name="reasoningTokens"
                 type="number"
                 value={reasoningTokens}
-                onChange={(e) => setReasoningTokens(Math.max(0, Number(e.target.value)))}
+                onChange={(e) =>
+                  setReasoningTokens(Math.max(0, Number(e.target.value)))
+                }
                 min={0}
                 inputMode="numeric"
                 autoComplete="off"
@@ -1534,7 +1706,9 @@ export function LlmPriceCalculator() {
                 name="apiCalls"
                 type="number"
                 value={apiCalls}
-                onChange={(e) => setApiCalls(Math.max(1, Number(e.target.value)))}
+                onChange={(e) =>
+                  setApiCalls(Math.max(1, Number(e.target.value)))
+                }
                 min={1}
                 inputMode="numeric"
                 autoComplete="off"
@@ -1586,9 +1760,14 @@ export function LlmPriceCalculator() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-fd-border/60">
-                    <th className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">Call</th>
+                    <th className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                      Call
+                    </th>
                     {pinnedData.map((m) => (
-                      <th key={m.name} className="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
+                      <th
+                        key={m.name}
+                        className="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62"
+                      >
                         {m.name}
                       </th>
                     ))}
@@ -1603,12 +1782,16 @@ export function LlmPriceCalculator() {
                     const minCost = Math.min(...costs.map((c) => c.cost));
                     return (
                       <tr key={step} className="border-b border-fd-border/30">
-                        <td className="px-3 py-2 text-fd-foreground/60 tabular-nums">{step}</td>
+                        <td className="px-3 py-2 text-fd-foreground/60 tabular-nums">
+                          {step}
+                        </td>
                         {costs.map((c) => (
                           <td
                             key={c.name}
                             className={`px-3 py-2 text-right tabular-nums font-medium ${
-                              c.cost === minCost ? "text-green-500" : "text-fd-foreground"
+                              c.cost === minCost
+                                ? "text-green-500"
+                                : "text-fd-foreground"
                             }`}
                           >
                             {formatCost(c.cost)}
@@ -1621,7 +1804,9 @@ export function LlmPriceCalculator() {
               </table>
             </div>
           ) : (
-            <div className={`grid gap-3 ${pinnedData.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+            <div
+              className={`grid gap-3 ${pinnedData.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}
+            >
               {pinnedData.map((m) => {
                 const isWinner = m.name === pinnedCheapest;
                 const cost = showCache ? m.cachedTotal : m.total;
@@ -1634,17 +1819,29 @@ export function LlmPriceCalculator() {
                         : "border-fd-border bg-fd-card"
                     }`}
                   >
-                    <div className="text-xs text-fd-muted-foreground">{providerLabels[m.provider]}</div>
+                    <div className="text-xs text-fd-muted-foreground">
+                      {providerLabels[m.provider]}
+                    </div>
                     <div className="text-sm font-semibold">{m.name}</div>
                     <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
                       <span className="text-fd-foreground/55">In/M</span>
-                      <span className="text-right tabular-nums">{formatRate(m.input)}</span>
+                      <span className="text-right tabular-nums">
+                        {formatRate(m.input)}
+                      </span>
                       <span className="text-fd-foreground/55">Out/M</span>
-                      <span className="text-right tabular-nums">{formatRate(m.output)}</span>
+                      <span className="text-right tabular-nums">
+                        {formatRate(m.output)}
+                      </span>
                       <span className="text-fd-foreground/55">Per call</span>
-                      <span className="text-right tabular-nums">{formatCost(m.perCall)}</span>
-                      <span className="text-fd-foreground/55 font-medium">Total</span>
-                      <span className={`text-right tabular-nums font-semibold ${isWinner ? "text-green-500" : ""}`}>
+                      <span className="text-right tabular-nums">
+                        {formatCost(m.perCall)}
+                      </span>
+                      <span className="text-fd-foreground/55 font-medium">
+                        Total
+                      </span>
+                      <span
+                        className={`text-right tabular-nums font-semibold ${isWinner ? "text-green-500" : ""}`}
+                      >
                         {formatCost(cost)}
                       </span>
                     </div>
@@ -1663,21 +1860,29 @@ export function LlmPriceCalculator() {
             <span className="text-sm leading-6 text-fd-foreground/75">
               {isChainMode ? (
                 <>
-                  {integerFormatter.format(inputTokens)} base + {integerFormatter.format(turnTokens)}/turn × {integerFormatter.format(apiCalls)} calls
-                  {reasoningTokens > 0 && ` · ${integerFormatter.format(reasoningTokens)} reasoning`}
+                  {integerFormatter.format(inputTokens)} base +{" "}
+                  {integerFormatter.format(turnTokens)}/turn ×{" "}
+                  {integerFormatter.format(apiCalls)} calls
+                  {reasoningTokens > 0 &&
+                    ` · ${integerFormatter.format(reasoningTokens)} reasoning`}
                 </>
               ) : isBudgetMode ? (
                 <>
-                  {currency2Formatter.format(budget)} budget · {integerFormatter.format(inputTokens)} in + {integerFormatter.format(outputTokens)} out per call
-                  {reasoningTokens > 0 && ` + ${integerFormatter.format(reasoningTokens)} reasoning`}
+                  {currency2Formatter.format(budget)} budget ·{" "}
+                  {integerFormatter.format(inputTokens)} in +{" "}
+                  {integerFormatter.format(outputTokens)} out per call
+                  {reasoningTokens > 0 &&
+                    ` + ${integerFormatter.format(reasoningTokens)} reasoning`}
                   {showCache && ` · ${cachePercent}% cached`}
                 </>
               ) : (
                 <>
                   {integerFormatter.format(inputTokens)} in +{" "}
                   {integerFormatter.format(outputTokens)} out
-                  {reasoningTokens > 0 && ` + ${integerFormatter.format(reasoningTokens)} reasoning`}
-                  {showBulk && ` \u00d7 ${integerFormatter.format(apiCalls)} calls`}
+                  {reasoningTokens > 0 &&
+                    ` + ${integerFormatter.format(reasoningTokens)} reasoning`}
+                  {showBulk &&
+                    ` \u00d7 ${integerFormatter.format(apiCalls)} calls`}
                   {showCache && ` \u00b7 ${cachePercent}% cached`}
                 </>
               )}
@@ -1746,10 +1951,14 @@ export function LlmPriceCalculator() {
 
         {/* Desktop table */}
         <div className="hidden overflow-x-auto md:block">
-          <table className={`${isBudgetMode ? "min-w-[800px]" : isChainMode ? "min-w-[900px]" : tableMinWidthClass} w-full`}>
+          <table
+            className={`${isBudgetMode ? "min-w-[800px]" : isChainMode ? "min-w-[900px]" : tableMinWidthClass} w-full`}
+          >
             <thead>
               <tr className="border-b border-fd-border bg-fd-muted/15">
-                <th className="w-10 px-2 py-3 text-center text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">#</th>
+                <th className="w-10 px-2 py-3 text-center text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
+                  #
+                </th>
                 <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
                   Provider
                 </th>
@@ -1761,12 +1970,24 @@ export function LlmPriceCalculator() {
                 {showAdvanced && <th className={headerCellClass}>Out/M</th>}
                 {isChainMode ? (
                   <>
-                    <th className={`${headerCellClass} text-fd-foreground/84`}>Call 1</th>
-                    <th className={`${headerCellClass} border-l border-fd-border/50 text-fd-foreground/72`}>Last call</th>
-                    <th className={`${headerCellClass} border-l border-fd-border/60 bg-fd-muted/12 text-fd-foreground/88`}>Total</th>
+                    <th className={`${headerCellClass} text-fd-foreground/84`}>
+                      Call 1
+                    </th>
+                    <th
+                      className={`${headerCellClass} border-l border-fd-border/50 text-fd-foreground/72`}
+                    >
+                      Last call
+                    </th>
+                    <th
+                      className={`${headerCellClass} border-l border-fd-border/60 bg-fd-muted/12 text-fd-foreground/88`}
+                    >
+                      Total
+                    </th>
                   </>
                 ) : isBudgetMode ? (
-                  <th className={`${headerCellClass} border-l border-fd-border/60 bg-fd-muted/12 text-fd-foreground/88`}>
+                  <th
+                    className={`${headerCellClass} border-l border-fd-border/60 bg-fd-muted/12 text-fd-foreground/88`}
+                  >
                     Max calls
                   </th>
                 ) : (
@@ -1775,15 +1996,21 @@ export function LlmPriceCalculator() {
                       {showCache ? "1st call" : "Per call"}
                     </th>
                     {showAdvanced && showCache && (
-                      <th className={`${headerCellClass} border-l border-fd-border/50 text-fd-foreground/72`}>
+                      <th
+                        className={`${headerCellClass} border-l border-fd-border/50 text-fd-foreground/72`}
+                      >
                         Next call
                       </th>
                     )}
-                    <th className={`${headerCellClass} border-l border-fd-border/60 bg-fd-muted/12 text-fd-foreground/88`}>
+                    <th
+                      className={`${headerCellClass} border-l border-fd-border/60 bg-fd-muted/12 text-fd-foreground/88`}
+                    >
                       Total
                     </th>
                     {showAdvanced && showCache && (
-                      <th className={`${headerCellClass} border-l border-fd-border/50 text-fd-foreground/72`}>
+                      <th
+                        className={`${headerCellClass} border-l border-fd-border/50 text-fd-foreground/72`}
+                      >
                         Savings
                       </th>
                     )}
@@ -1792,54 +2019,364 @@ export function LlmPriceCalculator() {
               </tr>
             </thead>
             <tbody>
-            <AnimatePresence initial={false}>
-              {visibleModels.map((model, index) => {
-                const rank = rankedModels.get(model.name) ?? 999;
-                const isTop1 = rank === 1;
-                const isTop3 = rank <= 3;
-                const isPinned = pinnedModels.has(model.name);
-                const barWidth = getCostBarWidth(model);
-                const isSelected = selectedModels.has(model.name);
-                return (<>
-                  <motion.tr
-                    key={model.name}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                    onClick={showCache && !isBudgetMode && !isChainMode ? () => setSelectedModels((prev) => { const next = new Set(prev); if (next.has(model.name)) next.delete(model.name); else next.add(model.name); return next; }) : undefined}
-                    className={`border-b border-fd-border/70 transition-colors hover:bg-fd-muted/45 ${
-                      isSelected
-                        ? "bg-fd-primary/[0.06]"
-                        : isPinned
-                          ? "bg-fd-primary/[0.04]"
-                          : index % 2 === 1
-                            ? "bg-fd-muted/25"
-                            : ""
-                    } ${showCache && !isBudgetMode && !isChainMode ? "cursor-pointer" : ""}`}
-                    style={isSelected ? { borderLeft: "3px solid var(--color-fd-primary)" } : isTop1 ? { borderLeft: "3px solid rgb(34 197 94)" } : isPinned ? { borderLeft: "3px solid var(--color-fd-primary)" } : undefined}
-                  >
-                    <td className="px-2 py-3.5 text-center">
-                      <span className={`text-base font-semibold tabular-nums ${
-                        isTop1
-                          ? "text-green-500"
-                          : isTop3
-                            ? "text-green-500/60"
-                            : "text-fd-foreground/30"
-                      }`}>
-                        {rank}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 text-[15px] font-medium text-fd-foreground/72">
-                      {providerLabels[model.provider]}
-                    </td>
-                    <td className="px-4 py-3 text-left">
-                      <div className="flex items-center gap-1.5">
+              <AnimatePresence initial={false}>
+                {visibleModels.map((model, index) => {
+                  const rank = rankedModels.get(model.name) ?? 999;
+                  const isTop1 = rank === 1;
+                  const isTop3 = rank <= 3;
+                  const isPinned = pinnedModels.has(model.name);
+                  const barWidth = getCostBarWidth(model);
+                  const isSelected = selectedModels.has(model.name);
+                  return (
+                    <>
+                      <motion.tr
+                        key={model.name}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        onClick={
+                          showCache && !isBudgetMode && !isChainMode
+                            ? () =>
+                                setSelectedModels((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(model.name))
+                                    next.delete(model.name);
+                                  else next.add(model.name);
+                                  return next;
+                                })
+                            : undefined
+                        }
+                        className={`border-b border-fd-border/70 transition-colors hover:bg-fd-muted/45 ${
+                          isSelected
+                            ? "bg-fd-primary/[0.06]"
+                            : isPinned
+                              ? "bg-fd-primary/[0.04]"
+                              : index % 2 === 1
+                                ? "bg-fd-muted/25"
+                                : ""
+                        } ${showCache && !isBudgetMode && !isChainMode ? "cursor-pointer" : ""}`}
+                        style={
+                          isSelected
+                            ? {
+                                borderLeft: "3px solid var(--color-fd-primary)",
+                              }
+                            : isTop1
+                              ? { borderLeft: "3px solid rgb(34 197 94)" }
+                              : isPinned
+                                ? {
+                                    borderLeft:
+                                      "3px solid var(--color-fd-primary)",
+                                  }
+                                : undefined
+                        }
+                      >
+                        <td className="px-2 py-3.5 text-center">
+                          <span
+                            className={`text-base font-semibold tabular-nums ${
+                              isTop1
+                                ? "text-green-500"
+                                : isTop3
+                                  ? "text-green-500/60"
+                                  : "text-fd-foreground/30"
+                            }`}
+                          >
+                            {rank}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 text-[15px] font-medium text-fd-foreground/72">
+                          {providerLabels[model.provider]}
+                        </td>
+                        <td className="px-4 py-3 text-left">
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => togglePin(model.name)}
+                              title={isPinned ? "Unpin" : "Pin to compare"}
+                              className={`text-left text-[15px] font-medium text-fd-foreground hover:text-fd-primary transition-colors ${
+                                isPinned
+                                  ? "underline decoration-fd-primary decoration-2 underline-offset-2"
+                                  : ""
+                              }`}
+                            >
+                              {model.name}
+                            </button>
+                            {model.reasoning && (
+                              <span className="rounded-full bg-fd-primary/10 px-1.5 py-0.5 text-[10px] font-medium leading-none text-fd-primary">
+                                thinking
+                              </span>
+                            )}
+                            {model.modalities.length > 1 && (
+                              <span className="inline-flex items-center gap-1 text-fd-foreground/40">
+                                {model.modalities
+                                  .filter((m) => m !== "text")
+                                  .map((m) => (
+                                    <span key={m} title={modalityFullLabels[m]}>
+                                      {modalityIcons[m]}
+                                    </span>
+                                  ))}
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-1 text-xs text-fd-foreground/54">
+                            max output {formatTokenCount(model.maxOutput)}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 text-right text-[15px] tabular-nums text-fd-foreground/62">
+                          {formatTokenCount(model.context)}/
+                          {formatTokenCount(model.maxOutput)}
+                        </td>
+                        {showAdvanced && (
+                          <td className="px-4 py-3.5 text-right text-[15px] tabular-nums text-fd-foreground/74">
+                            {formatRate(model.input)}
+                          </td>
+                        )}
+                        {showAdvanced && (
+                          <td className="px-4 py-3.5 text-right text-[15px] tabular-nums text-fd-foreground/74">
+                            {formatRate(model.output)}
+                          </td>
+                        )}
+                        {isChainMode ? (
+                          <>
+                            <td className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground">
+                              {formatCost(model.chainCall1)}
+                            </td>
+                            <td className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground/78">
+                              {formatCost(model.chainLastCall)}
+                            </td>
+                            <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                {model.chainExceedsAt > 0 && (
+                                  <span
+                                    title={`Exceeds ${formatTokenCount(model.context)} context at call ${model.chainExceedsAt}`}
+                                    className="text-amber-500"
+                                  >
+                                    <svg
+                                      className="h-3.5 w-3.5"
+                                      viewBox="0 0 16 16"
+                                      fill="currentColor"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575L6.457 1.047ZM8 5a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-1.5 0v-2.5A.75.75 0 0 1 8 5Zm1 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                  </span>
+                                )}
+                                <span
+                                  className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}
+                                >
+                                  {formatCost(model.chainTotal)}
+                                </span>
+                              </div>
+                              <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
+                                  style={{ width: `${barWidth}%` }}
+                                />
+                              </div>
+                            </td>
+                          </>
+                        ) : isBudgetMode ? (
+                          <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
+                            <div
+                              className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}
+                            >
+                              {model.maxCalls === Infinity
+                                ? "\u221e"
+                                : formatCallCount(model.maxCalls)}
+                            </div>
+                            <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
+                                style={{ width: `${barWidth}%` }}
+                              />
+                            </div>
+                          </td>
+                        ) : (
+                          <>
+                            <td className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground">
+                              {formatCost(model.perCall)}
+                            </td>
+                            {showAdvanced && showCache && (
+                              <td
+                                className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground/78"
+                                title={`Per-call breakdown (${cachePercent}% cached):\n  Input: ${formatCost(model.cachedInputCost)} (${cachePercent}% at ${formatRate(model.cachedInput)}/M, ${100 - cachePercent}% at ${formatRate(model.input)}/M)\n  Output: ${formatCost(model.outputCost)} (${formatTokenCount(outputTokens)} × ${formatRate(model.output)}/M)${model.reasoning && reasoningTokens > 0 ? `\n  Reasoning: ${formatCost(model.reasoningCost)}` : ""}`}
+                              >
+                                <span className="cursor-help border-b border-dashed border-fd-foreground/25">
+                                  {formatCost(model.cachedPerCall)}
+                                </span>
+                              </td>
+                            )}
+                            <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
+                              <span
+                                className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}
+                              >
+                                {formatCost(
+                                  showCache ? model.cachedTotal : model.total,
+                                )}
+                              </span>
+                              <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
+                                  style={{ width: `${barWidth}%` }}
+                                />
+                              </div>
+                            </td>
+                            {showAdvanced && showCache && (
+                              <td className="border-l border-fd-border/50 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground/72">
+                                {model.savings.toFixed(0)}%
+                              </td>
+                            )}
+                          </>
+                        )}
+                      </motion.tr>
+                      {isSelected &&
+                        showCache &&
+                        !isBudgetMode &&
+                        !isChainMode &&
+                        (() => {
+                          const colCount =
+                            4 +
+                            (showAdvanced ? 2 : 0) +
+                            (showCache ? 2 : 0) +
+                            (showBulk || showCache ? 1 : 0);
+                          const subsequentCalls = Math.max(0, apiCalls - 1);
+                          const inputDiscount =
+                            model.input > 0
+                              ? Math.round(
+                                  (1 - model.cachedInput / model.input) * 100,
+                                )
+                              : 0;
+                          return (
+                            <tr
+                              key={`${model.name}-detail`}
+                              className="border-b border-fd-border/50 bg-fd-muted/20"
+                              ref={(el) => {
+                                if (el)
+                                  el.scrollIntoView({
+                                    behavior: "smooth",
+                                    block: "nearest",
+                                  });
+                              }}
+                            >
+                              <td colSpan={colCount} className="px-8 py-5">
+                                <table className="text-[15px]">
+                                  <tbody>
+                                    <tr>
+                                      <td className="pr-4 py-1 font-medium text-fd-foreground/60">
+                                        Call 1
+                                      </td>
+                                      <td
+                                        className="pr-4 py-1 text-right font-semibold tabular-nums text-fd-foreground"
+                                        style={{ minWidth: 72 }}
+                                      >
+                                        {formatCost(model.perCall)}
+                                      </td>
+                                      <td className="py-1 text-sm text-fd-foreground/60">
+                                        {formatCost(model.inputCost)} input +{" "}
+                                        {formatCost(model.outputCost)} output
+                                        {model.reasoningCost > 0
+                                          ? ` + ${formatCost(model.reasoningCost)} reasoning`
+                                          : ""}
+                                      </td>
+                                    </tr>
+                                    {subsequentCalls > 0 && (
+                                      <tr>
+                                        <td className="pr-4 py-1 font-medium text-fd-foreground/60">
+                                          Call 2+
+                                        </td>
+                                        <td className="pr-4 py-1 text-right font-semibold tabular-nums text-fd-foreground">
+                                          {formatCost(model.cachedPerCall)}
+                                        </td>
+                                        <td className="py-1 text-sm text-fd-foreground/60">
+                                          <span className="text-green-500/80">
+                                            {inputDiscount}% cheaper
+                                          </span>{" "}
+                                          ({formatRate(model.cachedInput)} vs{" "}
+                                          {formatRate(model.input)}/M)
+                                        </td>
+                                      </tr>
+                                    )}
+                                    <tr className="border-t border-fd-border/30">
+                                      <td className="pr-4 pt-2 font-bold text-fd-foreground/70">
+                                        Total
+                                      </td>
+                                      <td className="pr-4 pt-2 text-right font-bold tabular-nums text-fd-foreground">
+                                        {formatCost(model.cachedTotal)}
+                                      </td>
+                                      <td className="pt-2 text-sm font-medium text-green-500/70">
+                                        {model.savings > 0 && (
+                                          <>
+                                            saving {model.savings.toFixed(0)}%
+                                            vs {formatCost(model.total)} without
+                                            cache
+                                          </>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </td>
+                            </tr>
+                          );
+                        })()}
+                    </>
+                  );
+                })}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile card view */}
+        <div className="flex flex-col gap-2 p-2 md:hidden">
+          <AnimatePresence initial={false}>
+            {visibleModels.map((model) => {
+              const rank = rankedModels.get(model.name) ?? 999;
+              const isTop1 = rank === 1;
+              const isTop3 = rank <= 3;
+              const isPinned = pinnedModels.has(model.name);
+              const barWidth = getCostBarWidth(model);
+              return (
+                <motion.div
+                  key={model.name}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className={`relative rounded-lg border px-3 py-2.5 transition-colors hover:bg-fd-muted/45 ${
+                    isPinned
+                      ? "border-fd-primary/40 bg-fd-primary/[0.04]"
+                      : "border-fd-border bg-fd-background"
+                  }`}
+                  style={
+                    isTop1
+                      ? { borderLeft: "3px solid rgb(34 197 94)" }
+                      : undefined
+                  }
+                >
+                  <div className="mb-1.5 flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`flex h-5 w-5 items-center justify-center rounded text-xs font-bold tabular-nums ${
+                            isTop1
+                              ? "text-green-500"
+                              : isTop3
+                                ? "text-green-500/60"
+                                : "text-fd-foreground/30"
+                          }`}
+                        >
+                          {rank}
+                        </span>
                         <button
                           onClick={() => togglePin(model.name)}
                           title={isPinned ? "Unpin" : "Pin to compare"}
-                          className={`text-left text-[15px] font-medium text-fd-foreground hover:text-fd-primary transition-colors ${
-                            isPinned ? "underline decoration-fd-primary decoration-2 underline-offset-2" : ""
+                          className={`text-left text-sm font-semibold text-fd-foreground hover:text-fd-primary transition-colors ${
+                            isPinned
+                              ? "underline decoration-fd-primary decoration-2 underline-offset-2"
+                              : ""
                           }`}
                         >
                           {model.name}
@@ -1851,329 +2388,162 @@ export function LlmPriceCalculator() {
                         )}
                         {model.modalities.length > 1 && (
                           <span className="inline-flex items-center gap-1 text-fd-foreground/40">
-                            {model.modalities.filter(m => m !== "text").map(m => (
-                              <span key={m} title={modalityFullLabels[m]}>{modalityIcons[m]}</span>
-                            ))}
+                            {model.modalities
+                              .filter((m) => m !== "text")
+                              .map((m) => (
+                                <span key={m} title={modalityFullLabels[m]}>
+                                  {modalityIcons[m]}
+                                </span>
+                              ))}
                           </span>
                         )}
                       </div>
-                      <div className="mt-1 text-xs text-fd-foreground/54">
-                        max output {formatTokenCount(model.maxOutput)}
+                      <div className="mt-0.5 ml-7 text-xs text-fd-muted-foreground">
+                        {providerLabels[model.provider]}
                       </div>
-                    </td>
-                    <td className="px-4 py-3.5 text-right text-[15px] tabular-nums text-fd-foreground/62">
-                      {formatTokenCount(model.context)}/
+                    </div>
+                  </div>
+
+                  <div className="mb-1.5 flex items-center gap-3 text-xs text-fd-muted-foreground">
+                    <span>
+                      {formatTokenCount(model.context)} /{" "}
                       {formatTokenCount(model.maxOutput)}
-                    </td>
-                    {showAdvanced && (
-                      <td className="px-4 py-3.5 text-right text-[15px] tabular-nums text-fd-foreground/74">
-                        {formatRate(model.input)}
-                      </td>
-                    )}
-                    {showAdvanced && (
-                      <td className="px-4 py-3.5 text-right text-[15px] tabular-nums text-fd-foreground/74">
-                        {formatRate(model.output)}
-                      </td>
-                    )}
-                    {isChainMode ? (
-                      <>
-                        <td className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground">
-                          {formatCost(model.chainCall1)}
-                        </td>
-                        <td className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground/78">
-                          {formatCost(model.chainLastCall)}
-                        </td>
-                        <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            {model.chainExceedsAt > 0 && (
-                              <span title={`Exceeds ${formatTokenCount(model.context)} context at call ${model.chainExceedsAt}`} className="text-amber-500">
-                                <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="currentColor">
-                                  <path fillRule="evenodd" d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575L6.457 1.047ZM8 5a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-1.5 0v-2.5A.75.75 0 0 1 8 5Zm1 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z" clipRule="evenodd" />
-                                </svg>
-                              </span>
-                            )}
-                            <span className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
-                              {formatCost(model.chainTotal)}
-                            </span>
-                          </div>
-                          <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
-                              style={{ width: `${barWidth}%` }}
-                            />
-                          </div>
-                        </td>
-                      </>
-                    ) : isBudgetMode ? (
-                      <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
-                        <div className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
-                          {model.maxCalls === Infinity ? "\u221e" : formatCallCount(model.maxCalls)}
-                        </div>
-                        <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
-                            style={{ width: `${barWidth}%` }}
-                          />
-                        </div>
-                      </td>
-                    ) : (
-                      <>
-                        <td className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground">
-                          {formatCost(model.perCall)}
-                        </td>
-                        {showAdvanced && showCache && (
-                          <td
-                            className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground/78"
-                            title={`Per-call breakdown (${cachePercent}% cached):\n  Input: ${formatCost(model.cachedInputCost)} (${cachePercent}% at ${formatRate(model.cachedInput)}/M, ${100 - cachePercent}% at ${formatRate(model.input)}/M)\n  Output: ${formatCost(model.outputCost)} (${formatTokenCount(outputTokens)} × ${formatRate(model.output)}/M)${model.reasoning && reasoningTokens > 0 ? `\n  Reasoning: ${formatCost(model.reasoningCost)}` : ""}`}
-                          >
-                            <span className="cursor-help border-b border-dashed border-fd-foreground/25">
-                              {formatCost(model.cachedPerCall)}
-                            </span>
-                          </td>
-                        )}
-                        <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
-                          <span className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
-                            {formatCost(showCache ? model.cachedTotal : model.total)}
-                          </span>
-                          <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
-                              style={{ width: `${barWidth}%` }}
-                            />
-                          </div>
-                        </td>
-                        {showAdvanced && showCache && (
-                          <td className="border-l border-fd-border/50 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground/72">
-                            {model.savings.toFixed(0)}%
-                          </td>
-                        )}
-                      </>
-                    )}
-                  </motion.tr>
-                  {isSelected && showCache && !isBudgetMode && !isChainMode && (() => {
-                    const colCount = 4 + (showAdvanced ? 2 : 0) + (showCache ? 2 : 0) + (showBulk || showCache ? 1 : 0);
-                    const subsequentCalls = Math.max(0, apiCalls - 1);
-                    const inputDiscount = model.input > 0 ? Math.round((1 - model.cachedInput / model.input) * 100) : 0;
-                    return (
-                      <tr key={`${model.name}-detail`} className="border-b border-fd-border/50 bg-fd-muted/20" ref={(el) => { if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }}>
-                        <td colSpan={colCount} className="px-8 py-5">
-                          <table className="text-[15px]">
-                            <tbody>
-                              <tr>
-                                <td className="pr-4 py-1 font-medium text-fd-foreground/60">Call 1</td>
-                                <td className="pr-4 py-1 text-right font-semibold tabular-nums text-fd-foreground" style={{ minWidth: 72 }}>{formatCost(model.perCall)}</td>
-                                <td className="py-1 text-sm text-fd-foreground/60">
-                                  {formatCost(model.inputCost)} input + {formatCost(model.outputCost)} output{model.reasoningCost > 0 ? ` + ${formatCost(model.reasoningCost)} reasoning` : ""}
-                                </td>
-                              </tr>
-                              {subsequentCalls > 0 && (
-                                <tr>
-                                  <td className="pr-4 py-1 font-medium text-fd-foreground/60">Call 2+</td>
-                                  <td className="pr-4 py-1 text-right font-semibold tabular-nums text-fd-foreground">{formatCost(model.cachedPerCall)}</td>
-                                  <td className="py-1 text-sm text-fd-foreground/60"><span className="text-green-500/80">{inputDiscount}% cheaper</span> ({formatRate(model.cachedInput)} vs {formatRate(model.input)}/M)</td>
-                                </tr>
-                              )}
-                              <tr className="border-t border-fd-border/30">
-                                <td className="pr-4 pt-2 font-bold text-fd-foreground/70">Total</td>
-                                <td className="pr-4 pt-2 text-right font-bold tabular-nums text-fd-foreground">{formatCost(model.cachedTotal)}</td>
-                                <td className="pt-2 text-sm font-medium text-green-500/70">
-                                  {model.savings > 0 && <>saving {model.savings.toFixed(0)}% vs {formatCost(model.total)} without cache</>}
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </td>
-                      </tr>
-                    );
-                  })()}
-                </>);
-              })}
-            </AnimatePresence>
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile card view */}
-        <div className="flex flex-col gap-2 p-2 md:hidden">
-          <AnimatePresence initial={false}>
-          {visibleModels.map((model) => {
-            const rank = rankedModels.get(model.name) ?? 999;
-            const isTop1 = rank === 1;
-            const isTop3 = rank <= 3;
-            const isPinned = pinnedModels.has(model.name);
-            const barWidth = getCostBarWidth(model);
-            return (
-              <motion.div
-                key={model.name}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className={`relative rounded-lg border px-3 py-2.5 transition-colors hover:bg-fd-muted/45 ${
-                  isPinned
-                    ? "border-fd-primary/40 bg-fd-primary/[0.04]"
-                    : "border-fd-border bg-fd-background"
-                }`}
-                style={isTop1 ? { borderLeft: "3px solid rgb(34 197 94)" } : undefined}
-              >
-                <div className="mb-1.5 flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className={`flex h-5 w-5 items-center justify-center rounded text-xs font-bold tabular-nums ${
-                        isTop1
-                          ? "text-green-500"
-                          : isTop3
-                            ? "text-green-500/60"
-                            : "text-fd-foreground/30"
-                      }`}>
-                        {rank}
-                      </span>
-                      <button
-                        onClick={() => togglePin(model.name)}
-                        title={isPinned ? "Unpin" : "Pin to compare"}
-                        className={`text-left text-sm font-semibold text-fd-foreground hover:text-fd-primary transition-colors ${
-                          isPinned ? "underline decoration-fd-primary decoration-2 underline-offset-2" : ""
-                        }`}
-                      >
-                        {model.name}
-                      </button>
-                      {model.reasoning && (
-                        <span className="rounded-full bg-fd-primary/10 px-1.5 py-0.5 text-[10px] font-medium leading-none text-fd-primary">
-                          thinking
-                        </span>
-                      )}
-                      {model.modalities.length > 1 && (
-                        <span className="inline-flex items-center gap-1 text-fd-foreground/40">
-                          {model.modalities.filter(m => m !== "text").map(m => (
-                            <span key={m} title={modalityFullLabels[m]}>{modalityIcons[m]}</span>
-                          ))}
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-0.5 ml-7 text-xs text-fd-muted-foreground">
-                      {providerLabels[model.provider]}
-                    </div>
+                    </span>
+                    <span className="text-fd-border">|</span>
+                    <span>
+                      In: {formatRate(model.input)}/M &middot; Out:{" "}
+                      {formatRate(model.output)}/M
+                    </span>
                   </div>
-                </div>
 
-                <div className="mb-1.5 flex items-center gap-3 text-xs text-fd-muted-foreground">
-                  <span>
-                    {formatTokenCount(model.context)} /{" "}
-                    {formatTokenCount(model.maxOutput)}
-                  </span>
-                  <span className="text-fd-border">|</span>
-                  <span>
-                    In: {formatRate(model.input)}/M &middot; Out:{" "}
-                    {formatRate(model.output)}/M
-                  </span>
-                </div>
-
-                {isChainMode ? (
-                  <div className="grid grid-cols-3 gap-x-3 gap-y-2">
-                    <div>
-                      <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
-                        Call 1
-                      </div>
-                      <div className="text-sm font-medium tabular-nums text-fd-foreground">
-                        {formatCost(model.chainCall1)}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
-                        Last call
-                      </div>
-                      <div className="text-sm font-medium tabular-nums text-fd-foreground/78">
-                        {formatCost(model.chainLastCall)}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
-                        Total
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {model.chainExceedsAt > 0 && (
-                          <span title={`Exceeds context at call ${model.chainExceedsAt}`} className="text-amber-500">
-                            <svg className="h-3 w-3" viewBox="0 0 16 16" fill="currentColor">
-                              <path fillRule="evenodd" d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575L6.457 1.047ZM8 5a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-1.5 0v-2.5A.75.75 0 0 1 8 5Zm1 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z" clipRule="evenodd" />
-                            </svg>
-                          </span>
-                        )}
-                        <span className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
-                          {formatCost(model.chainTotal)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ) : isBudgetMode ? (
-                  <div>
-                    <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
-                      Max calls for {currency2Formatter.format(budget)}
-                    </div>
-                    <div className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
-                      {model.maxCalls === Infinity ? "\u221e" : formatCallCount(model.maxCalls)}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                    <div>
-                      <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
-                        {showCache ? "1st call" : "Per call"}
-                      </div>
-                      <div className="text-sm font-medium tabular-nums text-fd-foreground">
-                        {formatCost(model.perCall)}
-                      </div>
-                    </div>
-                    {showCache && (
+                  {isChainMode ? (
+                    <div className="grid grid-cols-3 gap-x-3 gap-y-2">
                       <div>
                         <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
-                          Next call
+                          Call 1
                         </div>
-                        <div className="text-sm font-medium tabular-nums text-fd-foreground/78">
-                          {formatCost(model.cachedPerCall)}
+                        <div className="text-sm font-medium tabular-nums text-fd-foreground">
+                          {formatCost(model.chainCall1)}
                         </div>
                       </div>
-                    )}
-                    {showBulk && (
+                      <div>
+                        <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                          Last call
+                        </div>
+                        <div className="text-sm font-medium tabular-nums text-fd-foreground/78">
+                          {formatCost(model.chainLastCall)}
+                        </div>
+                      </div>
                       <div>
                         <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
                           Total
                         </div>
-                        <div className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}>
-                          {formatCost(showCache ? model.cachedTotal : model.total)}
+                        <div className="flex items-center gap-1">
+                          {model.chainExceedsAt > 0 && (
+                            <span
+                              title={`Exceeds context at call ${model.chainExceedsAt}`}
+                              className="text-amber-500"
+                            >
+                              <svg
+                                className="h-3 w-3"
+                                viewBox="0 0 16 16"
+                                fill="currentColor"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575L6.457 1.047ZM8 5a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-1.5 0v-2.5A.75.75 0 0 1 8 5Zm1 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            </span>
+                          )}
+                          <span
+                            className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}
+                          >
+                            {formatCost(model.chainTotal)}
+                          </span>
                         </div>
                       </div>
-                    )}
-                    {showCache && (
+                    </div>
+                  ) : isBudgetMode ? (
+                    <div>
+                      <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                        Max calls for {currency2Formatter.format(budget)}
+                      </div>
+                      <div
+                        className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}
+                      >
+                        {model.maxCalls === Infinity
+                          ? "\u221e"
+                          : formatCallCount(model.maxCalls)}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                       <div>
                         <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
-                          Savings
+                          {showCache ? "1st call" : "Per call"}
                         </div>
-                        <div className="text-sm font-medium tabular-nums text-fd-foreground/72">
-                          {model.savings.toFixed(0)}%
+                        <div className="text-sm font-medium tabular-nums text-fd-foreground">
+                          {formatCost(model.perCall)}
                         </div>
                       </div>
-                    )}
+                      {showCache && (
+                        <div>
+                          <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                            Next call
+                          </div>
+                          <div className="text-sm font-medium tabular-nums text-fd-foreground/78">
+                            {formatCost(model.cachedPerCall)}
+                          </div>
+                        </div>
+                      )}
+                      {showBulk && (
+                        <div>
+                          <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                            Total
+                          </div>
+                          <div
+                            className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}
+                          >
+                            {formatCost(
+                              showCache ? model.cachedTotal : model.total,
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {showCache && (
+                        <div>
+                          <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                            Savings
+                          </div>
+                          <div className="text-sm font-medium tabular-nums text-fd-foreground/72">
+                            {model.savings.toFixed(0)}%
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Cost bar */}
+                  <div className="mt-2 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
+                      style={{ width: `${barWidth}%` }}
+                    />
                   </div>
-                )}
-
-                {/* Cost bar */}
-                <div className="mt-2 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
-                    style={{ width: `${barWidth}%` }}
-                  />
-                </div>
-
-              </motion.div>
-            );
-          })}
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
         </div>
 
         <div className="border-t border-fd-border px-5 py-3 text-xs leading-5 text-fd-foreground/60">
           Prices per million tokens. Last updated March 2026.
-          {isChainMode && " Chain mode assumes previous context is cached and each turn adds new tokens at full price."}
-          {showCache && !isChainMode &&
+          {isChainMode &&
+            " Chain mode assumes previous context is cached and each turn adds new tokens at full price."}
+          {showCache &&
+            !isChainMode &&
             ` Totals reflect cache hits at the selected cache rate. Click a row to see per-call breakdown.`}
         </div>
       </div>

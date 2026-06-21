@@ -31,6 +31,7 @@ export function UCPDemo() {
     if (typeof window !== "undefined" && (window as any).google?.payments?.api) {
       initGooglePay();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gpayReady]);
 
   const initGooglePay = () => {

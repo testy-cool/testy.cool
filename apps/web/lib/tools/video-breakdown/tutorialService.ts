@@ -160,5 +160,5 @@ export async function updatePrompt(prompt: string, password: string): Promise<vo
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "updatePrompt", prompt, password }),
   });
-  const data = await parseResponse(res);
+  await parseResponse(res);
 }

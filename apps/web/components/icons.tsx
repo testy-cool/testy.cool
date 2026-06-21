@@ -39,7 +39,6 @@ import {
   X,
   Computer,
 } from "lucide-react";
-type IconProps = React.HTMLAttributes<SVGElement>;
 
 export type Icon = typeof LucideIcon;
 

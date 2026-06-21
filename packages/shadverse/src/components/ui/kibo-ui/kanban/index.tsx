@@ -41,7 +41,7 @@ export const KanbanBoard = ({ id, children, className }: KanbanBoardProps) => {
       className={cn(
         "flex h-full min-h-40 flex-col gap-2 rounded-md border bg-secondary p-2 text-xs shadow-sm outline outline-2 transition-all",
         isOver ? "outline-primary" : "outline-transparent",
-        className
+        className,
       )}
       ref={setNodeRef}
     >
@@ -65,25 +65,23 @@ export const KanbanCard = ({
   children,
   className,
 }: KanbanCardProps) => {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id,
-      data: { index, parent },
-    });
+  const { attributes, setNodeRef, transform, isDragging } = useDraggable({
+    id,
+    data: { index, parent },
+  });
 
   return (
     <Card
       className={cn(
         "rounded-md p-3 shadow-sm",
         isDragging && "cursor-grabbing",
-        className
+        className,
       )}
       style={{
         transform: transform
           ? `translateX(${transform.x}px) translateY(${transform.y}px)`
           : "none",
       }}
-      // {...listeners}
       {...attributes}
       ref={setNodeRef}
     >

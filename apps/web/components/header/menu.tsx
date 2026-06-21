@@ -11,7 +11,7 @@ import {
   NavigationMenuTrigger,
 } from "fumadocs-ui/components/ui/navigation-menu";
 import { BaseLinkItem, type LinkItemType } from "fumadocs-ui/layouts/links";
-import type { ComponentPropsWithoutRef } from "react";
+import type { ComponentPropsWithoutRef, ComponentType } from "react";
 
 const menuItemVariants = cva("", {
   variants: {
@@ -74,7 +74,7 @@ export const MenuLinkItem = ({
         item={item}
         className={cn(
           menuItemVariants({ variant: item.type }),
-          props.className
+          props.className,
         )}
         aria-label={item.type === "icon" ? item.label : undefined}
       >
@@ -85,7 +85,9 @@ export const MenuLinkItem = ({
   );
 };
 
-export const Menu = NavigationMenuItem;
+export const Menu: ComponentType<
+  ComponentPropsWithoutRef<typeof NavigationMenuItem>
+> = NavigationMenuItem;
 
 export const MenuTrigger = ({
   ...props
@@ -98,7 +100,7 @@ export const MenuTrigger = ({
           size: "icon",
           color: "ghost",
         }),
-        props.className
+        props.className,
       )}
     >
       {props.children}
@@ -107,7 +109,7 @@ export const MenuTrigger = ({
 };
 
 export const MenuContent = (
-  props: ComponentPropsWithoutRef<typeof NavigationMenuContent>
+  props: ComponentPropsWithoutRef<typeof NavigationMenuContent>,
 ) => {
   return (
     <NavigationMenuContent

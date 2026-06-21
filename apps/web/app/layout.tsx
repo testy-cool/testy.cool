@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./styles/globals.css";
 import { cn } from "@repo/shadverse/lib/utils";

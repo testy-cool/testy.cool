@@ -1,27 +1,27 @@
 import { ImageResponse } from "next/og";
 
-export const contentType = "image/png";
-export const dynamic = "force-static";
-export const revalidate = false;
-
 export async function generateOGImage(title: string) {
   // Load Inter from Google Fonts - using the correct API endpoint
   const interFont = await fetch(
-    "https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap"
-  ).then((res) => res.text())
+    "https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap",
+  )
+    .then((res) => res.text())
     .then((css) => {
       // Extract the font URL from the CSS
       const match = css.match(/src: url\(([^)]+)\)/);
-      if (match) return fetch(match[1]).then((res) => res.arrayBuffer());
+      const fontUrl = match?.[1];
+      if (fontUrl) return fetch(fontUrl).then((res) => res.arrayBuffer());
       return null;
     });
 
   const sourceCodeFont = await fetch(
-    "https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@500&display=swap"
-  ).then((res) => res.text())
+    "https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@500&display=swap",
+  )
+    .then((res) => res.text())
     .then((css) => {
       const match = css.match(/src: url\(([^)]+)\)/);
-      if (match) return fetch(match[1]).then((res) => res.arrayBuffer());
+      const fontUrl = match?.[1];
+      if (fontUrl) return fetch(fontUrl).then((res) => res.arrayBuffer());
       return null;
     });
 
@@ -30,7 +30,8 @@ export async function generateOGImage(title: string) {
       <div
         tw="relative flex flex-col items-center justify-center w-full h-full"
         style={{
-          background: "radial-gradient(ellipse 80% 80% at 50% 50%, #0a2830 0%, #050505 70%)",
+          background:
+            "radial-gradient(ellipse 80% 80% at 50% 50%, #0a2830 0%, #050505 70%)",
         }}
       >
         {/* Grid background */}
@@ -45,7 +46,10 @@ export async function generateOGImage(title: string) {
         />
 
         {/* Content */}
-        <div tw="flex flex-col items-center" style={{ gap: "32px", maxWidth: "950px", padding: "80px" }}>
+        <div
+          tw="flex flex-col items-center"
+          style={{ gap: "32px", maxWidth: "950px", padding: "80px" }}
+        >
           {/* Logo */}
           <img
             src="https://testy.cool/favicon-96x96.png"
@@ -89,19 +93,27 @@ export async function generateOGImage(title: string) {
       width: 1200,
       height: 630,
       fonts: [
-        ...(interFont ? [{
-          name: "Inter",
-          data: interFont,
-          weight: 700 as const,
-          style: "normal" as const,
-        }] : []),
-        ...(sourceCodeFont ? [{
-          name: "SourceCodePro",
-          data: sourceCodeFont,
-          weight: 500 as const,
-          style: "normal" as const,
-        }] : []),
+        ...(interFont
+          ? [
+              {
+                name: "Inter",
+                data: interFont,
+                weight: 700 as const,
+                style: "normal" as const,
+              },
+            ]
+          : []),
+        ...(sourceCodeFont
+          ? [
+              {
+                name: "SourceCodePro",
+                data: sourceCodeFont,
+                weight: 500 as const,
+                style: "normal" as const,
+              },
+            ]
+          : []),
       ],
-    }
+    },
   );
 }

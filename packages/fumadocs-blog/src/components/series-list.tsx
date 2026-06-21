@@ -1,6 +1,5 @@
 import React from "react";
 import Link from "next/link";
-import { getPostsBySeries } from "./utils";
 import { BookOpen } from "lucide-react";
 import { BlogConfiguration } from "./types";
 import { slot } from "./shared";

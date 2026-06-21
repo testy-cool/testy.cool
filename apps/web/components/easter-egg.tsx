@@ -22,7 +22,7 @@ function Confetti({ count = 80 }: { count?: number }) {
       "#a66cff",
       "#00d2d3",
       "#ff9f43",
-    ];
+    ] as const;
 
     const pieces = Array.from({ length: count }, () => ({
       x: canvas.width / 2,
@@ -31,7 +31,7 @@ function Confetti({ count = 80 }: { count?: number }) {
       vy: Math.random() * -18 - 4,
       w: Math.random() * 10 + 5,
       h: Math.random() * 6 + 3,
-      color: colors[Math.floor(Math.random() * colors.length)],
+      color: colors[Math.floor(Math.random() * colors.length)] ?? colors[0],
       rotation: Math.random() * 360,
       rotationSpeed: (Math.random() - 0.5) * 15,
       gravity: 0.3 + Math.random() * 0.2,
@@ -113,54 +113,115 @@ export function EasterEgg() {
       >
         <style jsx global>{`
           @keyframes ee-backdrop {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
           }
           @keyframes ee-card-in {
-            0% { opacity: 0; transform: scale(0.3) rotate(-8deg); }
-            50% { transform: scale(1.05) rotate(2deg); }
-            70% { transform: scale(0.97) rotate(-1deg); }
-            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+            0% {
+              opacity: 0;
+              transform: scale(0.3) rotate(-8deg);
+            }
+            50% {
+              transform: scale(1.05) rotate(2deg);
+            }
+            70% {
+              transform: scale(0.97) rotate(-1deg);
+            }
+            100% {
+              opacity: 1;
+              transform: scale(1) rotate(0deg);
+            }
           }
           @keyframes ee-card-out {
-            to { opacity: 0; transform: scale(0.5) rotate(8deg); }
+            to {
+              opacity: 0;
+              transform: scale(0.5) rotate(8deg);
+            }
           }
           @keyframes ee-gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            0% {
+              background-position: 0% 50%;
+            }
+            50% {
+              background-position: 100% 50%;
+            }
+            100% {
+              background-position: 0% 50%;
+            }
           }
           @keyframes ee-wave {
-            0%, 100% { transform: rotate(0deg); }
-            15% { transform: rotate(14deg); }
-            30% { transform: rotate(-8deg); }
-            45% { transform: rotate(14deg); }
-            60% { transform: rotate(-4deg); }
-            75% { transform: rotate(10deg); }
+            0%,
+            100% {
+              transform: rotate(0deg);
+            }
+            15% {
+              transform: rotate(14deg);
+            }
+            30% {
+              transform: rotate(-8deg);
+            }
+            45% {
+              transform: rotate(14deg);
+            }
+            60% {
+              transform: rotate(-4deg);
+            }
+            75% {
+              transform: rotate(10deg);
+            }
           }
           @keyframes ee-float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-6px); }
+            0%,
+            100% {
+              transform: translateY(0px);
+            }
+            50% {
+              transform: translateY(-6px);
+            }
           }
           @keyframes ee-sparkle {
-            0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
-            50% { opacity: 1; transform: scale(1) rotate(180deg); }
+            0%,
+            100% {
+              opacity: 0;
+              transform: scale(0) rotate(0deg);
+            }
+            50% {
+              opacity: 1;
+              transform: scale(1) rotate(180deg);
+            }
           }
           .ee-backdrop {
             animation: ee-backdrop 0.3s ease-out forwards;
-            background: radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.85) 100%);
+            background: radial-gradient(
+              ellipse at center,
+              rgba(0, 0, 0, 0.7) 0%,
+              rgba(0, 0, 0, 0.85) 100%
+            );
           }
           .ee-backdrop.closing {
             animation: ee-backdrop 0.3s ease-in reverse forwards;
           }
           .ee-card {
-            animation: ee-card-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            animation: ee-card-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)
+              forwards;
           }
           .ee-card.closing {
             animation: ee-card-out 0.4s ease-in forwards;
           }
           .ee-title {
-            background: linear-gradient(135deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #a66cff, #ff6b6b);
+            background: linear-gradient(
+              135deg,
+              #ff6b6b,
+              #ffd93d,
+              #6bcb77,
+              #4d96ff,
+              #a66cff,
+              #ff6b6b
+            );
             background-size: 300% 300%;
             animation: ee-gradient 3s ease infinite;
             -webkit-background-clip: text;
@@ -183,9 +244,13 @@ export function EasterEgg() {
           }
         `}</style>
 
-        <div className={`ee-backdrop fixed inset-0 backdrop-blur-md ${closing ? "closing" : ""}`} />
+        <div
+          className={`ee-backdrop fixed inset-0 backdrop-blur-md ${closing ? "closing" : ""}`}
+        />
 
-        <div className={`ee-card ee-float relative rounded-3xl border border-white/20 bg-white/10 px-14 py-10 text-center shadow-2xl backdrop-blur-xl ${closing ? "closing" : ""}`}>
+        <div
+          className={`ee-card ee-float relative rounded-3xl border border-white/20 bg-white/10 px-14 py-10 text-center shadow-2xl backdrop-blur-xl ${closing ? "closing" : ""}`}
+        >
           {/* Sparkles */}
           {[
             { top: "-12px", left: "20%", delay: "0s" },
@@ -203,8 +268,7 @@ export function EasterEgg() {
           ))}
 
           <p className="ee-title text-5xl font-extrabold tracking-tight sm:text-6xl">
-            Hi Claudiu!{" "}
-            <span className="ee-wave">👋</span>
+            Hi Claudiu! <span className="ee-wave">👋</span>
           </p>
           <p className="mt-4 text-base text-white/60">
             You found the secret. Nice.

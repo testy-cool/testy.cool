@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import {
   isBlogRootPage,
   isSeriesPage,
@@ -141,5 +140,4 @@ export function generateOGImageMetadata(
     title: blogConstants.blogTitle
   };
 }
-
 

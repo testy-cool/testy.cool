@@ -16,6 +16,7 @@ export const allTools: Tool[] = [
     title: "Prompt Field Notes",
     description:
       "Context-specific prompting observations. What worked, when it applies, and why. Copy as markdown or XML.",
+    screenshot: "/images/tools/prompt-field-notes.png",
     tags: ["LLM", "Prompting"],
     type: "Tool",
   },
@@ -24,6 +25,7 @@ export const allTools: Tool[] = [
     title: "N-gram Viewer & Phrase Frames",
     description:
       "Paste text, get n-gram frequencies plus phrase frames — n-grams with one variable slot so variants collapse into one entry.",
+    screenshot: "/images/tools/ngram-viewer.png",
     tags: ["Text", "Linguistics", "NLP"],
     type: "Tool",
   },

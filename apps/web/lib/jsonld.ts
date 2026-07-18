@@ -8,8 +8,10 @@ export function organizationSchema() {
     sameAs: [
       "https://x.com/testy_cool",
       "https://github.com/testy-cool",
+      "https://github.com/TestyCool",
       "https://www.linkedin.com/in/vladeduard/",
       "https://bsky.app/profile/testycool.bsky.social",
+      "https://chromewebstore.google.com/detail/hacker-news-enhancement-s/ebmjdaaabekgefdnfkcoejejhkodkepg",
     ],
   };
 }
@@ -19,6 +21,7 @@ export function websiteSchema() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "testy.cool",
+    alternateName: ["testy cool", "testycool"],
     url: "https://testy.cool",
     description:
       "Notes on LLMs, agents, automation and development. Mostly written for myself. There are a few tools here too.",

@@ -16,7 +16,7 @@
     {
       "binding": "DB",
       "database_name": "testycool-stream",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "b83925e3-01e9-45e6-95b3-04d062ad1dfa",
       "migrations_dir": "migrations"
     }
   ],

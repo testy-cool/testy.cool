@@ -36,12 +36,15 @@ importers:
       '@cloudflare/workers-types':
         specifier: 5.20260827.1
         version: 5.20260827.1
+      miniflare:
+        specifier: 5.20260826.0-alpha
+        version: 5.20260826.0-alpha
       typescript:
         specifier: 5.8.2
         version: 5.8.2
       vitest:
         specifier: 4.1.11
-        version: 4.1.11(@types/node@22.14.0)(vite@8.2.2(@types/node@22.14.0)(esbuild@0.27.4)(jiti@2.4.2)(tsx@4.21.0))
+        version: 4.1.11(@types/node@22.14.0)(vite@8.2.2(@types/node@22.14.0)(esbuild@0.28.1)(jiti@2.4.2)(tsx@4.21.0))
       wrangler:
         specifier: 4.127.0
         version: 4.127.0(@cloudflare/workers-types@5.20260827.1)
@@ -1422,9 +1425,6 @@ packages:
   '@jridgewell/resolve-uri@3.1.2':
     resolution: {integrity: sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==}
     engines: {node: '>=6.0.0'}
-
-  '@jridgewell/sourcemap-codec@1.5.0':
-    resolution: {integrity: sha512-gv3ZRaISU3fjPAgNsriBRqGWQL6quFx04YMPW/zD8XMLsU32mhCCbfbO6KZFLjvYpCZ8zyDEgqsgf+PwPaM7GQ==}
 
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
@@ -6631,14 +6631,12 @@ snapshots:
 
   '@jridgewell/resolve-uri@3.1.2': {}
 
-  '@jridgewell/sourcemap-codec@1.5.0': {}
-
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
   '@jridgewell/trace-mapping@0.3.9':
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
-      '@jridgewell/sourcemap-codec': 1.5.0
+      '@jridgewell/sourcemap-codec': 1.5.5
 
   '@mdx-js/mdx@3.1.0(acorn@8.14.1)':
     dependencies:
@@ -7930,13 +7928,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.1
 
-  '@vitest/mocker@4.1.11(vite@8.2.2(@types/node@22.14.0)(esbuild@0.27.4)(jiti@2.4.2)(tsx@4.21.0))':
+  '@vitest/mocker@4.1.11(vite@8.2.2(@types/node@22.14.0)(esbuild@0.28.1)(jiti@2.4.2)(tsx@4.21.0))':
     dependencies:
       '@vitest/spy': 4.1.11
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.2.2(@types/node@22.14.0)(esbuild@0.27.4)(jiti@2.4.2)(tsx@4.21.0)
+      vite: 8.2.2(@types/node@22.14.0)(esbuild@0.28.1)(jiti@2.4.2)(tsx@4.21.0)
 
   '@vitest/pretty-format@4.1.11':
     dependencies:
@@ -9983,7 +9981,7 @@ snapshots:
 
   lightningcss@1.33.0:
     dependencies:
-      detect-libc: 2.0.3
+      detect-libc: 2.1.2
     optionalDependencies:
       lightningcss-android-arm64: 1.33.0
       lightningcss-darwin-arm64: 1.33.0
@@ -12083,7 +12081,7 @@ snapshots:
       d3-time: 3.1.0
       d3-timer: 3.0.1
 
-  vite@8.2.2(@types/node@22.14.0)(esbuild@0.27.4)(jiti@2.4.2)(tsx@4.21.0):
+  vite@8.2.2(@types/node@22.14.0)(esbuild@0.28.1)(jiti@2.4.2)(tsx@4.21.0):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
@@ -12092,15 +12090,15 @@ snapshots:
       tinyglobby: 0.2.17
     optionalDependencies:
       '@types/node': 22.14.0
-      esbuild: 0.27.4
+      esbuild: 0.28.1
       fsevents: 2.3.3
       jiti: 2.4.2
       tsx: 4.21.0
 
-  vitest@4.1.11(@types/node@22.14.0)(vite@8.2.2(@types/node@22.14.0)(esbuild@0.27.4)(jiti@2.4.2)(tsx@4.21.0)):
+  vitest@4.1.11(@types/node@22.14.0)(vite@8.2.2(@types/node@22.14.0)(esbuild@0.28.1)(jiti@2.4.2)(tsx@4.21.0)):
     dependencies:
       '@vitest/expect': 4.1.11
-      '@vitest/mocker': 4.1.11(vite@8.2.2(@types/node@22.14.0)(esbuild@0.27.4)(jiti@2.4.2)(tsx@4.21.0))
+      '@vitest/mocker': 4.1.11(vite@8.2.2(@types/node@22.14.0)(esbuild@0.28.1)(jiti@2.4.2)(tsx@4.21.0))
       '@vitest/pretty-format': 4.1.11
       '@vitest/runner': 4.1.11
       '@vitest/snapshot': 4.1.11
@@ -12117,7 +12115,7 @@ snapshots:
       tinyexec: 1.3.0
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.1
-      vite: 8.2.2(@types/node@22.14.0)(esbuild@0.27.4)(jiti@2.4.2)(tsx@4.21.0)
+      vite: 8.2.2(@types/node@22.14.0)(esbuild@0.28.1)(jiti@2.4.2)(tsx@4.21.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 22.14.0

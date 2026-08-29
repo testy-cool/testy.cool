@@ -12,7 +12,7 @@ import { NgramViewer } from "@/components/tools/NgramViewer";
 import { createMetadata } from "@/lib/metadata";
 
 const description =
-  "Free online n-gram viewer and phrase frame analyzer. Paste any text to count word sequences (bigrams, trigrams, 4-grams, 5-grams), find collocations, and extract phrase frames — n-grams with one variable slot that group templatic patterns like (intrat|impus) pe piața din românia into a single entry. Runs entirely in your browser.";
+  "Count n-grams and phrase frames in any text, in your browser. Bigrams to 7-grams, collocations, CSV export.";
 
 export const metadata = createMetadata({
   title: "N-gram Viewer & Phrase Frames",

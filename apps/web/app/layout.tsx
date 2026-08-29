@@ -7,12 +7,14 @@ import { description } from "./layout.config";
 import { baseUrl, createMetadata } from "@/lib/metadata";
 
 const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
+  src: "./fonts/GeistVF.woff2",
   variable: "--font-geist-sans",
 });
 const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
+  src: "./fonts/GeistMonoVF.woff2",
   variable: "--font-geist-mono",
+  // Code blocks and the hero word need it, most pages do not. Load on use, do not preload everywhere.
+  preload: false,
 });
 
 export const metadata: Metadata = {

@@ -1,13 +1,4 @@
-import Link from "next/link";
-import { DocsDescription, DocsTitle } from "fumadocs-ui/page";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@repo/shadverse/components/breadcrumb";
+import { SitePageHeader } from "@/components/site";
 import { PromptFieldNotes } from "@/components/tools/PromptFieldNotes";
 import { createMetadata } from "@/lib/metadata";
 
@@ -40,34 +31,15 @@ export default function PromptFieldNotesPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <section className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left bg-fd-muted/50">
-        <div className="text-center">
-          <Breadcrumb className="mb-4 flex justify-center">
-            <BreadcrumbList className="justify-center">
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link href="/">Home</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link href="/tools">Tools</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Prompt Field Notes</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-          <DocsTitle>Prompt Field Notes</DocsTitle>
-          <DocsDescription className="mt-2">
-            Things I figured out about prompting in specific situations. Not
-            universal rules - each one has a context where it applies.
-          </DocsDescription>
-        </div>
-      </section>
+      <SitePageHeader
+        title="Prompt Field Notes"
+        description="Things I figured out about prompting in specific situations. Not universal rules - each one has a context where it applies."
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Tools", href: "/tools" },
+          { label: "Prompt Field Notes" },
+        ]}
+      />
 
       <section className="container px-4 py-8 lg:px-6">
         <PromptFieldNotes />

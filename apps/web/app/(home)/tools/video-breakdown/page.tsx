@@ -1,4 +1,5 @@
 import { createMetadata } from "@/lib/metadata";
+import { SitePageHeader } from "@/components/site";
 import TutorialApp from "@/components/tools/video-breakdown/TutorialApp";
 
 const description =
@@ -28,6 +29,15 @@ export default function VideoBreakdownPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <SitePageHeader
+        title="Video Breakdown"
+        description="Paste a YouTube URL. Gemini watches the video and writes a text breakdown that scrolls with it."
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Tools", href: "/tools" },
+          { label: "Video Breakdown" },
+        ]}
       />
       <TutorialApp />
     </>

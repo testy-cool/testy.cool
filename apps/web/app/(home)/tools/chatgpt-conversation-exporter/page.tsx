@@ -1,14 +1,6 @@
 import Link from "next/link";
-import { DocsDescription, DocsTitle } from "fumadocs-ui/page";
 import { createMetadata } from "@/lib/metadata";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@repo/shadverse/components/breadcrumb";
+import { SitePageHeader } from "@/components/site";
 
 export const metadata = createMetadata({
   title: "ChatGPT Conversation Exporter",
@@ -43,36 +35,15 @@ export default function ChatGPTConversationExporterPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <section className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left bg-zinc-50/50 dark:bg-zinc-900/50">
-        <div className="text-center">
-          <Breadcrumb className="mb-4 flex justify-center">
-            <BreadcrumbList className="justify-center">
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link href="/">Home</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link href="/tools">Tools</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{toolTitle}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-          <DocsTitle className="dark:text-white capitalize">
-            {toolTitle}
-          </DocsTitle>
-          <DocsDescription className="mt-3 dark:text-gray-300 mb-0">
-            Browser extension for exporting one ChatGPT conversation to Markdown
-            or HTML.
-          </DocsDescription>
-        </div>
-      </section>
+      <SitePageHeader
+        title={toolTitle}
+        description="Browser extension for exporting one ChatGPT conversation to Markdown or HTML."
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Tools", href: "/tools" },
+          { label: toolTitle },
+        ]}
+      />
 
       <section className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left">
         <div className="grid gap-y-6 sm:grid-cols-12 sm:gap-x-6 md:gap-x-10 items-center">

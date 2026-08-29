@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
-import Link from "next/link";
 import type {
   TutorialAnalysisMode,
   Tutorial,
@@ -631,39 +630,9 @@ export default function TutorialApp() {
       `}</style>
 
       <div className="min-h-screen">
-        <section className="max-w-3xl lg:max-w-4xl mx-auto px-5 sm:px-8 pt-12 sm:pt-16 pb-20">
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-1.5 text-[13px] text-fd-muted-foreground/50 mb-10">
-            <Link
-              href="/"
-              className="hover:text-fd-foreground transition-colors"
-            >
-              Home
-            </Link>
-            <span className="opacity-40">/</span>
-            <Link
-              href="/tools"
-              className="hover:text-fd-foreground transition-colors"
-            >
-              Tools
-            </Link>
-            <span className="opacity-40">/</span>
-            <span className="text-fd-muted-foreground">Video Breakdown</span>
-          </nav>
-
-          {/* Hero */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-fd-foreground tracking-tight leading-[1.1]">
-            Video
-            <br />
-            <span className="text-fd-muted-foreground/40">Breakdown</span>
-          </h1>
-          <p className="mt-4 text-base sm:text-lg text-fd-muted-foreground/70 max-w-md leading-relaxed">
-            Paste a YouTube URL. The site queues a durable job and turns the
-            video into a scroll-synced text breakdown.
-          </p>
-
+        <section className="max-w-3xl lg:max-w-4xl mx-auto px-5 sm:px-8 pt-8 sm:pt-10 pb-20">
           {/* Input */}
-          <div className="mt-10 sm:mt-12">
+          <div>
             <div className="vtg-input-glow flex items-stretch rounded-2xl border border-fd-border bg-fd-card overflow-hidden transition-all duration-300">
               <input
                 type="text"

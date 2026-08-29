@@ -1,13 +1,4 @@
-import Link from "next/link";
-import { DocsDescription, DocsTitle } from "fumadocs-ui/page";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@repo/shadverse/components/breadcrumb";
+import { SitePageHeader } from "@/components/site";
 import { NgramViewer } from "@/components/tools/NgramViewer";
 import { createMetadata } from "@/lib/metadata";
 
@@ -40,35 +31,15 @@ export default function NgramViewerPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <section className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left bg-zinc-50/50 dark:bg-zinc-900/50">
-        <div className="text-center">
-          <Breadcrumb className="mb-4 flex justify-center">
-            <BreadcrumbList className="justify-center">
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link href="/">Home</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link href="/tools">Tools</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>N-gram Viewer</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-          <DocsTitle className="dark:text-white">
-            N-gram Viewer & Phrase Frames
-          </DocsTitle>
-          <DocsDescription className="mt-3 dark:text-gray-300 mb-0">
-            {description}
-          </DocsDescription>
-        </div>
-      </section>
+      <SitePageHeader
+        title="N-gram Viewer & Phrase Frames"
+        description="Paste text, get n-gram counts and phrase frames. Runs in your browser."
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Tools", href: "/tools" },
+          { label: "N-gram Viewer" },
+        ]}
+      />
 
       <section className="relative container px-4 py-8 lg:py-12 lg:px-6">
         <NgramViewer />

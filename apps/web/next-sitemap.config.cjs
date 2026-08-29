@@ -50,6 +50,7 @@ function customIgnoreFunction(path) {
     "blog-1",
     "docs-og",
     "blog-og",
+    "tools-og",
     "blog-posts-og",
     "posts",
     "knowledge.json",

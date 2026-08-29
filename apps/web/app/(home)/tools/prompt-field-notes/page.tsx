@@ -17,10 +17,8 @@ const description =
 export const metadata = createMetadata({
   title: "Prompt Field Notes",
   description,
-  openGraph: {
-    title: "Prompt Field Notes | testy.cool",
-    description,
-  },
+  path: "/tools/prompt-field-notes",
+  image: "/tools-og/prompt-field-notes/image.png",
 });
 
 const jsonLd = {

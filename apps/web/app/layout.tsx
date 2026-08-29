@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./styles/globals.css";
 import { cn } from "@repo/shadverse/lib/utils";
@@ -14,14 +15,16 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
 });
 
-export const metadata = createMetadata({
-  title: {
-    template: "%s | testy.cool",
-    default: "testy.cool — Mostly LLMs, mostly.",
-  },
-  description: description,
+export const metadata: Metadata = {
+  ...createMetadata({
+    title: {
+      template: "%s | testy.cool",
+      default: "testy.cool — Mostly LLMs, mostly.",
+    },
+    description,
+  }),
   metadataBase: baseUrl,
-});
+};
 
 export default function RootLayout({
   children,

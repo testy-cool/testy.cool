@@ -1,17 +1,15 @@
-import type { Metadata } from "next";
+import { createMetadata } from "@/lib/metadata";
 import TutorialApp from "@/components/tools/video-breakdown/TutorialApp";
 
 const description =
   "Paste a YouTube URL. AI watches the video and writes a scroll-synced text breakdown.";
 
-export const metadata: Metadata = {
+export const metadata = createMetadata({
   title: "Video Breakdown",
   description,
-  openGraph: {
-    title: "Video Breakdown | testy.cool",
-    description,
-  },
-};
+  path: "/tools/video-breakdown",
+  image: "/tools-og/video-breakdown/image.png",
+});
 
 const jsonLd = {
   "@context": "https://schema.org",

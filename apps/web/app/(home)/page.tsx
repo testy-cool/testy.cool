@@ -9,11 +9,7 @@ import { createMetadata } from "@/lib/metadata";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-export const metadata = createMetadata({
-  alternates: {
-    canonical: "https://testy.cool",
-  },
-});
+export const metadata = createMetadata({ path: "https://testy.cool" });
 
 type SitePost = NonNullable<BlogPost>;
 

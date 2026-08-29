@@ -23,10 +23,8 @@ const description =
 export const metadata = createMetadata({
   title: "LLM Price Calculator",
   description,
-  openGraph: {
-    title: "LLM Price Calculator | testy.cool",
-    description,
-  },
+  path: "/tools/llm-price-calculator",
+  image: "/tools-og/llm-price-calculator/image.png",
 });
 
 const jsonLd = {

@@ -1,4 +1,12 @@
 import VanillaMdx from "@/components/vanilla-mdx";
+import { createMetadata } from "@/lib/metadata";
+
+export const metadata = createMetadata({
+  title: "About",
+  description:
+    "I build LLM automations, research agents, and web dev agents. This site is where I write notes about all of it.",
+  path: "/about",
+});
 
 <VanillaMdx
   title="About"

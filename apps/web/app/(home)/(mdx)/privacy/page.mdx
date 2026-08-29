@@ -1,4 +1,12 @@
 import VanillaMdx from "@/components/vanilla-mdx";
+import { createMetadata } from "@/lib/metadata";
+
+export const metadata = createMetadata({
+  title: "Privacy Policy",
+  description:
+    "This policy covers testy.cool and the browser extensions listed below.",
+  path: "/privacy",
+});
 
 <VanillaMdx
   title="Privacy Policy"

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Metadata } from "next";
+import { createMetadata } from "@/lib/metadata";
 import { ArrowRight } from "lucide-react";
 import { allTools, getToolUrl } from "@/lib/tools";
 import type { Tool } from "@/lib/tools";
@@ -10,16 +10,13 @@ import {
   TagPill,
 } from "@/components/site";
 
-export const metadata: Metadata = {
+export const metadata = createMetadata({
   title: "Tools",
   description:
     "Tools, a few tool-backed tutorials, and some browser extensions.",
-  openGraph: {
-    title: "Tools | testy.cool",
-    description:
-      "Tools, a few tool-backed tutorials, and some browser extensions.",
-  },
-};
+  path: "/tools",
+  image: "/tools-og/index/image.png",
+});
 
 const pageTitle = "Tools";
 const toolCount = allTools.filter((tool) => tool.type === "Tool").length;

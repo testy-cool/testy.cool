@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { DocsDescription, DocsTitle } from "fumadocs-ui/page";
-import type { Metadata } from "next";
+import { createMetadata } from "@/lib/metadata";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,16 +10,13 @@ import {
   BreadcrumbSeparator,
 } from "@repo/shadverse/components/breadcrumb";
 
-export const metadata: Metadata = {
+export const metadata = createMetadata({
   title: "ChatGPT Conversation Exporter",
   description:
     "Browser extension for exporting one ChatGPT conversation to Markdown or HTML. Everything stays in the browser.",
-  openGraph: {
-    title: "ChatGPT Conversation Exporter | testy.cool",
-    description:
-      "Browser extension for exporting one ChatGPT conversation to Markdown or HTML. Everything stays in the browser.",
-  },
-};
+  path: "/tools/chatgpt-conversation-exporter",
+  image: "/tools-og/chatgpt-conversation-exporter/image.png",
+});
 
 const toolTitle = "ChatGPT Conversation Exporter";
 const screenshot =

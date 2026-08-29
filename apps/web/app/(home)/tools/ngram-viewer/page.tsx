@@ -17,10 +17,8 @@ const description =
 export const metadata = createMetadata({
   title: "N-gram Viewer & Phrase Frames",
   description,
-  openGraph: {
-    title: "N-gram Viewer & Phrase Frames | testy.cool",
-    description,
-  },
+  path: "/tools/ngram-viewer",
+  image: "/tools-og/ngram-viewer/image.png",
 });
 
 const jsonLd = {

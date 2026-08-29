@@ -1,13 +1,11 @@
 import VanillaMdx from "@/components/vanilla-mdx";
+import { createMetadata } from "@/lib/metadata";
 
-export const metadata = {
+export const metadata = createMetadata({
   title: "Stack",
   description: "Tools, services, and models I actually use - with opinions.",
-  openGraph: {
-    title: "Stack | testy.cool",
-    description: "Tools, services, and models I actually use - with opinions.",
-  },
-};
+  path: "/stack",
+});
 
 <VanillaMdx
   title="Stack"

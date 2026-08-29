@@ -1,18 +1,16 @@
 import Link from "next/link";
-import type { Metadata } from "next";
+import { createMetadata } from "@/lib/metadata";
 import PantryApp from "@/components/tools/channel-pantry/PantryApp";
 
 const description =
   "See what ingredients a YouTube cooking channel actually uses.";
 
-export const metadata: Metadata = {
+export const metadata = createMetadata({
   title: "Channel Pantry",
   description,
-  openGraph: {
-    title: "Channel Pantry | testy.cool",
-    description,
-  },
-};
+  path: "/tools/channel-pantry",
+  image: "/tools-og/channel-pantry/image.png",
+});
 
 const jsonLd = {
   "@context": "https://schema.org",

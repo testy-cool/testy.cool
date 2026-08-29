@@ -186,23 +186,14 @@ export const getCategoryBySlug = (slug: string) => {
 };
 
 export const getSeriesBySlug = (slug: string) => {
-  const series = {
-    x: {
-      label: "Series X",
-      icon: LucideBook,
-      description:
-        "A comprehensive series on Zero Trust security architecture.",
-    },
-    "building-react-component-library": {
-      label: "Building React Component Library",
-      icon: LucideBook,
-      description: "A series on building a React component library.",
-    },
-    // Add more series here as needed
-  };
+  // No series exist yet. Add them here keyed by slug when a post sets `series`.
+  const series: Record<
+    string,
+    { label: string; icon: typeof LucideBook; description: string }
+  > = {};
 
   return (
-    series[slug as keyof typeof series] || {
+    series[slug] || {
       label: slug.charAt(0).toUpperCase() + slug.slice(1),
       icon: LucideBook,
       description: `Articles in the ${slug.charAt(0).toUpperCase() + slug.slice(1)} series.`,

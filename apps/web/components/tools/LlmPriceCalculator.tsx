@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useId } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Provider =
@@ -954,12 +954,12 @@ function readParams(): {
 }
 
 function InfoTip({ text }: { text: string }) {
+  const id = useId();
   return (
     <span
       className="group relative inline-flex cursor-help rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/40"
       tabIndex={0}
-      role="img"
-      aria-label={text}
+      aria-describedby={id}
     >
       <svg
         className="h-3.5 w-3.5 text-fd-foreground/35 transition-colors group-hover:text-fd-foreground/60"
@@ -973,8 +973,14 @@ function InfoTip({ text }: { text: string }) {
           clipRule="evenodd"
         />
       </svg>
-      {/* display:none while hidden, so the 208px bubble never widens the page on phones */}
-      <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 hidden w-52 -translate-x-1/2 rounded-lg border border-fd-border bg-fd-card px-3 py-2 text-xs font-normal leading-relaxed text-fd-foreground/80 shadow-lg group-hover:block group-focus-within:block">
+      {/* display:none while hidden, so the bubble never widens the page. On phones it
+          shows as a fixed card above the bottom edge instead of a bubble that could
+          stick out past the viewport. */}
+      <span
+        id={id}
+        role="tooltip"
+        className="pointer-events-none fixed inset-x-4 bottom-4 z-50 hidden rounded-lg border border-fd-border bg-fd-card px-3 py-2 text-xs font-normal leading-relaxed text-fd-foreground/80 shadow-lg group-hover:block group-focus-within:block sm:absolute sm:inset-x-auto sm:bottom-full sm:left-1/2 sm:mb-2 sm:w-52 sm:-translate-x-1/2"
+      >
         {text}
       </span>
     </span>

@@ -3,12 +3,7 @@ import { createMetadata } from "@/lib/metadata";
 import { ArrowRight } from "lucide-react";
 import { allTools, getToolUrl } from "@/lib/tools";
 import type { Tool } from "@/lib/tools";
-import {
-  MetaPill,
-  SectionHeading,
-  SitePageHeader,
-  TagPill,
-} from "@/components/site";
+import { MetaPill, SitePageHeader, TagPill } from "@/components/site";
 
 export const metadata = createMetadata({
   title: "Tools",
@@ -96,7 +91,6 @@ export default function ToolsIndex() {
       />
       <SitePageHeader
         title={pageTitle}
-        eyebrow="Directory"
         description="Tools, a few tool-backed tutorials, and some browser extensions."
         breadcrumbs={[{ label: "Home", href: "/" }, { label: pageTitle }]}
       >
@@ -107,13 +101,7 @@ export default function ToolsIndex() {
         </div>
       </SitePageHeader>
       <section className="container px-4 py-8 lg:px-6 lg:py-12">
-        <SectionHeading
-          eyebrow="Index"
-          title="Utilities with a little context"
-          description="Standalone tools live next to tutorial-backed tools, so the useful thing is always one click away."
-          eyebrowClassName="text-fd-primary"
-        />
-        <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {allTools.map((tool) => (
             <ToolCard key={tool.slug} tool={tool} />
           ))}

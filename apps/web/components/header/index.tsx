@@ -83,7 +83,7 @@ export const Header = ({
           />
         ))}
         <Menu className="lg:hidden">
-          <MenuTrigger className="group -me-2">
+          <MenuTrigger className="group -me-2" aria-label="Menu">
             <ChevronDown className="size-3 transition-transform duration-300 group-data-[state=open]:rotate-180" />
           </MenuTrigger>
           <MenuContent className="sm:flex-row sm:items-center sm:justify-end">

@@ -10,10 +10,10 @@ const config = {
   basePath: "",
   images: { unoptimized: true },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   serverExternalPackages: [
     "ts-morph",

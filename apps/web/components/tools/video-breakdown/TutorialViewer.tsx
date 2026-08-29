@@ -76,7 +76,7 @@ function SignalBadge({
     tone === "good"
       ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
       : tone === "warn"
-        ? "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+        ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400"
         : tone === "bad"
           ? "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400"
           : "border-fd-border/50 bg-fd-card text-fd-foreground/70";

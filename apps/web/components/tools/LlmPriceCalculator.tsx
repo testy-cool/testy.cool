@@ -1445,7 +1445,7 @@ export function LlmPriceCalculator() {
                   className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
                     isMatchingPreset(p)
                       ? "bg-fd-primary/10 text-fd-primary"
-                      : "text-fd-foreground/55 hover:bg-fd-muted/60 hover:text-fd-foreground"
+                      : "text-fd-muted-foreground hover:bg-fd-muted/60 hover:text-fd-foreground"
                   }`}
                 >
                   {p.label}
@@ -1763,7 +1763,7 @@ export function LlmPriceCalculator() {
             </span>
             <button
               onClick={() => setPinnedModels(new Set())}
-              className="text-xs font-medium text-fd-foreground/55 hover:text-fd-foreground transition-colors"
+              className="text-xs font-medium text-fd-muted-foreground hover:text-fd-foreground transition-colors"
             >
               Clear
             </button>
@@ -1803,7 +1803,7 @@ export function LlmPriceCalculator() {
                             key={c.name}
                             className={`px-3 py-2 text-right tabular-nums font-medium ${
                               c.cost === minCost
-                                ? "text-green-700 dark:text-green-400"
+                                ? "text-green-800 dark:text-green-400"
                                 : "text-fd-foreground"
                             }`}
                           >
@@ -1837,23 +1837,23 @@ export function LlmPriceCalculator() {
                     </div>
                     <div className="text-sm font-semibold">{m.name}</div>
                     <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-                      <span className="text-fd-foreground/55">In/M</span>
+                      <span className="text-fd-muted-foreground">In/M</span>
                       <span className="text-right tabular-nums">
                         {formatRate(m.input)}
                       </span>
-                      <span className="text-fd-foreground/55">Out/M</span>
+                      <span className="text-fd-muted-foreground">Out/M</span>
                       <span className="text-right tabular-nums">
                         {formatRate(m.output)}
                       </span>
-                      <span className="text-fd-foreground/55">Per call</span>
+                      <span className="text-fd-muted-foreground">Per call</span>
                       <span className="text-right tabular-nums">
                         {formatCost(m.perCall)}
                       </span>
-                      <span className="text-fd-foreground/55 font-medium">
+                      <span className="text-fd-muted-foreground font-medium">
                         Total
                       </span>
                       <span
-                        className={`text-right tabular-nums font-semibold ${isWinner ? "text-green-700 dark:text-green-400" : ""}`}
+                        className={`text-right tabular-nums font-semibold ${isWinner ? "text-green-800 dark:text-green-400" : ""}`}
                       >
                         {formatCost(cost)}
                       </span>
@@ -2088,10 +2088,10 @@ export function LlmPriceCalculator() {
                           <span
                             className={`text-base font-semibold tabular-nums ${
                               isTop1
-                                ? "text-green-700 dark:text-green-400"
+                                ? "text-green-800 dark:text-green-400"
                                 : isTop3
-                                  ? "text-green-700 dark:text-green-400"
-                                  : "text-fd-foreground/55"
+                                  ? "text-green-800 dark:text-green-400"
+                                  : "text-fd-muted-foreground"
                             }`}
                           >
                             {rank}
@@ -2130,7 +2130,7 @@ export function LlmPriceCalculator() {
                               </span>
                             )}
                           </div>
-                          <div className="mt-1 text-xs text-fd-foreground/54">
+                          <div className="mt-1 text-xs text-fd-muted-foreground">
                             max output {formatTokenCount(model.maxOutput)}
                           </div>
                         </td>
@@ -2177,7 +2177,7 @@ export function LlmPriceCalculator() {
                                   </span>
                                 )}
                                 <span
-                                  className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-700 dark:text-green-400" : "text-fd-foreground"}`}
+                                  className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
                                 >
                                   {formatCost(model.chainTotal)}
                                 </span>
@@ -2193,7 +2193,7 @@ export function LlmPriceCalculator() {
                         ) : isBudgetMode ? (
                           <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
                             <div
-                              className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-700 dark:text-green-400" : "text-fd-foreground"}`}
+                              className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
                             >
                               {model.maxCalls === Infinity
                                 ? "\u221e"
@@ -2223,7 +2223,7 @@ export function LlmPriceCalculator() {
                             )}
                             <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
                               <span
-                                className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-700 dark:text-green-400" : "text-fd-foreground"}`}
+                                className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
                               >
                                 {formatCost(
                                   showCache ? model.cachedTotal : model.total,
@@ -2303,7 +2303,7 @@ export function LlmPriceCalculator() {
                                           {formatCost(model.cachedPerCall)}
                                         </td>
                                         <td className="py-1 text-sm text-fd-foreground/60">
-                                          <span className="text-green-700 dark:text-green-400">
+                                          <span className="text-green-800 dark:text-green-400">
                                             {inputDiscount}% cheaper
                                           </span>{" "}
                                           ({formatRate(model.cachedInput)} vs{" "}
@@ -2375,10 +2375,10 @@ export function LlmPriceCalculator() {
                         <span
                           className={`flex h-5 w-5 items-center justify-center rounded text-xs font-bold tabular-nums ${
                             isTop1
-                              ? "text-green-700 dark:text-green-400"
+                              ? "text-green-800 dark:text-green-400"
                               : isTop3
-                                ? "text-green-700 dark:text-green-400"
-                                : "text-fd-foreground/55"
+                                ? "text-green-800 dark:text-green-400"
+                                : "text-fd-muted-foreground"
                           }`}
                         >
                           {rank}
@@ -2471,7 +2471,7 @@ export function LlmPriceCalculator() {
                             </span>
                           )}
                           <span
-                            className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-700 dark:text-green-400" : "text-fd-foreground"}`}
+                            className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
                           >
                             {formatCost(model.chainTotal)}
                           </span>
@@ -2484,7 +2484,7 @@ export function LlmPriceCalculator() {
                         Max calls for {currency2Formatter.format(budget)}
                       </div>
                       <div
-                        className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-700 dark:text-green-400" : "text-fd-foreground"}`}
+                        className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
                       >
                         {model.maxCalls === Infinity
                           ? "\u221e"
@@ -2517,7 +2517,7 @@ export function LlmPriceCalculator() {
                             Total
                           </div>
                           <div
-                            className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-700 dark:text-green-400" : "text-fd-foreground"}`}
+                            className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
                           >
                             {formatCost(
                               showCache ? model.cachedTotal : model.total,

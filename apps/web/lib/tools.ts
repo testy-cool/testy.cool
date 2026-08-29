@@ -16,7 +16,7 @@ export const allTools: Tool[] = [
     title: "Prompt Field Notes",
     description:
       "Context-specific prompting observations. What worked, when it applies, and why. Copy as markdown or XML.",
-    screenshot: "/images/tools/prompt-field-notes.png",
+    screenshot: "/images/tools/prompt-field-notes.webp",
     tags: ["LLM", "Prompting"],
     type: "Tool",
   },
@@ -25,7 +25,7 @@ export const allTools: Tool[] = [
     title: "N-gram Viewer & Phrase Frames",
     description:
       "Paste text, get n-gram frequencies plus phrase frames — n-grams with one variable slot so variants collapse into one entry.",
-    screenshot: "/images/tools/ngram-viewer.png",
+    screenshot: "/images/tools/ngram-viewer.webp",
     tags: ["Text", "Linguistics", "NLP"],
     type: "Tool",
   },
@@ -34,7 +34,7 @@ export const allTools: Tool[] = [
     title: "LLM Price Calculator",
     description:
       "Calculator for checking API costs across Claude, GPT, and Gemini, including prompt caching.",
-    screenshot: "/images/tools/llm-price-calculator.png",
+    screenshot: "/images/tools/llm-price-calculator.webp",
     tags: ["LLM", "API", "Pricing"],
     type: "Tool",
   },
@@ -43,7 +43,7 @@ export const allTools: Tool[] = [
     title: "Channel Pantry",
     description:
       "Analyze a YouTube cooking channel to see what ingredients they use most.",
-    screenshot: "/images/tools/channel-pantry.png",
+    screenshot: "/images/tools/channel-pantry.webp",
     tags: ["YouTube", "AI", "Cooking"],
     type: "Tool",
   },
@@ -52,7 +52,7 @@ export const allTools: Tool[] = [
     title: "CSS Clamp Calculator",
     description:
       "Clamp() calculator plus the tutorial explaining the math behind it.",
-    screenshot: "/images/tools/clamp-calculator.png",
+    screenshot: "/images/tools/clamp-calculator.webp",
     tags: ["CSS", "Responsive", "Tutorial"],
     blogPath: "/blog/tutorial/css-clamp-fluid-responsive-design",
     type: "Tutorial",
@@ -62,7 +62,7 @@ export const allTools: Tool[] = [
     title: "Video Breakdown",
     description:
       "Paste a YouTube URL. AI watches the video and writes a scroll-synced text breakdown.",
-    screenshot: "/images/tools/video-breakdown.png",
+    screenshot: "/images/tools/video-breakdown.webp",
     tags: ["YouTube", "AI"],
     type: "Tool",
   },

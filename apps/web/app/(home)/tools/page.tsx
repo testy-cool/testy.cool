@@ -51,6 +51,10 @@ function ToolCard({ tool }: { tool: Tool }) {
             <img
               src={tool.screenshot}
               alt={`${tool.title} screenshot`}
+              width={1280}
+              height={720}
+              loading="lazy"
+              decoding="async"
               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           </div>

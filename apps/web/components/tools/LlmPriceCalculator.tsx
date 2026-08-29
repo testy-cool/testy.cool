@@ -1,7 +1,13 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback, useId } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  Fragment,
+  useState,
+  useMemo,
+  useEffect,
+  useCallback,
+  useId,
+} from "react";
 
 type Provider =
   | "anthropic"
@@ -2032,348 +2038,55 @@ export function LlmPriceCalculator() {
               </tr>
             </thead>
             <tbody>
-              <AnimatePresence initial={false}>
-                {visibleModels.map((model, index) => {
-                  const rank = rankedModels.get(model.name) ?? 999;
-                  const isTop1 = rank === 1;
-                  const isTop3 = rank <= 3;
-                  const isPinned = pinnedModels.has(model.name);
-                  const barWidth = getCostBarWidth(model);
-                  const isSelected = selectedModels.has(model.name);
-                  return (
-                    <>
-                      <motion.tr
-                        key={model.name}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                        onClick={
-                          showCache && !isBudgetMode && !isChainMode
-                            ? () =>
-                                setSelectedModels((prev) => {
-                                  const next = new Set(prev);
-                                  if (next.has(model.name))
-                                    next.delete(model.name);
-                                  else next.add(model.name);
-                                  return next;
-                                })
-                            : undefined
-                        }
-                        className={`border-b border-fd-border/70 transition-colors hover:bg-fd-muted/45 ${
-                          isSelected
-                            ? "bg-fd-primary/[0.06]"
+              {visibleModels.map((model, index) => {
+                const rank = rankedModels.get(model.name) ?? 999;
+                const isTop1 = rank === 1;
+                const isTop3 = rank <= 3;
+                const isPinned = pinnedModels.has(model.name);
+                const barWidth = getCostBarWidth(model);
+                const isSelected = selectedModels.has(model.name);
+                return (
+                  <Fragment key={model.name}>
+                    <tr
+                      onClick={
+                        showCache && !isBudgetMode && !isChainMode
+                          ? () =>
+                              setSelectedModels((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(model.name))
+                                  next.delete(model.name);
+                                else next.add(model.name);
+                                return next;
+                              })
+                          : undefined
+                      }
+                      className={`animate-in fade-in-0 duration-150 border-b border-fd-border/70 transition-colors hover:bg-fd-muted/45 ${
+                        isSelected
+                          ? "bg-fd-primary/[0.06]"
+                          : isPinned
+                            ? "bg-fd-primary/[0.04]"
+                            : index % 2 === 1
+                              ? "bg-fd-muted/25"
+                              : ""
+                      } ${showCache && !isBudgetMode && !isChainMode ? "cursor-pointer" : ""}`}
+                      style={
+                        isSelected
+                          ? {
+                              borderLeft: "3px solid var(--color-fd-primary)",
+                            }
+                          : isTop1
+                            ? { borderLeft: "3px solid rgb(34 197 94)" }
                             : isPinned
-                              ? "bg-fd-primary/[0.04]"
-                              : index % 2 === 1
-                                ? "bg-fd-muted/25"
-                                : ""
-                        } ${showCache && !isBudgetMode && !isChainMode ? "cursor-pointer" : ""}`}
-                        style={
-                          isSelected
-                            ? {
-                                borderLeft: "3px solid var(--color-fd-primary)",
-                              }
-                            : isTop1
-                              ? { borderLeft: "3px solid rgb(34 197 94)" }
-                              : isPinned
-                                ? {
-                                    borderLeft:
-                                      "3px solid var(--color-fd-primary)",
-                                  }
-                                : undefined
-                        }
-                      >
-                        <td className="px-2 py-3.5 text-center">
-                          <span
-                            className={`text-base font-semibold tabular-nums ${
-                              isTop1
-                                ? "text-green-800 dark:text-green-400"
-                                : isTop3
-                                  ? "text-green-800 dark:text-green-400"
-                                  : "text-fd-muted-foreground"
-                            }`}
-                          >
-                            {rank}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3.5 text-[15px] font-medium text-fd-foreground/72">
-                          {providerLabels[model.provider]}
-                        </td>
-                        <td className="px-4 py-3 text-left">
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              onClick={() => togglePin(model.name)}
-                              title={isPinned ? "Unpin" : "Pin to compare"}
-                              className={`text-left text-[15px] font-medium text-fd-foreground hover:text-fd-primary transition-colors ${
-                                isPinned
-                                  ? "underline decoration-fd-primary decoration-2 underline-offset-2"
-                                  : ""
-                              }`}
-                            >
-                              {model.name}
-                            </button>
-                            {model.reasoning && (
-                              <span className="rounded-full bg-fd-primary/10 px-1.5 py-0.5 text-xs font-medium leading-none text-fd-primary">
-                                thinking
-                              </span>
-                            )}
-                            {model.modalities.length > 1 && (
-                              <span className="inline-flex items-center gap-1 text-fd-foreground/40">
-                                {model.modalities
-                                  .filter((m) => m !== "text")
-                                  .map((m) => (
-                                    <span key={m} title={modalityFullLabels[m]}>
-                                      {modalityIcons[m]}
-                                    </span>
-                                  ))}
-                              </span>
-                            )}
-                          </div>
-                          <div className="mt-1 text-xs text-fd-muted-foreground">
-                            max output {formatTokenCount(model.maxOutput)}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3.5 text-right text-[15px] tabular-nums text-fd-foreground/62">
-                          {formatTokenCount(model.context)}/
-                          {formatTokenCount(model.maxOutput)}
-                        </td>
-                        {showAdvanced && (
-                          <td className="px-4 py-3.5 text-right text-[15px] tabular-nums text-fd-foreground/74">
-                            {formatRate(model.input)}
-                          </td>
-                        )}
-                        {showAdvanced && (
-                          <td className="px-4 py-3.5 text-right text-[15px] tabular-nums text-fd-foreground/74">
-                            {formatRate(model.output)}
-                          </td>
-                        )}
-                        {isChainMode ? (
-                          <>
-                            <td className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground">
-                              {formatCost(model.chainCall1)}
-                            </td>
-                            <td className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground/78">
-                              {formatCost(model.chainLastCall)}
-                            </td>
-                            <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
-                              <div className="flex items-center justify-end gap-1.5">
-                                {model.chainExceedsAt > 0 && (
-                                  <span
-                                    title={`Exceeds ${formatTokenCount(model.context)} context at call ${model.chainExceedsAt}`}
-                                    className="text-amber-500"
-                                  >
-                                    <svg
-                                      className="h-3.5 w-3.5"
-                                      viewBox="0 0 16 16"
-                                      fill="currentColor"
-                                    >
-                                      <path
-                                        fillRule="evenodd"
-                                        d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575L6.457 1.047ZM8 5a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-1.5 0v-2.5A.75.75 0 0 1 8 5Zm1 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"
-                                        clipRule="evenodd"
-                                      />
-                                    </svg>
-                                  </span>
-                                )}
-                                <span
-                                  className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
-                                >
-                                  {formatCost(model.chainTotal)}
-                                </span>
-                              </div>
-                              <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
-                                <div
-                                  className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
-                                  style={{ width: `${barWidth}%` }}
-                                />
-                              </div>
-                            </td>
-                          </>
-                        ) : isBudgetMode ? (
-                          <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
-                            <div
-                              className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
-                            >
-                              {model.maxCalls === Infinity
-                                ? "\u221e"
-                                : formatCallCount(model.maxCalls)}
-                            </div>
-                            <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
-                              <div
-                                className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
-                                style={{ width: `${barWidth}%` }}
-                              />
-                            </div>
-                          </td>
-                        ) : (
-                          <>
-                            <td className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground">
-                              {formatCost(model.perCall)}
-                            </td>
-                            {showAdvanced && showCache && (
-                              <td
-                                className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground/78"
-                                title={`Per-call breakdown (${cachePercent}% cached):\n  Input: ${formatCost(model.cachedInputCost)} (${cachePercent}% at ${formatRate(model.cachedInput)}/M, ${100 - cachePercent}% at ${formatRate(model.input)}/M)\n  Output: ${formatCost(model.outputCost)} (${formatTokenCount(outputTokens)} × ${formatRate(model.output)}/M)${model.reasoning && reasoningTokens > 0 ? `\n  Reasoning: ${formatCost(model.reasoningCost)}` : ""}`}
-                              >
-                                <span className="cursor-help border-b border-dashed border-fd-foreground/25">
-                                  {formatCost(model.cachedPerCall)}
-                                </span>
-                              </td>
-                            )}
-                            <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
-                              <span
-                                className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
-                              >
-                                {formatCost(
-                                  showCache ? model.cachedTotal : model.total,
-                                )}
-                              </span>
-                              <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
-                                <div
-                                  className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
-                                  style={{ width: `${barWidth}%` }}
-                                />
-                              </div>
-                            </td>
-                            {showAdvanced && showCache && (
-                              <td className="border-l border-fd-border/50 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground/72">
-                                {model.savings.toFixed(0)}%
-                              </td>
-                            )}
-                          </>
-                        )}
-                      </motion.tr>
-                      {isSelected &&
-                        showCache &&
-                        !isBudgetMode &&
-                        !isChainMode &&
-                        (() => {
-                          const colCount =
-                            4 +
-                            (showAdvanced ? 2 : 0) +
-                            (showCache ? 2 : 0) +
-                            (showBulk || showCache ? 1 : 0);
-                          const subsequentCalls = Math.max(0, apiCalls - 1);
-                          const inputDiscount =
-                            model.input > 0
-                              ? Math.round(
-                                  (1 - model.cachedInput / model.input) * 100,
-                                )
-                              : 0;
-                          return (
-                            <tr
-                              key={`${model.name}-detail`}
-                              className="border-b border-fd-border/50 bg-fd-muted/20"
-                              ref={(el) => {
-                                if (el)
-                                  el.scrollIntoView({
-                                    behavior: "smooth",
-                                    block: "nearest",
-                                  });
-                              }}
-                            >
-                              <td colSpan={colCount} className="px-8 py-5">
-                                <table className="text-[15px]">
-                                  <tbody>
-                                    <tr>
-                                      <td className="pr-4 py-1 font-medium text-fd-foreground/60">
-                                        Call 1
-                                      </td>
-                                      <td
-                                        className="pr-4 py-1 text-right font-semibold tabular-nums text-fd-foreground"
-                                        style={{ minWidth: 72 }}
-                                      >
-                                        {formatCost(model.perCall)}
-                                      </td>
-                                      <td className="py-1 text-sm text-fd-foreground/60">
-                                        {formatCost(model.inputCost)} input +{" "}
-                                        {formatCost(model.outputCost)} output
-                                        {model.reasoningCost > 0
-                                          ? ` + ${formatCost(model.reasoningCost)} reasoning`
-                                          : ""}
-                                      </td>
-                                    </tr>
-                                    {subsequentCalls > 0 && (
-                                      <tr>
-                                        <td className="pr-4 py-1 font-medium text-fd-foreground/60">
-                                          Call 2+
-                                        </td>
-                                        <td className="pr-4 py-1 text-right font-semibold tabular-nums text-fd-foreground">
-                                          {formatCost(model.cachedPerCall)}
-                                        </td>
-                                        <td className="py-1 text-sm text-fd-foreground/60">
-                                          <span className="text-green-800 dark:text-green-400">
-                                            {inputDiscount}% cheaper
-                                          </span>{" "}
-                                          ({formatRate(model.cachedInput)} vs{" "}
-                                          {formatRate(model.input)}/M)
-                                        </td>
-                                      </tr>
-                                    )}
-                                    <tr className="border-t border-fd-border/30">
-                                      <td className="pr-4 pt-2 font-bold text-fd-foreground/70">
-                                        Total
-                                      </td>
-                                      <td className="pr-4 pt-2 text-right font-bold tabular-nums text-fd-foreground">
-                                        {formatCost(model.cachedTotal)}
-                                      </td>
-                                      <td className="pt-2 text-sm font-medium text-green-700/85 dark:text-green-400/85">
-                                        {model.savings > 0 && (
-                                          <>
-                                            saving {model.savings.toFixed(0)}%
-                                            vs {formatCost(model.total)} without
-                                            cache
-                                          </>
-                                        )}
-                                      </td>
-                                    </tr>
-                                  </tbody>
-                                </table>
-                              </td>
-                            </tr>
-                          );
-                        })()}
-                    </>
-                  );
-                })}
-              </AnimatePresence>
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile card view */}
-        <div className="flex flex-col gap-2 p-2 md:hidden">
-          <AnimatePresence initial={false}>
-            {visibleModels.map((model) => {
-              const rank = rankedModels.get(model.name) ?? 999;
-              const isTop1 = rank === 1;
-              const isTop3 = rank <= 3;
-              const isPinned = pinnedModels.has(model.name);
-              const barWidth = getCostBarWidth(model);
-              return (
-                <motion.div
-                  key={model.name}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className={`relative rounded-lg border px-3 py-2.5 transition-colors hover:bg-fd-muted/45 ${
-                    isPinned
-                      ? "border-fd-primary/40 bg-fd-primary/[0.04]"
-                      : "border-fd-border bg-fd-background"
-                  }`}
-                  style={
-                    isTop1
-                      ? { borderLeft: "3px solid rgb(34 197 94)" }
-                      : undefined
-                  }
-                >
-                  <div className="mb-1.5 flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
+                              ? {
+                                  borderLeft:
+                                    "3px solid var(--color-fd-primary)",
+                                }
+                              : undefined
+                      }
+                    >
+                      <td className="px-2 py-3.5 text-center">
                         <span
-                          className={`flex h-5 w-5 items-center justify-center rounded text-xs font-bold tabular-nums ${
+                          className={`text-base font-semibold tabular-nums ${
                             isTop1
                               ? "text-green-800 dark:text-green-400"
                               : isTop3
@@ -2383,172 +2096,452 @@ export function LlmPriceCalculator() {
                         >
                           {rank}
                         </span>
-                        <button
-                          onClick={() => togglePin(model.name)}
-                          title={isPinned ? "Unpin" : "Pin to compare"}
-                          className={`text-left text-sm font-semibold text-fd-foreground hover:text-fd-primary transition-colors ${
-                            isPinned
-                              ? "underline decoration-fd-primary decoration-2 underline-offset-2"
-                              : ""
-                          }`}
-                        >
-                          {model.name}
-                        </button>
-                        {model.reasoning && (
-                          <span className="rounded-full bg-fd-primary/10 px-1.5 py-0.5 text-xs font-medium leading-none text-fd-primary">
-                            thinking
-                          </span>
-                        )}
-                        {model.modalities.length > 1 && (
-                          <span className="inline-flex items-center gap-1 text-fd-foreground/40">
-                            {model.modalities
-                              .filter((m) => m !== "text")
-                              .map((m) => (
-                                <span key={m} title={modalityFullLabels[m]}>
-                                  {modalityIcons[m]}
-                                </span>
-                              ))}
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-0.5 ml-7 text-xs text-fd-muted-foreground">
+                      </td>
+                      <td className="px-4 py-3.5 text-[15px] font-medium text-fd-foreground/72">
                         {providerLabels[model.provider]}
+                      </td>
+                      <td className="px-4 py-3 text-left">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => togglePin(model.name)}
+                            title={isPinned ? "Unpin" : "Pin to compare"}
+                            className={`text-left text-[15px] font-medium text-fd-foreground hover:text-fd-primary transition-colors ${
+                              isPinned
+                                ? "underline decoration-fd-primary decoration-2 underline-offset-2"
+                                : ""
+                            }`}
+                          >
+                            {model.name}
+                          </button>
+                          {model.reasoning && (
+                            <span className="rounded-full bg-fd-primary/10 px-1.5 py-0.5 text-xs font-medium leading-none text-fd-primary">
+                              thinking
+                            </span>
+                          )}
+                          {model.modalities.length > 1 && (
+                            <span className="inline-flex items-center gap-1 text-fd-foreground/40">
+                              {model.modalities
+                                .filter((m) => m !== "text")
+                                .map((m) => (
+                                  <span key={m} title={modalityFullLabels[m]}>
+                                    {modalityIcons[m]}
+                                  </span>
+                                ))}
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-1 text-xs text-fd-muted-foreground">
+                          max output {formatTokenCount(model.maxOutput)}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5 text-right text-[15px] tabular-nums text-fd-foreground/62">
+                        {formatTokenCount(model.context)}/
+                        {formatTokenCount(model.maxOutput)}
+                      </td>
+                      {showAdvanced && (
+                        <td className="px-4 py-3.5 text-right text-[15px] tabular-nums text-fd-foreground/74">
+                          {formatRate(model.input)}
+                        </td>
+                      )}
+                      {showAdvanced && (
+                        <td className="px-4 py-3.5 text-right text-[15px] tabular-nums text-fd-foreground/74">
+                          {formatRate(model.output)}
+                        </td>
+                      )}
+                      {isChainMode ? (
+                        <>
+                          <td className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground">
+                            {formatCost(model.chainCall1)}
+                          </td>
+                          <td className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground/78">
+                            {formatCost(model.chainLastCall)}
+                          </td>
+                          <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {model.chainExceedsAt > 0 && (
+                                <span
+                                  title={`Exceeds ${formatTokenCount(model.context)} context at call ${model.chainExceedsAt}`}
+                                  className="text-amber-500"
+                                >
+                                  <svg
+                                    className="h-3.5 w-3.5"
+                                    viewBox="0 0 16 16"
+                                    fill="currentColor"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575L6.457 1.047ZM8 5a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-1.5 0v-2.5A.75.75 0 0 1 8 5Zm1 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                </span>
+                              )}
+                              <span
+                                className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
+                              >
+                                {formatCost(model.chainTotal)}
+                              </span>
+                            </div>
+                            <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
+                                style={{ width: `${barWidth}%` }}
+                              />
+                            </div>
+                          </td>
+                        </>
+                      ) : isBudgetMode ? (
+                        <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
+                          <div
+                            className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
+                          >
+                            {model.maxCalls === Infinity
+                              ? "\u221e"
+                              : formatCallCount(model.maxCalls)}
+                          </div>
+                          <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
+                              style={{ width: `${barWidth}%` }}
+                            />
+                          </div>
+                        </td>
+                      ) : (
+                        <>
+                          <td className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground">
+                            {formatCost(model.perCall)}
+                          </td>
+                          {showAdvanced && showCache && (
+                            <td
+                              className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground/78"
+                              title={`Per-call breakdown (${cachePercent}% cached):\n  Input: ${formatCost(model.cachedInputCost)} (${cachePercent}% at ${formatRate(model.cachedInput)}/M, ${100 - cachePercent}% at ${formatRate(model.input)}/M)\n  Output: ${formatCost(model.outputCost)} (${formatTokenCount(outputTokens)} × ${formatRate(model.output)}/M)${model.reasoning && reasoningTokens > 0 ? `\n  Reasoning: ${formatCost(model.reasoningCost)}` : ""}`}
+                            >
+                              <span className="cursor-help border-b border-dashed border-fd-foreground/25">
+                                {formatCost(model.cachedPerCall)}
+                              </span>
+                            </td>
+                          )}
+                          <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
+                            <span
+                              className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
+                            >
+                              {formatCost(
+                                showCache ? model.cachedTotal : model.total,
+                              )}
+                            </span>
+                            <div className="mt-1 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
+                                style={{ width: `${barWidth}%` }}
+                              />
+                            </div>
+                          </td>
+                          {showAdvanced && showCache && (
+                            <td className="border-l border-fd-border/50 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground/72">
+                              {model.savings.toFixed(0)}%
+                            </td>
+                          )}
+                        </>
+                      )}
+                    </tr>
+                    {isSelected &&
+                      showCache &&
+                      !isBudgetMode &&
+                      !isChainMode &&
+                      (() => {
+                        const colCount =
+                          4 +
+                          (showAdvanced ? 2 : 0) +
+                          (showCache ? 2 : 0) +
+                          (showBulk || showCache ? 1 : 0);
+                        const subsequentCalls = Math.max(0, apiCalls - 1);
+                        const inputDiscount =
+                          model.input > 0
+                            ? Math.round(
+                                (1 - model.cachedInput / model.input) * 100,
+                              )
+                            : 0;
+                        return (
+                          <tr
+                            key={`${model.name}-detail`}
+                            className="border-b border-fd-border/50 bg-fd-muted/20"
+                            ref={(el) => {
+                              if (el)
+                                el.scrollIntoView({
+                                  behavior: "smooth",
+                                  block: "nearest",
+                                });
+                            }}
+                          >
+                            <td colSpan={colCount} className="px-8 py-5">
+                              <table className="text-[15px]">
+                                <tbody>
+                                  <tr>
+                                    <td className="pr-4 py-1 font-medium text-fd-foreground/60">
+                                      Call 1
+                                    </td>
+                                    <td
+                                      className="pr-4 py-1 text-right font-semibold tabular-nums text-fd-foreground"
+                                      style={{ minWidth: 72 }}
+                                    >
+                                      {formatCost(model.perCall)}
+                                    </td>
+                                    <td className="py-1 text-sm text-fd-foreground/60">
+                                      {formatCost(model.inputCost)} input +{" "}
+                                      {formatCost(model.outputCost)} output
+                                      {model.reasoningCost > 0
+                                        ? ` + ${formatCost(model.reasoningCost)} reasoning`
+                                        : ""}
+                                    </td>
+                                  </tr>
+                                  {subsequentCalls > 0 && (
+                                    <tr>
+                                      <td className="pr-4 py-1 font-medium text-fd-foreground/60">
+                                        Call 2+
+                                      </td>
+                                      <td className="pr-4 py-1 text-right font-semibold tabular-nums text-fd-foreground">
+                                        {formatCost(model.cachedPerCall)}
+                                      </td>
+                                      <td className="py-1 text-sm text-fd-foreground/60">
+                                        <span className="text-green-800 dark:text-green-400">
+                                          {inputDiscount}% cheaper
+                                        </span>{" "}
+                                        ({formatRate(model.cachedInput)} vs{" "}
+                                        {formatRate(model.input)}/M)
+                                      </td>
+                                    </tr>
+                                  )}
+                                  <tr className="border-t border-fd-border/30">
+                                    <td className="pr-4 pt-2 font-bold text-fd-foreground/70">
+                                      Total
+                                    </td>
+                                    <td className="pr-4 pt-2 text-right font-bold tabular-nums text-fd-foreground">
+                                      {formatCost(model.cachedTotal)}
+                                    </td>
+                                    <td className="pt-2 text-sm font-medium text-green-700/85 dark:text-green-400/85">
+                                      {model.savings > 0 && (
+                                        <>
+                                          saving {model.savings.toFixed(0)}% vs{" "}
+                                          {formatCost(model.total)} without
+                                          cache
+                                        </>
+                                      )}
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </td>
+                          </tr>
+                        );
+                      })()}
+                  </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile card view */}
+        <div className="flex flex-col gap-2 p-2 md:hidden">
+          {visibleModels.map((model) => {
+            const rank = rankedModels.get(model.name) ?? 999;
+            const isTop1 = rank === 1;
+            const isTop3 = rank <= 3;
+            const isPinned = pinnedModels.has(model.name);
+            const barWidth = getCostBarWidth(model);
+            return (
+              <div
+                key={model.name}
+                className={`animate-in fade-in-0 duration-150 relative rounded-lg border px-3 py-2.5 transition-colors hover:bg-fd-muted/45 ${
+                  isPinned
+                    ? "border-fd-primary/40 bg-fd-primary/[0.04]"
+                    : "border-fd-border bg-fd-background"
+                }`}
+                style={
+                  isTop1
+                    ? { borderLeft: "3px solid rgb(34 197 94)" }
+                    : undefined
+                }
+              >
+                <div className="mb-1.5 flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`flex h-5 w-5 items-center justify-center rounded text-xs font-bold tabular-nums ${
+                          isTop1
+                            ? "text-green-800 dark:text-green-400"
+                            : isTop3
+                              ? "text-green-800 dark:text-green-400"
+                              : "text-fd-muted-foreground"
+                        }`}
+                      >
+                        {rank}
+                      </span>
+                      <button
+                        onClick={() => togglePin(model.name)}
+                        title={isPinned ? "Unpin" : "Pin to compare"}
+                        className={`text-left text-sm font-semibold text-fd-foreground hover:text-fd-primary transition-colors ${
+                          isPinned
+                            ? "underline decoration-fd-primary decoration-2 underline-offset-2"
+                            : ""
+                        }`}
+                      >
+                        {model.name}
+                      </button>
+                      {model.reasoning && (
+                        <span className="rounded-full bg-fd-primary/10 px-1.5 py-0.5 text-xs font-medium leading-none text-fd-primary">
+                          thinking
+                        </span>
+                      )}
+                      {model.modalities.length > 1 && (
+                        <span className="inline-flex items-center gap-1 text-fd-foreground/40">
+                          {model.modalities
+                            .filter((m) => m !== "text")
+                            .map((m) => (
+                              <span key={m} title={modalityFullLabels[m]}>
+                                {modalityIcons[m]}
+                              </span>
+                            ))}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-0.5 ml-7 text-xs text-fd-muted-foreground">
+                      {providerLabels[model.provider]}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-1.5 flex items-center gap-3 text-xs text-fd-muted-foreground">
+                  <span>
+                    {formatTokenCount(model.context)} /{" "}
+                    {formatTokenCount(model.maxOutput)}
+                  </span>
+                  <span className="text-fd-border">|</span>
+                  <span>
+                    In: {formatRate(model.input)}/M &middot; Out:{" "}
+                    {formatRate(model.output)}/M
+                  </span>
+                </div>
+
+                {isChainMode ? (
+                  <div className="grid grid-cols-3 gap-x-3 gap-y-2">
+                    <div>
+                      <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
+                        Call 1
+                      </div>
+                      <div className="text-sm font-medium tabular-nums text-fd-foreground">
+                        {formatCost(model.chainCall1)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
+                        Last call
+                      </div>
+                      <div className="text-sm font-medium tabular-nums text-fd-foreground/78">
+                        {formatCost(model.chainLastCall)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
+                        Total
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {model.chainExceedsAt > 0 && (
+                          <span
+                            title={`Exceeds context at call ${model.chainExceedsAt}`}
+                            className="text-amber-500"
+                          >
+                            <svg
+                              className="h-3 w-3"
+                              viewBox="0 0 16 16"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575L6.457 1.047ZM8 5a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-1.5 0v-2.5A.75.75 0 0 1 8 5Zm1 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </span>
+                        )}
+                        <span
+                          className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
+                        >
+                          {formatCost(model.chainTotal)}
+                        </span>
                       </div>
                     </div>
                   </div>
-
-                  <div className="mb-1.5 flex items-center gap-3 text-xs text-fd-muted-foreground">
-                    <span>
-                      {formatTokenCount(model.context)} /{" "}
-                      {formatTokenCount(model.maxOutput)}
-                    </span>
-                    <span className="text-fd-border">|</span>
-                    <span>
-                      In: {formatRate(model.input)}/M &middot; Out:{" "}
-                      {formatRate(model.output)}/M
-                    </span>
+                ) : isBudgetMode ? (
+                  <div>
+                    <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
+                      Max calls for {currency2Formatter.format(budget)}
+                    </div>
+                    <div
+                      className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
+                    >
+                      {model.maxCalls === Infinity
+                        ? "\u221e"
+                        : formatCallCount(model.maxCalls)}
+                    </div>
                   </div>
-
-                  {isChainMode ? (
-                    <div className="grid grid-cols-3 gap-x-3 gap-y-2">
-                      <div>
-                        <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
-                          Call 1
-                        </div>
-                        <div className="text-sm font-medium tabular-nums text-fd-foreground">
-                          {formatCost(model.chainCall1)}
-                        </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                    <div>
+                      <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
+                        {showCache ? "1st call" : "Per call"}
                       </div>
+                      <div className="text-sm font-medium tabular-nums text-fd-foreground">
+                        {formatCost(model.perCall)}
+                      </div>
+                    </div>
+                    {showCache && (
                       <div>
                         <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
-                          Last call
+                          Next call
                         </div>
                         <div className="text-sm font-medium tabular-nums text-fd-foreground/78">
-                          {formatCost(model.chainLastCall)}
+                          {formatCost(model.cachedPerCall)}
                         </div>
                       </div>
+                    )}
+                    {showBulk && (
                       <div>
                         <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
                           Total
                         </div>
-                        <div className="flex items-center gap-1">
-                          {model.chainExceedsAt > 0 && (
-                            <span
-                              title={`Exceeds context at call ${model.chainExceedsAt}`}
-                              className="text-amber-500"
-                            >
-                              <svg
-                                className="h-3 w-3"
-                                viewBox="0 0 16 16"
-                                fill="currentColor"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575L6.457 1.047ZM8 5a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-1.5 0v-2.5A.75.75 0 0 1 8 5Zm1 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                            </span>
+                        <div
+                          className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
+                        >
+                          {formatCost(
+                            showCache ? model.cachedTotal : model.total,
                           )}
-                          <span
-                            className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
-                          >
-                            {formatCost(model.chainTotal)}
-                          </span>
                         </div>
                       </div>
-                    </div>
-                  ) : isBudgetMode ? (
-                    <div>
-                      <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
-                        Max calls for {currency2Formatter.format(budget)}
-                      </div>
-                      <div
-                        className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
-                      >
-                        {model.maxCalls === Infinity
-                          ? "\u221e"
-                          : formatCallCount(model.maxCalls)}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                    )}
+                    {showCache && (
                       <div>
                         <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
-                          {showCache ? "1st call" : "Per call"}
+                          Savings
                         </div>
-                        <div className="text-sm font-medium tabular-nums text-fd-foreground">
-                          {formatCost(model.perCall)}
+                        <div className="text-sm font-medium tabular-nums text-fd-foreground/72">
+                          {model.savings.toFixed(0)}%
                         </div>
                       </div>
-                      {showCache && (
-                        <div>
-                          <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
-                            Next call
-                          </div>
-                          <div className="text-sm font-medium tabular-nums text-fd-foreground/78">
-                            {formatCost(model.cachedPerCall)}
-                          </div>
-                        </div>
-                      )}
-                      {showBulk && (
-                        <div>
-                          <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
-                            Total
-                          </div>
-                          <div
-                            className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-800 dark:text-green-400" : "text-fd-foreground"}`}
-                          >
-                            {formatCost(
-                              showCache ? model.cachedTotal : model.total,
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      {showCache && (
-                        <div>
-                          <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
-                            Savings
-                          </div>
-                          <div className="text-sm font-medium tabular-nums text-fd-foreground/72">
-                            {model.savings.toFixed(0)}%
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Cost bar */}
-                  <div className="mt-2 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
-                      style={{ width: `${barWidth}%` }}
-                    />
+                    )}
                   </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+                )}
+
+                {/* Cost bar */}
+                <div className="mt-2 h-[3px] rounded-full bg-fd-muted/40 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${isTop1 ? "bg-green-500" : "bg-fd-primary/60"}`}
+                    style={{ width: `${barWidth}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         <div className="border-t border-fd-border px-5 py-3 text-xs leading-5 text-fd-foreground/60">

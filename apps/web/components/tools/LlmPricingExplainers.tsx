@@ -198,7 +198,7 @@ export function CachingImpact() {
               {fmt(c.noCacheCost)}
             </div>
             {c.pctSaved > 0 && (
-              <div className="text-sm font-medium text-emerald-600 dark:text-emerald-400 mt-1 tabular-nums">
+              <div className="text-sm font-medium text-emerald-700 dark:text-emerald-400 mt-1 tabular-nums">
                 -{c.pctSaved.toFixed(0)}%
               </div>
             )}

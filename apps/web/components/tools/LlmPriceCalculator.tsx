@@ -1773,7 +1773,7 @@ export function LlmPriceCalculator() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-fd-border/60">
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
                       Call
                     </th>
                     {pinnedData.map((m) => (
@@ -1900,7 +1900,7 @@ export function LlmPriceCalculator() {
                 </>
               )}
             </span>
-            <span className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+            <span className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
               {integerFormatter.format(visibleModels.length)} models
             </span>
           </div>
@@ -2090,7 +2090,7 @@ export function LlmPriceCalculator() {
                               isTop1
                                 ? "text-green-700 dark:text-green-400"
                                 : isTop3
-                                  ? "text-green-700/80 dark:text-green-400/80"
+                                  ? "text-green-700 dark:text-green-400"
                                   : "text-fd-foreground/55"
                             }`}
                           >
@@ -2377,7 +2377,7 @@ export function LlmPriceCalculator() {
                             isTop1
                               ? "text-green-700 dark:text-green-400"
                               : isTop3
-                                ? "text-green-700/80 dark:text-green-400/80"
+                                ? "text-green-700 dark:text-green-400"
                                 : "text-fd-foreground/55"
                           }`}
                         >
@@ -2432,7 +2432,7 @@ export function LlmPriceCalculator() {
                   {isChainMode ? (
                     <div className="grid grid-cols-3 gap-x-3 gap-y-2">
                       <div>
-                        <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                        <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
                           Call 1
                         </div>
                         <div className="text-sm font-medium tabular-nums text-fd-foreground">
@@ -2440,7 +2440,7 @@ export function LlmPriceCalculator() {
                         </div>
                       </div>
                       <div>
-                        <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                        <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
                           Last call
                         </div>
                         <div className="text-sm font-medium tabular-nums text-fd-foreground/78">
@@ -2448,7 +2448,7 @@ export function LlmPriceCalculator() {
                         </div>
                       </div>
                       <div>
-                        <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                        <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
                           Total
                         </div>
                         <div className="flex items-center gap-1">
@@ -2480,7 +2480,7 @@ export function LlmPriceCalculator() {
                     </div>
                   ) : isBudgetMode ? (
                     <div>
-                      <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                      <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
                         Max calls for {currency2Formatter.format(budget)}
                       </div>
                       <div
@@ -2494,7 +2494,7 @@ export function LlmPriceCalculator() {
                   ) : (
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                       <div>
-                        <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                        <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
                           {showCache ? "1st call" : "Per call"}
                         </div>
                         <div className="text-sm font-medium tabular-nums text-fd-foreground">
@@ -2503,7 +2503,7 @@ export function LlmPriceCalculator() {
                       </div>
                       {showCache && (
                         <div>
-                          <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                          <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
                             Next call
                           </div>
                           <div className="text-sm font-medium tabular-nums text-fd-foreground/78">
@@ -2513,7 +2513,7 @@ export function LlmPriceCalculator() {
                       )}
                       {showBulk && (
                         <div>
-                          <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                          <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
                             Total
                           </div>
                           <div
@@ -2527,7 +2527,7 @@ export function LlmPriceCalculator() {
                       )}
                       {showCache && (
                         <div>
-                          <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                          <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/70">
                             Savings
                           </div>
                           <div className="text-sm font-medium tabular-nums text-fd-foreground/72">

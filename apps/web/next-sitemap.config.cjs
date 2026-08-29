@@ -11,8 +11,9 @@ module.exports = {
   generateRobotsTxt: true,
   robotsTxtOptions: {
     policies: [
-      { userAgent: '*', allow: '/' },
-      { userAgent: '*', disallow: ['/api/', '/_next/', '/static/'] },
+      // Allow /api/rss.xml explicitly - longest-path rule beats the /api/ disallow.
+      // Do NOT disallow /_next/ - it blocks CSS/JS chunks and degrades Google's page rendering.
+      { userAgent: '*', allow: ['/', '/api/rss.xml'], disallow: ['/api/', '/static/'] },
     ],
   },
   additionalPaths: async (config) => [

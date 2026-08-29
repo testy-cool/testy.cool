@@ -63,6 +63,11 @@ export default defineConfig({
   lastModifiedTime: "git",
   mdxOptions: {
     providerImportSource: "@/mdx-components",
+    // The default list also indexes mdxJsxFlowElement, which put component
+    // names like "ClampCalculator" into the search index as content.
+    remarkStructureOptions: {
+      types: ["heading", "paragraph", "blockquote", "tableCell"],
+    },
     rehypeCodeOptions: {
       inline: "tailing-curly-colon",
       themes: {

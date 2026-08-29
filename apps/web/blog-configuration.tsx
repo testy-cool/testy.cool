@@ -15,15 +15,7 @@ import type {
   BlogConfiguration,
 } from "@repo/fumadocs-blog/blog";
 import { PostCard } from "@repo/fumadocs-blog/blog";
-import {
-  Brain,
-  Book as LucideBook,
-  Code,
-  Cog,
-  FlaskConical,
-  Rocket,
-  Wrench,
-} from "lucide-react";
+import { getCategoryBySlug, getSeriesBySlug } from "@/lib/categories";
 
 // Blog text constants that can be customized
 
@@ -129,74 +121,4 @@ export function getBlogConfiguration(): BlogConfiguration {
 
 export const useBlogConfiguration = getBlogConfiguration;
 
-// Moved from lib/categories.ts
-export const getCategoryBySlug = (slug: string) => {
-  const categories = {
-    tutorial: {
-      label: "Tutorials",
-      icon: LucideBook,
-      description: "Longer posts that build something up from zero.",
-    },
-    troubleshooting: {
-      label: "Troubleshooting",
-      icon: Wrench,
-      description: "Notes on specific problems and the fixes that worked.",
-    },
-    "lab-notes": {
-      label: "Lab Notes",
-      icon: FlaskConical,
-      description:
-        "Short notes on what I tried, what happened, and what seems true so far.",
-    },
-    "tools-tech": {
-      label: "Tools & Tech",
-      icon: Cog,
-      description:
-        "Tooling notes, implementation details, and small experiments.",
-    },
-    conceptual: {
-      label: "Concepts",
-      icon: Brain,
-      description: "Posts that are more about framing than implementation.",
-    },
-    solution: {
-      label: "Solutions",
-      icon: Rocket,
-      description: "Problem-and-solution writeups.",
-    },
-    tech: {
-      label: "Tech Notes",
-      icon: Code,
-      description: "General engineering notes and implementation details.",
-    },
-  };
-
-  const fallbackLabel = slug
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-
-  return (
-    categories[slug as keyof typeof categories] || {
-      label: fallbackLabel,
-      icon: LucideBook,
-      description: `Posts in ${fallbackLabel}.`,
-    }
-  );
-};
-
-export const getSeriesBySlug = (slug: string) => {
-  // No series exist yet. Add them here keyed by slug when a post sets `series`.
-  const series: Record<
-    string,
-    { label: string; icon: typeof LucideBook; description: string }
-  > = {};
-
-  return (
-    series[slug] || {
-      label: slug.charAt(0).toUpperCase() + slug.slice(1),
-      icon: LucideBook,
-      description: `Articles in the ${slug.charAt(0).toUpperCase() + slug.slice(1)} series.`,
-    }
-  );
-};
+export { getCategoryBySlug, getSeriesBySlug };

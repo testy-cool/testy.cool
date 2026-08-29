@@ -12,7 +12,7 @@ export function PostCard({ post, configuration = {} }: PostCardProps) {
   const CardComponent = configuration.Card || null;
   const readingTime = getReadingTime(post.data.structuredData);
   const cardClassName =
-    "order-last border-0 bg-transparent shadow-none sm:order-first sm:col-span-12 lg:col-span-10 lg:col-start-2 transition-all duration-300 hover:shadow-lg rounded-xl";
+    "order-last border-0 bg-transparent shadow-none sm:order-first sm:col-span-12 lg:col-span-10 lg:col-start-2 transition-all duration-300 group-hover:shadow-lg rounded-xl";
 
   const cardContent = (
     <div className="grid gap-y-6 sm:grid-cols-10 sm:gap-x-5 sm:gap-y-0 md:items-center md:gap-x-8 lg:gap-x-12">
@@ -30,9 +30,7 @@ export function PostCard({ post, configuration = {} }: PostCardProps) {
           </div>
         </div>
         <h3 className="text-xl font-semibold md:text-2xl lg:text-3xl text-left">
-          <Link href={post.url} className="hover:underline cursor-pointer">
-            {post.data.title}
-          </Link>
+          <span className="group-hover:underline">{post.data.title}</span>
         </h3>
         <p className="mt-4 text-muted-foreground md:mt-5 text-left line-clamp-3">
           {post.data.description}
@@ -56,37 +54,40 @@ export function PostCard({ post, configuration = {} }: PostCardProps) {
           </span>
         </div>
         <div className="mt-4 flex items-center space-x-2 md:mt-6">
-          <Link
-            href={post.url}
-            className="inline-flex items-center font-semibold hover:underline underline-offset-2 md:text-base"
-          >
+          <span className="inline-flex items-center font-semibold underline-offset-2 md:text-base">
             <span>Read more</span>
             <ArrowRight className="ml-2 size-4 transition-transform" />
-          </Link>
+          </span>
         </div>
       </div>
       <div className="order-first sm:order-last sm:col-span-5">
-        <Link href={post.url} className="block">
-          <div className="group/thumb aspect-[16/9] overflow-hidden rounded-lg border border-border">
-            <img
-              src={post.data.image || post.url.replace('/blog/', '/blog-og/') + '/image.png'}
-              alt={post.data.title}
-              style={{ transition: "transform 500ms ease-out, opacity 500ms ease-out" }}
-              className="h-full w-full object-cover group-hover/thumb:scale-105 group-hover/thumb:opacity-80"
-            />
-          </div>
-        </Link>
+        <div className="aspect-[16/9] overflow-hidden rounded-lg border border-border">
+          <img
+            src={
+              post.data.image ||
+              post.url.replace("/blog/", "/blog-og/") + "/image.png"
+            }
+            alt={post.data.title}
+            style={{
+              transition: "transform 500ms ease-out, opacity 500ms ease-out",
+            }}
+            className="h-full w-full object-cover group-hover:scale-105 group-hover:opacity-80"
+          />
+        </div>
       </div>
     </div>
   );
 
-  return CardComponent ? (
-    <CardComponent key={post.url} className={cardClassName}>
-      {cardContent}
-    </CardComponent>
-  ) : (
-    <div key={post.url} className={cardClassName}>
-      {cardContent}
-    </div>
+  return (
+    <Link
+      href={post.url}
+      className="group block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary focus-visible:ring-offset-2 focus-visible:ring-offset-fd-background"
+    >
+      {CardComponent ? (
+        <CardComponent className={cardClassName}>{cardContent}</CardComponent>
+      ) : (
+        <div className={cardClassName}>{cardContent}</div>
+      )}
+    </Link>
   );
 }

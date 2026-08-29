@@ -40,6 +40,7 @@ export function TokenExplainer() {
         rows={2}
         className="w-full rounded-md border border-fd-border bg-fd-background p-3 text-base text-fd-foreground resize-y focus:outline-none focus:ring-2 focus:ring-fd-primary/50"
         placeholder="Type or paste text here..."
+        aria-label="Text to count tokens for"
       />
       <div className="flex flex-wrap gap-x-6 gap-y-1">
         <div className="text-2xl font-semibold text-fd-foreground tabular-nums">

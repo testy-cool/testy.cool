@@ -14,7 +14,8 @@ import type {
   BlogConstants,
   BlogConfiguration,
 } from "@repo/fumadocs-blog/blog";
-import { PostCard } from "@repo/fumadocs-blog/blog";
+import type { PostCardProps } from "@repo/fumadocs-blog/blog";
+import { BlogPostRow } from "@/components/blog-post-row";
 import { getCategoryBySlug, getSeriesBySlug } from "@/lib/categories";
 
 // Blog text constants that can be customized
@@ -96,7 +97,7 @@ export function createBlogMetadata(
 
 export function getBlogConfiguration(): BlogConfiguration {
   return {
-    PostCard: PostCard,
+    PostCard: ({ post }: PostCardProps) => <BlogPostRow post={post} />,
     backgroundPattern: {
       enabled: true,
       component: <GridBackground maxWidthClass="container" />,

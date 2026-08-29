@@ -14,6 +14,7 @@ import { getSeriesBySlug } from "@/blog-configuration";
 import { getMDXComponents } from "@/mdx-components";
 import { blogPostingSchema, breadcrumbSchema } from "@/lib/jsonld";
 import type { Metadata } from "next";
+import { BlogCategoryNav } from "@/components/blog-category-nav";
 
 const siteUrl = `https://${blogConstants.siteName}`;
 
@@ -52,6 +53,9 @@ export default async function Page(props: {
 }) {
   const params = await props.params;
   const posts = getBlogPosts();
+  // The first segment is a category slug on category pages, "page" on /blog/page/N.
+  const first = params.slug?.[0];
+  const activeCategory = first === "page" ? undefined : first;
 
   return (
     <BlogWrapper
@@ -61,7 +65,10 @@ export default async function Page(props: {
       getCategoryBySlug={getCategoryBySlug}
       getSeriesBySlug={getSeriesBySlug}
       mdxComponents={getMDXComponents()}
-      configuration={getBlogConfiguration()}
+      configuration={{
+        ...getBlogConfiguration(),
+        categoryNav: <BlogCategoryNav active={activeCategory} />,
+      }}
       includeDrafts={process.env.NODE_ENV !== "production"}
       getJsonLd={getJsonLd}
     />

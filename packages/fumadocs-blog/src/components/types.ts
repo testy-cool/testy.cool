@@ -86,6 +86,12 @@ export interface BlogConfiguration extends Record<string, any> {
   };
 
   /**
+   * Rendered above the post list on index, paginated and category pages,
+   * e.g. a row of category links.
+   */
+  categoryNav?: React.ReactNode;
+
+  /**
    * Blog configuration for URLs and pagination
    */
   config?: BlogConfig;

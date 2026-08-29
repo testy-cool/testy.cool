@@ -80,7 +80,12 @@ export function PostList({
 
       <section className="relative container px-4 py-8 lg:py-12 lg:px-6 text-left">
         {slot(configuration?.backgroundPattern, null)}
-        <div className="grid gap-y-8 sm:grid-cols-12 sm:gap-y-10 md:gap-y-12 lg:gap-y-14">
+        {configuration?.categoryNav ? (
+          <div className="mx-auto mb-6 w-full max-w-3xl">
+            {configuration.categoryNav}
+          </div>
+        ) : null}
+        <div className="mx-auto w-full max-w-3xl">
           {posts
             .filter(
               (post): post is NonNullable<typeof post> => post !== undefined

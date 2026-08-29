@@ -82,7 +82,7 @@ function RecentCard({
           </div>
         </div>
         {/* Chapter count badge */}
-        <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-[11px] font-semibold text-white/90 tracking-wide">
+        <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-xs font-semibold text-white/90 tracking-wide">
           {tutorial.stepCount} ch
         </div>
         {/* Title overlay at bottom */}
@@ -95,16 +95,16 @@ function RecentCard({
       {/* Meta bar */}
       <div className="flex items-center justify-between px-3.5 py-2.5 bg-fd-card border border-t-0 border-fd-border/50 rounded-b-2xl">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-fd-muted-foreground/60 font-medium">
+          <span className="text-xs text-fd-muted-foreground font-medium">
             {timeAgo(tutorial.timestamp)}
           </span>
           {tutorial.category && (
-            <span className="text-[10px] font-medium uppercase tracking-wider text-fd-primary/60">
+            <span className="text-xs font-medium uppercase tracking-wider text-fd-primary">
               {tutorial.category}
             </span>
           )}
         </div>
-        <span className="text-[11px] text-fd-primary/70 font-semibold tracking-wide uppercase group-hover:text-fd-primary transition-colors">
+        <span className="text-xs text-fd-primary font-semibold tracking-wide uppercase transition-colors">
           Open
         </span>
       </div>
@@ -896,7 +896,7 @@ export default function TutorialApp() {
             {recentTutorials.length > 0 && !isLoading && (
               <div className="mt-14">
                 <div className="flex items-center gap-3 mb-5">
-                  <h2 className="text-[13px] font-semibold text-fd-muted-foreground/50 uppercase tracking-[0.1em]">
+                  <h2 className="text-[13px] font-semibold text-fd-muted-foreground uppercase tracking-[0.1em]">
                     Recently generated
                   </h2>
                   <div className="flex-1 h-px bg-fd-border/50" />

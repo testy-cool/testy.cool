@@ -73,8 +73,7 @@ export const Header = ({
             <LargeSearchToggle className="w-full max-w-[240px] max-lg:hidden" />
           </SearchOnly>
         ) : null}
-        {/* <ThemeToggle className='max-lg:hidden' /> */}
-        <ThemeToggle className="max-lg:hidden" />
+        <ThemeToggle className="max-lg:hidden" mode="light-dark-system" />
         {navItems.filter(isSecondary).map((item, i) => (
           <NavbarLinkItem
             key={i.toString()}
@@ -112,7 +111,7 @@ export const Header = ({
                   <ChevronDown className="size-3 text-fd-muted-foreground" />
                 </LanguageToggle>
               ) : null}
-              <ThemeToggle />
+              <ThemeToggle mode="light-dark-system" />
             </div>
           </MenuContent>
         </Menu>

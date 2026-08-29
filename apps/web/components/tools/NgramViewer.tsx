@@ -2,6 +2,14 @@
 
 import { useId, useMemo, useState } from "react";
 
+const DEFAULT_SAMPLE_TEXT = `Agents work better with clear goals and useful context.
+Writers work better with clear goals and useful examples.
+Teams work better with clear goals and useful feedback.
+
+Good defaults help people start quickly.
+Clear defaults help people start confidently.
+Useful defaults help people start without friction.`;
+
 type Token = { text: string; raw: string; idx: number };
 
 interface NgramRow {
@@ -174,7 +182,7 @@ function downloadCSV(filename: string, rows: string[][]) {
 }
 
 export function NgramViewer() {
-  const [text, setText] = useState("");
+  const [text, setText] = useState(DEFAULT_SAMPLE_TEXT);
   const [n, setN] = useState(4);
   const [minCount, setMinCount] = useState(2);
   const [caseSensitive, setCaseSensitive] = useState(false);
@@ -270,6 +278,12 @@ export function NgramViewer() {
           placeholder="Paste any text here..."
         />
         <div className="mt-2 flex flex-wrap gap-2">
+          <button
+            onClick={() => setText(DEFAULT_SAMPLE_TEXT)}
+            className="text-sm rounded-md border border-fd-border px-2 py-1 hover:bg-fd-muted"
+          >
+            Load sample
+          </button>
           <button
             onClick={() => setText("")}
             className="text-sm rounded-md border border-fd-border px-2 py-1 hover:bg-fd-muted"

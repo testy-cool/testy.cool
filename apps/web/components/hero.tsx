@@ -12,7 +12,7 @@ const chars =
 const SCRAMBLE_SPEED = 30;
 const SETTLE_DELAY = 3;
 
-export default function Hero({ postCount }: { postCount?: number }) {
+export default function Hero() {
   const [display, setDisplay] = useState(firstTopic);
   const [targetLen, setTargetLen] = useState(firstTopic.length);
   const [settled, setSettled] = useState(true);
@@ -129,7 +129,7 @@ export default function Hero({ postCount }: { postCount?: number }) {
             <Button
               asChild
               size="lg"
-              className="gap-2 hover:shadow-md transition-all"
+              className="gap-2 hover:shadow-md transition-shadow"
             >
               <Link href="/blog">
                 Browse notes <MoveRight className="w-4 h-4" />
@@ -139,18 +139,13 @@ export default function Hero({ postCount }: { postCount?: number }) {
               asChild
               size="lg"
               variant="outline"
-              className="gap-2 hover:shadow-md transition-all"
+              className="gap-2 hover:shadow-md transition-shadow"
             >
               <Link href="/tools">
                 Tools <MoveRight className="w-4 h-4" />
               </Link>
             </Button>
           </div>
-          {postCount != null && (
-            <p className="max-w-2xl text-center text-sm text-fd-foreground/62">
-              {postCount} notes so far.
-            </p>
-          )}
         </div>
       </div>
     </div>

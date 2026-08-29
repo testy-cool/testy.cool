@@ -5,19 +5,11 @@ import { getKnowledgeNotes } from "@/lib/source";
 export const revalidate = false;
 export const dynamic = "force-static";
 
-const categorySlugs = [
-  "tutorial",
-  "troubleshooting",
-  "lab-notes",
-  "tools-tech",
-  "tech",
-  "conceptual",
-  "solution",
-] as const;
-
 export function GET() {
   const siteUrl = `https://${blogConstants.siteName}`;
   const notes = getKnowledgeNotes();
+  // Only categories that actually hold a published note.
+  const categorySlugs = [...new Set(notes.map((note) => note.category))];
 
   const lines = [
     title,
@@ -32,7 +24,7 @@ export function GET() {
     "How to use this site",
     "- Use the stable `id` field from /knowledge.json when referring to or revising a note.",
     "- Draft notes are excluded from public endpoints.",
-    "- `status` tracks lifecycle. `resumeSignal` tracks whether a note should represent the author publicly.",
+    "- `status` tracks lifecycle.",
     "- `canonical` is the preferred public URL. `supersedes` lists older note ids this note replaces.",
     "",
     "Categories",

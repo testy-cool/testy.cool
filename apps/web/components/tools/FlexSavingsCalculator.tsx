@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useId, useState, useMemo } from "react";
 
 interface Model {
   name: string;
@@ -38,6 +38,7 @@ export function FlexSavingsCalculator() {
   const [inputTokens, setInputTokens] = useState("2000");
   const [outputTokens, setOutputTokens] = useState("1000");
   const [cachedPct, setCachedPct] = useState(0);
+  const id = useId();
 
   const results = useMemo(() => {
     const req = parseNum(requests);
@@ -64,8 +65,9 @@ export function FlexSavingsCalculator() {
     <div className="rounded-lg border border-fd-border bg-fd-card p-4 space-y-4">
       <div className="grid grid-cols-3 gap-2">
         <div className="space-y-1">
-          <label className="text-xs text-fd-muted-foreground">Requests</label>
+          <label htmlFor={`${id}-requests`} className="text-xs text-fd-muted-foreground">Requests</label>
           <input
+            id={`${id}-requests`}
             type="text"
             value={requests}
             onChange={(e) => setRequests(e.target.value)}
@@ -73,8 +75,9 @@ export function FlexSavingsCalculator() {
           />
         </div>
         <div className="space-y-1">
-          <label className="text-xs text-fd-muted-foreground">Input tokens/req</label>
+          <label htmlFor={`${id}-input-tokens`} className="text-xs text-fd-muted-foreground">Input tokens/req</label>
           <input
+            id={`${id}-input-tokens`}
             type="text"
             value={inputTokens}
             onChange={(e) => setInputTokens(e.target.value)}
@@ -82,8 +85,9 @@ export function FlexSavingsCalculator() {
           />
         </div>
         <div className="space-y-1">
-          <label className="text-xs text-fd-muted-foreground">Output tokens/req</label>
+          <label htmlFor={`${id}-output-tokens`} className="text-xs text-fd-muted-foreground">Output tokens/req</label>
           <input
+            id={`${id}-output-tokens`}
             type="text"
             value={outputTokens}
             onChange={(e) => setOutputTokens(e.target.value)}
@@ -99,6 +103,8 @@ export function FlexSavingsCalculator() {
         </div>
         <input
           type="range"
+          aria-label="Cached input percentage"
+          aria-valuetext={`${cachedPct}%`}
           min={0}
           max={100}
           step={5}

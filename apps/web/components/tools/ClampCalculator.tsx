@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useId } from "react";
 
 interface ClampValues {
   min: number;
@@ -26,6 +26,7 @@ export function ClampCalculator() {
     max: 48,
   });
   const [toast, setToast] = useState(false);
+  const id = useId();
 
   const calc = useCallback(() => {
     let resultStr: string;
@@ -122,10 +123,11 @@ export function ClampCalculator() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+                <label htmlFor={`${id}-mobile`} className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
                   Mobile value (px)
                 </label>
                 <input
+                  id={`${id}-mobile`}
                   type="number"
                   value={mobile}
                   onChange={(e) => setMobile(Number(e.target.value))}
@@ -133,10 +135,11 @@ export function ClampCalculator() {
                 />
               </div>
               <div>
-                <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+                <label htmlFor={`${id}-desktop`} className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
                   Desktop value (px)
                 </label>
                 <input
+                  id={`${id}-desktop`}
                   type="number"
                   value={desktop}
                   onChange={(e) => setDesktop(Number(e.target.value))}
@@ -146,10 +149,11 @@ export function ClampCalculator() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+                <label htmlFor={`${id}-mobile-vp`} className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
                   Mobile viewport (px)
                 </label>
                 <input
+                  id={`${id}-mobile-vp`}
                   type="number"
                   value={mobileVp}
                   onChange={(e) => setMobileVp(Number(e.target.value))}
@@ -157,10 +161,11 @@ export function ClampCalculator() {
                 />
               </div>
               <div>
-                <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+                <label htmlFor={`${id}-desktop-vp`} className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
                   Desktop viewport (px)
                 </label>
                 <input
+                  id={`${id}-desktop-vp`}
                   type="number"
                   value={desktopVp}
                   onChange={(e) => setDesktopVp(Number(e.target.value))}
@@ -175,10 +180,11 @@ export function ClampCalculator() {
         {mode === "one" && (
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+              <label htmlFor={`${id}-desktop-only`} className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
                 Desktop value (1440px)
               </label>
               <input
+                id={`${id}-desktop-only`}
                 type="number"
                 value={desktopOnly}
                 onChange={(e) => setDesktopOnly(Number(e.target.value))}
@@ -186,10 +192,11 @@ export function ClampCalculator() {
               />
             </div>
             <div>
-              <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+              <label htmlFor={`${id}-min-floor`} className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
                 Min for mobile
               </label>
               <input
+                id={`${id}-min-floor`}
                 type="number"
                 value={minFloor}
                 onChange={(e) => setMinFloor(Number(e.target.value))}
@@ -221,6 +228,7 @@ export function ClampCalculator() {
           </span>
           <input
             type="range"
+            aria-label="Preview viewport width"
             min={320}
             max={2560}
             value={viewport}
@@ -279,6 +287,7 @@ export function ClampCalculator() {
 export function VwCalculator() {
   const [target, setTarget] = useState(48);
   const [baseWidth, setBaseWidth] = useState(1440);
+  const id = useId();
 
   const vw = (target / baseWidth) * 100;
 
@@ -286,10 +295,11 @@ export function VwCalculator() {
     <div className="not-prose my-6 bg-fd-card border border-fd-border rounded-lg p-4">
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+          <label htmlFor={`${id}-target`} className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
             Target (px)
           </label>
           <input
+            id={`${id}-target`}
             type="number"
             value={target}
             onChange={(e) => setTarget(Number(e.target.value))}
@@ -297,10 +307,11 @@ export function VwCalculator() {
           />
         </div>
         <div>
-          <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+          <label htmlFor={`${id}-base-width`} className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
             Base viewport (px)
           </label>
           <input
+            id={`${id}-base-width`}
             type="number"
             value={baseWidth}
             onChange={(e) => setBaseWidth(Number(e.target.value))}
@@ -338,6 +349,7 @@ export function ScalingPreview() {
         <span className="font-mono text-xs text-fd-muted-foreground">430</span>
         <input
           type="range"
+          aria-label="Preview viewport width"
           min={430}
           max={1440}
           value={viewport}
@@ -380,6 +392,7 @@ export function BreakpointComparison() {
         <span className="font-mono text-xs text-fd-muted-foreground">430</span>
         <input
           type="range"
+          aria-label="Preview viewport width"
           min={430}
           max={1440}
           value={viewport}
@@ -423,6 +436,7 @@ export function TwoPointCalculator() {
   const [desktopSize, setDesktopSize] = useState(48);
   const [mobileVp, setMobileVp] = useState(430);
   const [desktopVp, setDesktopVp] = useState(1440);
+  const id = useId();
 
   const slope = (desktopSize - mobileSize) / (desktopVp - mobileVp);
   const base = mobileSize - slope * mobileVp;
@@ -444,10 +458,11 @@ export function TwoPointCalculator() {
     <div className="not-prose my-6 bg-fd-card border border-fd-border rounded-lg p-4">
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+          <label htmlFor={`${id}-mobile-size`} className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
             Mobile size (px)
           </label>
           <input
+            id={`${id}-mobile-size`}
             type="number"
             value={mobileSize}
             onChange={(e) => setMobileSize(Number(e.target.value))}
@@ -455,10 +470,11 @@ export function TwoPointCalculator() {
           />
         </div>
         <div>
-          <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+          <label htmlFor={`${id}-desktop-size`} className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
             Desktop size (px)
           </label>
           <input
+            id={`${id}-desktop-size`}
             type="number"
             value={desktopSize}
             onChange={(e) => setDesktopSize(Number(e.target.value))}
@@ -469,10 +485,11 @@ export function TwoPointCalculator() {
 
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+          <label htmlFor={`${id}-mobile-vp`} className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
             Mobile viewport (px)
           </label>
           <input
+            id={`${id}-mobile-vp`}
             type="number"
             value={mobileVp}
             onChange={(e) => setMobileVp(Number(e.target.value))}
@@ -480,10 +497,11 @@ export function TwoPointCalculator() {
           />
         </div>
         <div>
-          <label className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+          <label htmlFor={`${id}-desktop-vp`} className="block text-[0.7rem] text-fd-muted-foreground uppercase tracking-wide mb-1.5">
             Desktop viewport (px)
           </label>
           <input
+            id={`${id}-desktop-vp`}
             type="number"
             value={desktopVp}
             onChange={(e) => setDesktopVp(Number(e.target.value))}

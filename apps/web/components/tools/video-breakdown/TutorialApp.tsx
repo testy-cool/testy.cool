@@ -636,6 +636,7 @@ export default function TutorialApp() {
             <div className="vtg-input-glow flex items-stretch rounded-2xl border border-fd-border bg-fd-card overflow-hidden transition-all duration-300">
               <input
                 type="text"
+                aria-label="YouTube URL or video ID"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
@@ -662,6 +663,7 @@ export default function TutorialApp() {
             {/* Custom instructions */}
             <div className="mt-3 space-y-2">
               <textarea
+                aria-label="Extra instructions for the breakdown"
                 value={customNote}
                 onChange={(e) => setCustomNote(e.target.value)}
                 placeholder="Extra instructions, e.g. 'focus on the code' or 'skip the sponsor segment'..."
@@ -805,6 +807,7 @@ export default function TutorialApp() {
                           >
                             <input
                               type="password"
+                              aria-label="Password to unlock prompt editing"
                               value={promptPassword}
                               onChange={(e) =>
                                 setPromptPassword(e.target.value)

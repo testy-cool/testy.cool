@@ -346,6 +346,7 @@ function ChatPanel({ videoId }: { videoId: string }) {
         <div className="flex items-stretch border-t border-fd-border/30">
           <input
             type="text"
+            aria-label="Ask about the video"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && send()}

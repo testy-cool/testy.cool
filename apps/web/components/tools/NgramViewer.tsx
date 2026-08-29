@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 
 type Token = { text: string; raw: string; idx: number };
 
@@ -182,6 +182,7 @@ export function NgramViewer() {
   const [search, setSearch] = useState("");
   const [minVariants, setMinVariants] = useState(2);
   const [limit, setLimit] = useState(100);
+  const id = useId();
 
   const lines = useMemo(
     () => tokenize(text, caseSensitive),
@@ -248,7 +249,10 @@ export function NgramViewer() {
       {/* Input */}
       <div className="rounded-xl border border-fd-border bg-fd-card p-4 mb-4">
         <div className="flex items-center justify-between mb-2">
-          <label className="text-sm font-semibold text-fd-foreground">
+          <label
+            htmlFor={`${id}-input-text`}
+            className="text-sm font-semibold text-fd-foreground"
+          >
             Input text
           </label>
           <div className="text-sm text-fd-muted-foreground">
@@ -258,6 +262,7 @@ export function NgramViewer() {
           </div>
         </div>
         <textarea
+          id={`${id}-input-text`}
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={8}
@@ -298,10 +303,14 @@ export function NgramViewer() {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold uppercase tracking-wider text-fd-muted-foreground mb-1">
+          <label
+            htmlFor={`${id}-min-count`}
+            className="block text-sm font-semibold uppercase tracking-wider text-fd-muted-foreground mb-1"
+          >
             Min count
           </label>
           <input
+            id={`${id}-min-count`}
             type="number"
             min={1}
             value={minCount}
@@ -313,10 +322,14 @@ export function NgramViewer() {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold uppercase tracking-wider text-fd-muted-foreground mb-1">
+          <label
+            htmlFor={`${id}-max-rows`}
+            className="block text-sm font-semibold uppercase tracking-wider text-fd-muted-foreground mb-1"
+          >
             Max rows shown
           </label>
           <select
+            id={`${id}-max-rows`}
             value={limit}
             onChange={(e) => setLimit(Number(e.target.value))}
             className="w-full rounded-md border border-fd-border bg-fd-background px-2 py-1.5 text-sm"
@@ -369,6 +382,7 @@ export function NgramViewer() {
 
         <input
           type="text"
+          aria-label="Filter n-grams"
           placeholder="Filter…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -416,6 +430,7 @@ export function NgramViewer() {
             <span className="text-fd-muted-foreground">Min variants:</span>
             <input
               type="number"
+              aria-label="Minimum variants"
               min={2}
               value={minVariants}
               onChange={(e) =>

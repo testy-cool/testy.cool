@@ -42,6 +42,7 @@ export default function ChannelInput({ onSubmit, isLoading, globalChannels, onLo
       <div className="flex items-stretch rounded-xl border border-fd-border bg-fd-card shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-fd-primary focus-within:border-transparent transition-shadow">
         <input
           type="text"
+          aria-label="Channel handle or URL"
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleSubmit()}
@@ -53,6 +54,7 @@ export default function ChannelInput({ onSubmit, isLoading, globalChannels, onLo
           value={videoCount}
           onChange={e => setVideoCount(Number(e.target.value))}
           disabled={isLoading}
+          aria-label="Number of videos to analyze"
           className="px-2 py-3.5 text-[14px] bg-transparent text-fd-muted-foreground border-l border-fd-border focus:outline-none disabled:opacity-50 cursor-pointer"
         >
           {[10, 20, 30, 50].map(n => (

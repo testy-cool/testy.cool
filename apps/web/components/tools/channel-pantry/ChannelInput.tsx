@@ -80,7 +80,7 @@ export default function ChannelInput({ onSubmit, isLoading, globalChannels, onLo
       {/* Global recent channels */}
       {globalChannels.length > 0 && !isLoading && (
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="text-[13px] text-fd-muted-foreground/60">Recently analyzed:</span>
+          <span className="text-[13px] text-fd-muted-foreground">Recently analyzed:</span>
           {globalChannels.map(c => (
             <button
               key={c.channelId}

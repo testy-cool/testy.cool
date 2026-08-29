@@ -185,7 +185,7 @@ export default function IngredientStream({
               <h3 className="text-[14px] font-semibold text-fd-foreground uppercase tracking-wide">
                 {cat.name}
               </h3>
-              <span className="text-[12px] text-fd-muted-foreground/60">
+              <span className="text-[12px] text-fd-muted-foreground">
                 {cat.items.length}
               </span>
             </div>

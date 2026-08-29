@@ -286,7 +286,7 @@ export function ChainCostPreview() {
           {turns} turns with {model.name}
         </span>
         {multiplier > 1.05 && (
-          <span className="text-sm text-amber-700 dark:text-amber-400 tabular-nums">
+          <span className="text-sm text-amber-800 dark:text-amber-400 tabular-nums">
             {multiplier.toFixed(1)}x vs independent calls
           </span>
         )}

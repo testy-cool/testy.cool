@@ -124,7 +124,7 @@ export function FlexSavingsCalculator() {
                 <span className="text-sm text-fd-foreground">{r.name}</span>
                 <span className="text-xs tabular-nums text-fd-muted-foreground ml-2">
                   {fmt(r.standard)} → {fmt(r.flex)}
-                  <span className="text-green-500 ml-1">(-{fmt(r.saved)})</span>
+                  <span className="text-green-700 dark:text-green-400 ml-1">(-{fmt(r.saved)})</span>
                 </span>
               </div>
               <div className="h-5 w-full rounded bg-fd-muted/30 flex overflow-hidden">

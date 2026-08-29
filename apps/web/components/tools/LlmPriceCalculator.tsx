@@ -1773,13 +1773,13 @@ export function LlmPriceCalculator() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-fd-border/60">
-                    <th className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
                       Call
                     </th>
                     {pinnedData.map((m) => (
                       <th
                         key={m.name}
-                        className="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62"
+                        className="px-3 py-2 text-right text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/62"
                       >
                         {m.name}
                       </th>
@@ -1803,7 +1803,7 @@ export function LlmPriceCalculator() {
                             key={c.name}
                             className={`px-3 py-2 text-right tabular-nums font-medium ${
                               c.cost === minCost
-                                ? "text-green-500"
+                                ? "text-green-700 dark:text-green-400"
                                 : "text-fd-foreground"
                             }`}
                           >
@@ -1853,7 +1853,7 @@ export function LlmPriceCalculator() {
                         Total
                       </span>
                       <span
-                        className={`text-right tabular-nums font-semibold ${isWinner ? "text-green-500" : ""}`}
+                        className={`text-right tabular-nums font-semibold ${isWinner ? "text-green-700 dark:text-green-400" : ""}`}
                       >
                         {formatCost(cost)}
                       </span>
@@ -1907,7 +1907,7 @@ export function LlmPriceCalculator() {
 
           <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2.5 rounded-lg border border-fd-border bg-fd-background/80 px-4 py-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-md bg-fd-foreground/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-fd-foreground/80">
+              <span className="rounded-md bg-fd-foreground/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-[0.14em] text-fd-foreground/80">
                 Provider
               </span>
               <button
@@ -1940,7 +1940,7 @@ export function LlmPriceCalculator() {
             <div className="h-5 w-px bg-fd-border" />
 
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-md bg-fd-foreground/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-fd-foreground/80">
+              <span className="rounded-md bg-fd-foreground/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-[0.14em] text-fd-foreground/80">
                 Input
               </span>
               {modalityOrder.map((modality) => (
@@ -1969,13 +1969,13 @@ export function LlmPriceCalculator() {
           >
             <thead>
               <tr className="border-b border-fd-border bg-fd-muted/15">
-                <th className="w-10 px-2 py-3 text-center text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
+                <th className="w-10 px-2 py-3 text-center text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
                   #
                 </th>
-                <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
                   Provider
                 </th>
-                <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
                   Model
                 </th>
                 <th className={headerCellClass}>Context</th>
@@ -2088,10 +2088,10 @@ export function LlmPriceCalculator() {
                           <span
                             className={`text-base font-semibold tabular-nums ${
                               isTop1
-                                ? "text-green-500"
+                                ? "text-green-700 dark:text-green-400"
                                 : isTop3
-                                  ? "text-green-500/60"
-                                  : "text-fd-foreground/30"
+                                  ? "text-green-700/80 dark:text-green-400/80"
+                                  : "text-fd-foreground/55"
                             }`}
                           >
                             {rank}
@@ -2114,7 +2114,7 @@ export function LlmPriceCalculator() {
                               {model.name}
                             </button>
                             {model.reasoning && (
-                              <span className="rounded-full bg-fd-primary/10 px-1.5 py-0.5 text-[10px] font-medium leading-none text-fd-primary">
+                              <span className="rounded-full bg-fd-primary/10 px-1.5 py-0.5 text-xs font-medium leading-none text-fd-primary">
                                 thinking
                               </span>
                             )}
@@ -2177,7 +2177,7 @@ export function LlmPriceCalculator() {
                                   </span>
                                 )}
                                 <span
-                                  className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}
+                                  className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-700 dark:text-green-400" : "text-fd-foreground"}`}
                                 >
                                   {formatCost(model.chainTotal)}
                                 </span>
@@ -2193,7 +2193,7 @@ export function LlmPriceCalculator() {
                         ) : isBudgetMode ? (
                           <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
                             <div
-                              className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}
+                              className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-700 dark:text-green-400" : "text-fd-foreground"}`}
                             >
                               {model.maxCalls === Infinity
                                 ? "\u221e"
@@ -2223,7 +2223,7 @@ export function LlmPriceCalculator() {
                             )}
                             <td className="border-l border-fd-border/60 bg-fd-muted/10 px-4 py-3.5 text-right">
                               <span
-                                className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}
+                                className={`text-[15px] font-semibold tabular-nums ${isTop1 ? "text-green-700 dark:text-green-400" : "text-fd-foreground"}`}
                               >
                                 {formatCost(
                                   showCache ? model.cachedTotal : model.total,
@@ -2303,7 +2303,7 @@ export function LlmPriceCalculator() {
                                           {formatCost(model.cachedPerCall)}
                                         </td>
                                         <td className="py-1 text-sm text-fd-foreground/60">
-                                          <span className="text-green-500/80">
+                                          <span className="text-green-700 dark:text-green-400">
                                             {inputDiscount}% cheaper
                                           </span>{" "}
                                           ({formatRate(model.cachedInput)} vs{" "}
@@ -2318,7 +2318,7 @@ export function LlmPriceCalculator() {
                                       <td className="pr-4 pt-2 text-right font-bold tabular-nums text-fd-foreground">
                                         {formatCost(model.cachedTotal)}
                                       </td>
-                                      <td className="pt-2 text-sm font-medium text-green-500/70">
+                                      <td className="pt-2 text-sm font-medium text-green-700/85 dark:text-green-400/85">
                                         {model.savings > 0 && (
                                           <>
                                             saving {model.savings.toFixed(0)}%
@@ -2375,10 +2375,10 @@ export function LlmPriceCalculator() {
                         <span
                           className={`flex h-5 w-5 items-center justify-center rounded text-xs font-bold tabular-nums ${
                             isTop1
-                              ? "text-green-500"
+                              ? "text-green-700 dark:text-green-400"
                               : isTop3
-                                ? "text-green-500/60"
-                                : "text-fd-foreground/30"
+                                ? "text-green-700/80 dark:text-green-400/80"
+                                : "text-fd-foreground/55"
                           }`}
                         >
                           {rank}
@@ -2395,7 +2395,7 @@ export function LlmPriceCalculator() {
                           {model.name}
                         </button>
                         {model.reasoning && (
-                          <span className="rounded-full bg-fd-primary/10 px-1.5 py-0.5 text-[10px] font-medium leading-none text-fd-primary">
+                          <span className="rounded-full bg-fd-primary/10 px-1.5 py-0.5 text-xs font-medium leading-none text-fd-primary">
                             thinking
                           </span>
                         )}
@@ -2432,7 +2432,7 @@ export function LlmPriceCalculator() {
                   {isChainMode ? (
                     <div className="grid grid-cols-3 gap-x-3 gap-y-2">
                       <div>
-                        <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                        <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
                           Call 1
                         </div>
                         <div className="text-sm font-medium tabular-nums text-fd-foreground">
@@ -2440,7 +2440,7 @@ export function LlmPriceCalculator() {
                         </div>
                       </div>
                       <div>
-                        <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                        <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
                           Last call
                         </div>
                         <div className="text-sm font-medium tabular-nums text-fd-foreground/78">
@@ -2448,7 +2448,7 @@ export function LlmPriceCalculator() {
                         </div>
                       </div>
                       <div>
-                        <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                        <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
                           Total
                         </div>
                         <div className="flex items-center gap-1">
@@ -2471,7 +2471,7 @@ export function LlmPriceCalculator() {
                             </span>
                           )}
                           <span
-                            className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}
+                            className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-700 dark:text-green-400" : "text-fd-foreground"}`}
                           >
                             {formatCost(model.chainTotal)}
                           </span>
@@ -2480,11 +2480,11 @@ export function LlmPriceCalculator() {
                     </div>
                   ) : isBudgetMode ? (
                     <div>
-                      <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                      <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
                         Max calls for {currency2Formatter.format(budget)}
                       </div>
                       <div
-                        className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}
+                        className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-700 dark:text-green-400" : "text-fd-foreground"}`}
                       >
                         {model.maxCalls === Infinity
                           ? "\u221e"
@@ -2494,7 +2494,7 @@ export function LlmPriceCalculator() {
                   ) : (
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                       <div>
-                        <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                        <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
                           {showCache ? "1st call" : "Per call"}
                         </div>
                         <div className="text-sm font-medium tabular-nums text-fd-foreground">
@@ -2503,7 +2503,7 @@ export function LlmPriceCalculator() {
                       </div>
                       {showCache && (
                         <div>
-                          <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                          <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
                             Next call
                           </div>
                           <div className="text-sm font-medium tabular-nums text-fd-foreground/78">
@@ -2513,11 +2513,11 @@ export function LlmPriceCalculator() {
                       )}
                       {showBulk && (
                         <div>
-                          <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                          <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
                             Total
                           </div>
                           <div
-                            className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-500" : "text-fd-foreground"}`}
+                            className={`text-sm font-semibold tabular-nums ${isTop1 ? "text-green-700 dark:text-green-400" : "text-fd-foreground"}`}
                           >
                             {formatCost(
                               showCache ? model.cachedTotal : model.total,
@@ -2527,7 +2527,7 @@ export function LlmPriceCalculator() {
                       )}
                       {showCache && (
                         <div>
-                          <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
+                          <div className="text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/52">
                             Savings
                           </div>
                           <div className="text-sm font-medium tabular-nums text-fd-foreground/72">

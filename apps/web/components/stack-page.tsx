@@ -13,7 +13,7 @@ const statusConfig: Record<StackStatus, { label: string; className: string }> =
     },
     dropped: {
       label: "Dropped",
-      className: "border-red-500/20 bg-red-500/10 text-red-500",
+      className: "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400",
     },
     watching: {
       label: "Watching",

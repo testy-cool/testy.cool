@@ -6,10 +6,17 @@
 :root {
   --color-fd-primary: hsl(192, 45%, 30%);
   --color-fd-primary-foreground: hsl(0, 0%, 98%);
+  /* fumadocs ships 45.1%, which lands at 4.2 to 4.35:1 on our backgrounds.
+     42% clears the 4.5:1 minimum for small text everywhere on the site. */
+  --color-fd-muted-foreground: hsl(0, 0%, 42%);
 }
 .dark {
   --color-fd-primary: hsl(192, 40%, 72%);
   --color-fd-primary-foreground: hsl(0, 0%, 9%);
+  /* restates the fumadocs dark value, which already clears 4.5:1. Without it
+     the :root override above wins in dark mode, since both are one class deep
+     and ours comes later. */
+  --color-fd-muted-foreground: hsl(0, 0%, 60.9%);
 }
 
 @import "fumadocs-twoslash/twoslash.css";

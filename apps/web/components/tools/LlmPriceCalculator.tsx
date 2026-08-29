@@ -955,11 +955,17 @@ function readParams(): {
 
 function InfoTip({ text }: { text: string }) {
   return (
-    <span className="group relative inline-flex cursor-help">
+    <span
+      className="group relative inline-flex cursor-help rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/40"
+      tabIndex={0}
+      role="img"
+      aria-label={text}
+    >
       <svg
         className="h-3.5 w-3.5 text-fd-foreground/35 transition-colors group-hover:text-fd-foreground/60"
         viewBox="0 0 16 16"
         fill="currentColor"
+        aria-hidden="true"
       >
         <path
           fillRule="evenodd"
@@ -967,7 +973,8 @@ function InfoTip({ text }: { text: string }) {
           clipRule="evenodd"
         />
       </svg>
-      <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-52 -translate-x-1/2 rounded-lg border border-fd-border bg-fd-card px-3 py-2 text-xs font-normal leading-relaxed text-fd-foreground/80 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+      {/* display:none while hidden, so the 208px bubble never widens the page on phones */}
+      <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 hidden w-52 -translate-x-1/2 rounded-lg border border-fd-border bg-fd-card px-3 py-2 text-xs font-normal leading-relaxed text-fd-foreground/80 shadow-lg group-hover:block group-focus-within:block">
         {text}
       </span>
     </span>

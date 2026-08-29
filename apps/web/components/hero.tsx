@@ -60,13 +60,31 @@ export default function Hero({ postCount }: { postCount?: number }) {
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      indexRef.current = (indexRef.current + 1) % topics.length;
-      scrambleTo(topics[indexRef.current] ?? firstTopic);
-    }, 2500);
+    // Keep the first word and never cycle when the visitor asked for less motion.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let interval: number | null = null;
+    const start = () => {
+      if (interval !== null) return;
+      interval = window.setInterval(() => {
+        indexRef.current = (indexRef.current + 1) % topics.length;
+        scrambleTo(topics[indexRef.current] ?? firstTopic);
+      }, 2500);
+    };
+    const stop = () => {
+      if (interval !== null) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+    const onVisibility = () => (document.hidden ? stop() : start());
+
+    start();
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
-      clearInterval(interval);
+      stop();
+      document.removeEventListener("visibilitychange", onVisibility);
       if (timerRef.current) clearTimeout(timerRef.current);
       if (settleTimerRef.current) clearTimeout(settleTimerRef.current);
     };

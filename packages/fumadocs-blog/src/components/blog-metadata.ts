@@ -173,7 +173,7 @@ export async function generateBlogMetadata(props: {
   // Handle paginated root blog page
   if (isPaginatedBlogPage(params) && params.slug) {
     const page = Number(params.slug[1]);
-    const canonicalUrl = urlUtils.getBlogUrl(); // Use main blog URL as canonical for all paginated pages
+    const canonicalUrl = urlUtils.getPaginatedBlogUrl(page);
 
     const imageMetaData = getImageMetadata(
       urlUtils.getBlogOgImageUrl(),
@@ -200,7 +200,7 @@ export async function generateBlogMetadata(props: {
   if (isPaginatedCategoryPage(params) && params.slug) {
     const category = params.slug[0] || '';
     const page = Number(params.slug[2] || '1');
-    const canonicalUrl = urlUtils.getCategoryUrl(category); // Use main category URL as canonical
+    const canonicalUrl = urlUtils.getPaginatedCategoryUrl(category, page);
 
     const imageMetaData = getImageMetadata(
       urlUtils.getCategoryOgImageUrl(category),

@@ -37,12 +37,11 @@ export const blogConstants: BlogConstants = {
   xUsername: "@testy_cool",
   // Pagination
   paginationTitle: (page: number) => `Blog - Page ${page}`,
-  paginationDescription: (page: number) =>
-    `Articles and thoughts - Page ${page}`,
+  paginationDescription: (page: number) => `Blog posts, page ${page}`,
   categoryPaginationTitle: (category: string, page: number) =>
-    `${category.charAt(0).toUpperCase() + category.slice(1)} - Page ${page}`,
+    `${getCategoryBySlug(category).label} - Page ${page}`,
   categoryPaginationDescription: (category: string, page: number) =>
-    `Articles in the ${category} category - Page ${page}`,
+    `${getCategoryBySlug(category).label} posts, page ${page}`,
   // URLs
   blogBase: "/blog",
   blogOgImageBase: "blog-og",

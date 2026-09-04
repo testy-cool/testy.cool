@@ -50,6 +50,30 @@ image: /images/blog/optional-custom-image.png  # optional, falls back to auto-ge
 Content here.
 ```
 
+`author` is optional and defaults to `testy.cool`.
+
+## Drafts
+
+Unfinished writing goes in `apps/web/content/blog/drafts/`. That folder is
+gitignored, so a draft never reaches the public GitHub repo, and a post with
+`draft: true` is dropped from the build, so it never reaches the site. Drafts
+are visible in `pnpm web:dev` only, at `/blog/drafts/<slug>`, with a Draft
+badge on the row.
+
+```bash
+pnpm note:capture --title "What I learned"          # new draft, one command
+pnpm note:revise --id my-note --append-file more.md # add to it, sets `updated`
+pnpm note:promote --id my-note --category lab-notes --description "..."
+```
+
+`promote` moves the file out of `drafts/` into a real category and clears the
+draft flag, at which point git starts tracking it. Full contract in
+`docs/agent-notes-workflow.md`.
+
+`getVisiblePosts()` in `apps/web/lib/source.ts` is the single draft gate. Use
+it rather than `getBlogPosts()` anywhere a post list is rendered, or drafts
+leak back into the build.
+
 ## Key Files
 
 - `apps/web/app/layout.config.tsx` - Site title, description, nav config
@@ -60,6 +84,16 @@ Content here.
 - `apps/web/app/(home)/layout.tsx` - Footer social links
 - `packages/ui/src/components/social-icons.tsx` - Social icon components
 - `packages/fumadocs-blog/src/components/post-card.tsx` - Blog post card display
+- `apps/web/lib/source.ts` - Post loading and the draft filter
+- `apps/web/scripts/notes-operator.mjs` - The capture/revise/promote CLI
+
+## Docs in this repo
+
+- `docs/site-design-system.md` - Tokens, type scale, surfaces, shared primitives.
+  **Read it before any UI change.** It sets a 13px floor for authored labels and
+  badges, which is stricter than the 12px global rule.
+- `docs/agent-notes-workflow.md` - Frontmatter contract and the capture, revise
+  and promote workflow.
 
 ## Styling
 

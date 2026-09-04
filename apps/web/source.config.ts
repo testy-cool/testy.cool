@@ -20,7 +20,10 @@ export const blog = defineCollections({
   type: "doc",
   dir: "content/blog",
   schema: frontmatterSchema.extend({
-    author: z.string(),
+    // Optional so a note jotted by hand still builds. Kept in step with
+    // blogConstants.defaultAuthorName, which is not imported here because
+    // blog-configuration.tsx pulls in React components.
+    author: z.string().optional().default("testy.cool"),
     date: z
       .string()
       .or(z.date())

@@ -1,4 +1,13 @@
-import { Brain, Book, Code, Cog, FlaskConical, Rocket, Wrench } from "lucide-react";
+import {
+  Brain,
+  Book,
+  Code,
+  Cog,
+  FlaskConical,
+  Pencil,
+  Rocket,
+  Wrench,
+} from "lucide-react";
 
 /**
  * Blog categories, keyed by the first path segment under content/blog.
@@ -6,6 +15,11 @@ import { Brain, Book, Code, Cog, FlaskConical, Rocket, Wrench } from "lucide-rea
  */
 export const getCategoryBySlug = (slug: string) => {
   const categories = {
+    drafts: {
+      label: "Drafts",
+      icon: Pencil,
+      description: "Unfinished. Visible in dev only, never built into the site.",
+    },
     tutorial: {
       label: "Tutorials",
       icon: Book,

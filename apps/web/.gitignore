@@ -39,3 +39,5 @@ next-env.d.ts
 /public/sitemap*.xml
 
 .source/
+# Unfinished notes. Never committed, never built.
+/content/blog/drafts/

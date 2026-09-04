@@ -124,7 +124,7 @@ async function handleCapture(flags) {
   }
 
   const title = requireString(flags.title, "capture requires --title when creating a new note.");
-  const category = normalizeCategory(flags.category ?? "lab-notes");
+  const category = normalizeCategory(flags.category ?? "drafts");
   const slug = normalizeSlug(flags.slug ?? explicitId ?? title);
   const noteId = explicitId ?? slug;
   const targetPath = buildNotePath(category, slug);

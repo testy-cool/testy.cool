@@ -8,6 +8,22 @@ This repo uses the blog as a public notes archive, but the source of truth is th
 - Public machine-readable endpoints live at `/knowledge.json` and `/llms.txt`
 - Agents should update repo files first, then let the site build publish the result
 
+## Where Drafts Live
+
+`apps/web/content/blog/drafts/` is the holding pen for anything unfinished.
+
+- It is gitignored, so a draft never reaches the public GitHub repo.
+- It is never built. A post with `draft: true` is dropped from the static export,
+  so it is absent from the site, the sitemap, the RSS feed, the search index,
+  `/knowledge.json` and `/llms.txt`.
+- It is visible in `pnpm web:dev` only, where it shows at `/blog/drafts/<slug>`
+  with a Draft badge on its row.
+- It is not backed up by anything. A draft exists on one machine until it is
+  promoted.
+
+Promoting a note moves the file out of `drafts/` into a real category, at which
+point it enters git and gets built.
+
 ## Frontmatter Contract
 
 Use this frontmatter shape for new notes:
@@ -70,10 +86,10 @@ Use this when something useful comes out of a coding session but is not ready fo
 Rules:
 
 1. Search existing notes by `id`, slug, URL, and obvious title variants before creating a new file.
-2. If the content is incomplete, put it in `lab-notes` or keep it as `draft: true` with `status: draft`.
+2. If the content is incomplete, leave it in `drafts/` with `draft: true` and `status: draft`.
 3. Prefer updating an existing note over creating a near-duplicate.
 4. Keep the note short and factual if the result is still partial.
-5. `capture` defaults to `lab-notes`, `status: draft`, and `draft: true` unless you override them.
+5. `capture` defaults to `drafts`, `status: draft`, and `draft: true` unless you override them.
 
 ### Publish Note
 
@@ -89,7 +105,7 @@ Rules:
    - `troubleshooting` for concrete problem/fix writeups
    - `lab-notes` for partial but useful experiments
    - other categories for everything else
-5. `promote` is the command that should normally move a note out of draft mode.
+5. `promote` is the command that should normally move a note out of draft mode. It also moves the file out of `drafts/`, so pass `--category` to say where it lands.
 
 ### Revise Note
 

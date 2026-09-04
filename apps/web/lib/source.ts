@@ -14,6 +14,21 @@ export const pageBlogTree: PageTree.Root = blogSource.pageTree;
 
 export type BlogPost = ReturnType<typeof getBlogPost>;
 
+/**
+ * Drafts are for the dev server only. A production build drops them, which is
+ * what keeps an unfinished post out of the static export and therefore out of
+ * the sitemap, the feeds and every list on the site.
+ */
+const showDrafts = process.env.NODE_ENV !== "production";
+
+/** Every post worth rendering. The single draft gate - use this, not getBlogPosts. */
+export function getVisiblePosts(): NonNullable<BlogPost>[] {
+  return getBlogPosts().filter(
+    (post): post is NonNullable<BlogPost> =>
+      post != null && (showDrafts || !post.data.draft),
+  );
+}
+
 export type ResumeSignal = "featured" | "supporting" | "none";
 
 export interface ResumeNote {
@@ -41,9 +56,9 @@ function dateToIso(value: unknown): string | undefined {
 
 export function getKnowledgeNotes() {
   const siteUrl = `https://testy.cool`;
-  const posts = getBlogPosts()
-    .filter((p) => p != null)
-    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  const posts = getVisiblePosts().sort(
+    (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+  );
 
   return posts.map((post) => ({
     id: post.slugs.join("/"),
@@ -60,8 +75,7 @@ export function getKnowledgeNotes() {
 }
 
 export function getResumeNotes(): ResumeNote[] {
-  return getBlogPosts()
-    .filter((post): post is NonNullable<BlogPost> => post != null)
+  return getVisiblePosts()
     .map((post) => {
       const data = post.data as typeof post.data & {
         resumeSignal?: ResumeSignal;

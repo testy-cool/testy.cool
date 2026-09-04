@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import Hero from "@/components/hero";
 import { Section } from "@/components/section";
 import { GridBackground } from "@repo/ui/components/grid-background";
-import { getBlogPosts } from "@/lib/source";
+import { getVisiblePosts } from "@/lib/source";
 import type { BlogPost } from "@repo/fumadocs-blog/blog";
 import { organizationSchema, websiteSchema } from "@/lib/jsonld";
 import { allTools, getToolUrl } from "@/lib/tools";
@@ -80,7 +80,7 @@ function BrowseListItem({ title, href }: { title: string; href: string }) {
 }
 
 export default function HomePage() {
-  const posts = sortPosts(getBlogPosts());
+  const posts = sortPosts(getVisiblePosts());
   const recentPosts = posts.slice(0, 4);
   const categorySlugs = [
     ...new Set(

@@ -2,11 +2,16 @@ import type { BlogPost } from "./types";
 import { getSeriesNames } from "./utils";
 
 export async function generateAllParams(
-  blogSource: any,
   posts: BlogPost[],
   includeBlogPosts = true,
 ) {
-  const blogPostsParams = await blogSource.generateParams();
+  // Derived from `posts` rather than blogSource.generateParams(), which returns
+  // every page and so would build routes for drafts the caller has filtered out.
+  // The two are otherwise identical: generateParams() is getPages().map(page =>
+  // ({ slug: page.slugs })).
+  const blogPostsParams = posts
+    .filter((post): post is BlogPost & { slugs: string[] } => post.slugs != null)
+    .map((post) => ({ slug: post.slugs }));
 
   // Generate series page params
   const seriesParams = generateSeriesPathParams(posts);
@@ -35,11 +40,8 @@ export async function generateAllParams(
  * - Category pages
  * - Pagination for root and category pages
  */
-export async function generateBlogStaticParams(
-  blogSource: any,
-  posts: BlogPost[],
-) {
-  return await generateAllParams(blogSource, posts, true);
+export async function generateBlogStaticParams(posts: BlogPost[]) {
+  return await generateAllParams(posts, true);
 }
 
 /**
@@ -124,12 +126,9 @@ export function generateSeriesPathParams(posts: BlogPost[]) {
  * Generates static parameters for OG image routes
  * Only generates image.png suffixed routes to avoid path conflicts
  */
-export async function generateOgImageStaticParams(
-  blogSource: any,
-  posts: BlogPost[],
-) {
+export async function generateOgImageStaticParams(posts: BlogPost[]) {
   // Get all the regular params first
-  const params = await generateAllParams(blogSource, posts, true);
+  const params = await generateAllParams(posts, true);
 
   // Create only image.png suffixed routes
   const imageRoutes: Array<{ slug: string[] }> = [];

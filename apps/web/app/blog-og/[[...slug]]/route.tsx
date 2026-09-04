@@ -8,7 +8,7 @@ import {
   getCategoryBySlug,
   getSeriesBySlug,
 } from "@/blog-configuration";
-import { blogSource, getBlogPosts } from "@/lib/source";
+import { blogSource, getVisiblePosts } from "@/lib/source";
 
 export const dynamic = "force-static";
 
@@ -29,7 +29,6 @@ export async function GET(
 }
 
 export async function generateStaticParams() {
-  const posts = getBlogPosts();
-  const imageRoutes = await generateOgImageStaticParams(blogSource, posts);
+  const imageRoutes = await generateOgImageStaticParams(getVisiblePosts());
   return imageRoutes;
 }

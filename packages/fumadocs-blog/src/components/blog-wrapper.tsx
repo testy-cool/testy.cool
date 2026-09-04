@@ -112,6 +112,11 @@ export async function BlogWrapper({
 
     if (!page) notFound();
 
+    // Unreachable while generateAllParams filters drafts out of the route list,
+    // and inert in dev where includeDrafts is true. Kept so that a regression in
+    // the params filter renders nothing instead of publishing the draft's text.
+    if (page.data.draft && !includeDrafts) notFound();
+
     const lastModified = page?.data.date;
     const lastUpdate = lastModified ? new Date(lastModified) : undefined;
     const tags = page?.data.tags ?? [];

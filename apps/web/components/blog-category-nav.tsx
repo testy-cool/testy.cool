@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { cn } from "@repo/shadverse/lib/utils";
-import { getBlogPosts } from "@/lib/source";
+import { getVisiblePosts } from "@/lib/source";
 import { getCategoryBySlug } from "@/lib/categories";
 
 /** Links to the blog index and to every category that has at least one post. */
 export function BlogCategoryNav({ active }: { active?: string }) {
   const slugs = [
     ...new Set(
-      getBlogPosts()
+      getVisiblePosts()
         .map((post) => post?.slugs?.[0])
         .filter((slug): slug is string => Boolean(slug)),
     ),

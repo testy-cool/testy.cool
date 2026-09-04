@@ -1,4 +1,4 @@
-import { blogSource, getBlogPosts } from "@/lib/source";
+import { blogSource, getVisiblePosts } from "@/lib/source";
 import {
   BlogWrapper,
   generateBlogMetadata,
@@ -52,7 +52,7 @@ export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;
 }) {
   const params = await props.params;
-  const posts = getBlogPosts();
+  const posts = getVisiblePosts();
   // The first segment is a category slug on category pages, "page" on /blog/page/N.
   const first = params.slug?.[0];
   const activeCategory = first === "page" ? undefined : first;
@@ -76,8 +76,7 @@ export default async function Page(props: {
 }
 
 export async function generateStaticParams() {
-  const posts = getBlogPosts();
-  return generateBlogStaticParams(blogSource, posts);
+  return generateBlogStaticParams(getVisiblePosts());
 }
 
 export async function generateMetadata(props: {

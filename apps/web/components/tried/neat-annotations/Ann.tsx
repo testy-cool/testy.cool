@@ -64,8 +64,10 @@ export function Ann({ note, dir = "n", color, noMark, children }: AnnProps) {
 
 export default Ann;
 
-// Deliberately not registered in mdx-components.tsx. That map is imported by
-// every MDX page, so the CSS import here would land in a chunk the homepage
-// and every blog list also load. Measured on 2026-09-10: registering it put
-// the stylesheet on 18 of 27 built pages. Import Ann and AnnStage in the one
-// note that uses them instead, and the CSS stays on that route.
+// Deliberately not registered in mdx-components.tsx, and route-scoping the CSS
+// is not possible here either. Measured on 2026-09-10: fumadocs-mdx generates
+// .source/index.ts with a static import of every .mdx file, so any page that
+// reads the post index pulls this module's stylesheet into its chunk. The
+// stylesheet is its own 8.2 KB chunk rather than part of the 218 KB global one,
+// and the font is preload: false so it downloads only where a label renders.
+// Registering in the shared MDX map on top of that would add nothing but noise.

@@ -1,0 +1,133 @@
+---
+title: neat-annotations
+description: A single CSS file that draws hand-written labels and arrows onto anything on the page. Kept, for the sort of post where I want to point at a word.
+date: 2026-09-10
+author: testy.cool
+id: neat-annotations
+status: published
+confidence: medium
+tags: [css, annotations]
+kind: library
+---
+
+import { Ann } from "@/components/tried/neat-annotations/Ann";
+import { AnnStage } from "@/components/tried/neat-annotations/AnnStage";
+
+Every arrow and label on this page is the library running live. No screenshots,
+no JavaScript.
+
+## What it is
+
+[neat-annotations](https://github.com/syabro/neat-annotations) is one CSS file,
+8.5 KB, MIT licensed, by Maxim Syabro. You add a class and a `data-note`
+attribute to a span and it draws a highlighter mark behind the text, an arrow,
+and a hand-written label.
+
+<AnnStage>
+  <Ann note="the target" dir="n">a word</Ann>
+</AnnStage>
+
+The class names a compass direction, and there are eight of them. The direction
+is where the arrow points, so `ann-n` sends the arrow up and parks the label
+underneath. That caught me out the first time.
+
+<AnnStage>
+  <div className="grid grid-cols-2 gap-x-8 gap-y-40 md:grid-cols-4">
+    <span><Ann note="ann-n" dir="n">n</Ann></span>
+    <span><Ann note="ann-ne" dir="ne">ne</Ann></span>
+    <span><Ann note="ann-e" dir="e">e</Ann></span>
+    <span><Ann note="ann-se" dir="se">se</Ann></span>
+    <span><Ann note="ann-s" dir="s">s</Ann></span>
+    <span><Ann note="ann-sw" dir="sw">sw</Ann></span>
+    <span><Ann note="ann-w" dir="w">w</Ann></span>
+    <span><Ann note="ann-nw" dir="nw">nw</Ann></span>
+  </div>
+</AnnStage>
+
+There are six colours, and the highlighter mark can be turned off.
+
+<AnnStage>
+  <div className="grid grid-cols-2 gap-x-8 gap-y-24">
+    <span>
+      <Ann note="a colour" dir="s" color="blue">
+        blue
+      </Ann>
+    </span>
+    <span>
+      <Ann note="no highlighter" dir="s" noMark>
+        plain
+      </Ann>
+    </span>
+  </div>
+</AnnStage>
+
+The whole thing is `::before` and `::after` pseudo-elements. The arrows are
+inline SVG masks, one per direction. Nothing runs.
+
+## Why I tried it
+
+I write posts where I need to point at a specific word or a specific line and
+say what it is. Until now that meant taking a screenshot and drawing on it,
+which goes stale the moment I edit the sentence. The alternative I knew about
+was rough-notation, and that is JavaScript that has to run and measure the
+element first.
+
+## What I did
+
+I vendored the stylesheet into this repo, wrapped it in two small components,
+and used it on this page. Here is a real sentence with a real annotation in it,
+sitting inside the padded block I had to build:
+
+<AnnStage>
+  The <Ann note="this is the bit I mean" dir="s" color="green">middle part</Ann>{" "}
+  of a sentence can carry a label.
+</AnnStage>
+
+Seven things I found.
+
+**The labels reserve no space.** They are absolutely positioned, so as far as
+layout is concerned they do not exist. The prose on this site has 28px line
+height and 20px paragraph margins, and a label is taller than that, so used
+inline it lands on the line above or below. The README says to leave margin and
+the project's own demo page does it by hand with 58px to 200px of padding per
+block. I made that a component instead, which is why every annotation above is
+inside a bordered panel. That panel is not decoration, it is the space the label
+needs.
+
+**The compass name is the arrow, not the label.** `ann-n` points the arrow
+north and puts the label south of the target. Obvious once you see it, and the
+opposite of what I typed first.
+
+**A target is `display: inline-block`.** If the annotated phrase wraps across
+two lines, the box covers both and the arrow points at the whole thing rather
+than at a word. Annotate short phrases.
+
+**The label is 15px** at a 16px root, from the one font-size rule in the file
+(`0.95rem`). It scales if the root scales. That clears my 12px floor, so I did
+not have to change it.
+
+**Safari 18 is the floor.** The file uses relative colour syntax
+(`oklch(from ...)`), `light-dark()`, `color-mix()` and `@property`. Relative
+colours are the newest of those and set the bar.
+
+**Dark mode is free, if you let it be.** Colours go through `light-dark()`, so
+the element needs `color-scheme` set on it or an ancestor. My stage sets it.
+
+**The font is a separate download.** The labels want Shantell Sans and fall
+back to whatever the system calls `cursive`, which on this machine is not
+hand-written at all. I pulled one latin variable woff2 through `next/font/local`
+and kept the OFL notice next to it, so the build stays offline.
+
+One more thing worth saying out loud. There are no tags and no releases on the
+repo, and no npm package, so the only version marker is a commit hash. The
+jsDelivr URL everyone links is unpinned. I copied the file into the repo and
+wrote the commit and the date in its header, because a static site with long
+cache headers should not depend on a file that can change under it.
+
+## Verdict
+
+Kept. It does one thing that nothing else does without JavaScript, the cost is
+8.5 KB of CSS on one route, and the failure mode is a plain highlighted word
+rather than a broken page. The catch is that it is not a drop-in for running
+prose. Labels need room, so this is a thing I put on a stage inside a post, not
+a thing I sprinkle through paragraphs.

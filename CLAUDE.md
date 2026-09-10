@@ -24,6 +24,9 @@ pnpm format           # Format with Prettier
 pnpm web:serve        # Serve the static output
 ```
 
+Do not run `pnpm web:build` while `pnpm web:dev` is up. They share `.next`,
+and the dev server answers 500 on every page until it is restarted.
+
 ## Architecture
 
 pnpm monorepo using Turborepo:

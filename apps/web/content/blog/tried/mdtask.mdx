@@ -1,0 +1,128 @@
+---
+title: mdtask
+description: A task tracker that lives as checkbox lines in the markdown files already in your repo, with a small CLI and four agent skills on top.
+date: 2026-09-10
+updated: 2026-09-10
+author: testy.cool
+id: mdtask
+status: published
+tags: [cli, tasks, agents]
+kind: cli
+---
+[mdtask](https://github.com/syabro/mdtask) is a command line tool by Maxim
+Syabro, who also wrote [neat-annotations](/blog/tried/neat-annotations). A
+task is a checkbox line in any markdown file in your repo, and the tool reads
+them from there. There is no database and no separate app. Run it with
+`npx mdtask`. Everything below is real output from version 0.1.17.
+
+## What it is
+
+A spec file with the feature written at the top and the tasks as checkboxes
+underneath:
+
+```md
+# Authentication
+
+## Login
+
+Users sign in with email and password. Sessions last 30 days.
+
+# Tasks
+
+- [ ] Add email and password login #auth !high
+  POST /auth/login checks the password and sets a 30 day cookie.
+- [ ] Add magic link login #auth
+  Email a one time link that signs the user in.
+- [ ] Rate limit the magic link endpoint #auth
+  Cap requests per email and per IP.
+```
+
+`#auth` is a tag, `!high` is a priority, and the indented lines are the task
+body.
+
+## Using it
+
+Give every task an id. The tool edits the file in place:
+
+```
+$ mdtask ids --prefix AUTH
+- [ ] AUTH-001 Add email and password login #auth !high
+- [ ] AUTH-002 Add magic link login #auth
+- [ ] AUTH-003 Rate limit the magic link endpoint #auth
+```
+
+List what is open:
+
+```
+$ mdtask list
+[ ] AUTH-001 Add email and password login !high
+[ ] AUTH-002 Add magic link login
+[ ] AUTH-003 Rate limit the magic link endpoint
+```
+
+Say that one task waits on another. Ids must be typed in full, `AUTH-3` is not
+found, and this version still lists a blocked task. The agent skill below tells
+the agent to skip it.
+
+```
+$ mdtask set AUTH-003 @blocked_by:AUTH-002
+$ mdtask list
+[ ] AUTH-001 Add email and password login !high
+[ ] AUTH-002 Add magic link login
+[ ] AUTH-003 Rate limit the magic link endpoint @blocked_by:AUTH-002
+```
+
+Look at one task. A bare number works here:
+
+```
+$ mdtask view 1
+docs/specs/auth.md:9
+- [ ] AUTH-001 Add email and password login #auth !high
+      POST /auth/login checks the password and sets a 30 day cookie.
+```
+
+Close a task, then move the closed ones out of the spec file into
+`_archive.md` at the repo root:
+
+```
+$ mdtask done AUTH-001
+$ mdtask list --all
+[x] AUTH-001 Add email and password login !high
+[ ] AUTH-002 Add magic link login
+[ ] AUTH-003 Rate limit the magic link endpoint @blocked_by:AUTH-002
+$ mdtask archive
+$ cat _archive.md
+- [x] AUTH-001 Add email and password login #auth !high
+  POST /auth/login checks the password and sets a 30 day cookie.
+```
+
+`list` filters by tag and priority with `--tag auth` and `--priority high`,
+and sorts with `--sort=priority`. `validate` checks for duplicate ids and
+broken lines. `move` and `open` move a task to another file or open it in your
+editor.
+
+## The agent part
+
+The tool ships four skills for coding agents and links them into a folder you
+name:
+
+```
+$ mdtask install-skills skills
+Linked sdd, mdtask, mdtask-create, mdtask-next into skills
+```
+
+- `sdd` is the working rule: "No code without a spec. PRD is both the spec and
+  the manual." Write the task, build it, then tick the box, add
+  `**Implemented:**` bullets under it, and update the feature text above the
+  tasks.
+- `mdtask` explains the file format to the agent and tells it to use the CLI
+  rather than parse the files itself.
+- `mdtask-create` turns "add a task for X" into a task line, asks before
+  saving, and assigns the id.
+- `mdtask-next` picks the next open task, plans it, sends the plan to a
+  reviewer, builds it, reviews the code, records what was done, and commits.
+  When no tasks are left it stops, so it can run in a loop.
+
+The README on GitHub describes a `list --blocked` option and skills named
+`mdtask-add` and `mdtask-do`. The version on npm has neither. The GitHub
+copy is ahead of what installs.

@@ -55,6 +55,12 @@ Content here.
 
 `author` is optional and defaults to `testy.cool`.
 
+Inline code can be highlighted, and the language marker goes **inside** the
+backticks: `` `#auth{:mdtask}` ``. Written outside them the build fails with
+"Could not parse expression with acorn". Custom grammars are registered in
+`apps/web/source.config.ts`, and setting `langs` there replaces the default
+list, so the bundled languages have to be passed along with the new one.
+
 ### The Tried category
 
 `apps/web/content/blog/tried/` holds notes on things I tried: libraries, agent
@@ -101,6 +107,7 @@ leak back into the build.
 - `packages/fumadocs-blog/src/components/post-card.tsx` - Blog post card display
 - `apps/web/lib/source.ts` - Post loading and the draft filter
 - `apps/web/scripts/notes-operator.mjs` - The capture/revise/promote CLI
+- `apps/web/lib/shiki/mdtask.ts` - Custom highlighting grammar for the mdtask task format
 
 ## Docs in this repo
 
@@ -113,6 +120,15 @@ leak back into the build.
 ## Styling
 
 - Interactive components use fumadocs CSS tokens: `fd-card`, `fd-border`, `fd-background`, `fd-muted-foreground`, `fd-primary`, `fd-muted` — not raw Tailwind colors
+- **A stylesheet imported by a component reaches every blog page**, not just
+  the page using it. `.source/index.ts` is generated with a static import of
+  every note, so any page that reads the post index pulls the component's CSS
+  chunk with it. Measured 2026-09-10: 17 of 29 pages. For CSS that belongs to
+  one page, put the file in `apps/web/public/` and link it from the component
+  with React's `<link rel="stylesheet" precedence="...">`, as
+  `apps/web/components/tried/neat-annotations/Ann.tsx` does. Fonts for one page
+  go the same way, with a plain `@font-face`; `next/font` leaves a declaration
+  in the shared chunk.
 - **CSS keyframes DO NOT WORK** via `<style jsx global>` in this project. Classes and transitions work, but custom `@keyframes` are silently dropped. For animations:
   - Use Tailwind built-in animations (`animate-spin`, `animate-pulse`) when they fit
   - For custom animations, inject via `<style dangerouslySetInnerHTML={{ __html: \`@keyframes ...\` }} />` (this works for the regen progress bar)

@@ -127,7 +127,7 @@ Cloudflare Pages with static export:
 - Node version: 20 (via `.nvmrc`)
 - Config: `wrangler.toml`
 - Cloudflare project name: `testy-cool` (not `testycool`)
-- **Always deploy after code changes**: commit, push, then `npx wrangler pages deploy apps/web/out --project-name=testy-cool`
+- **Always deploy after code changes**: commit, push, then `wrangler pages deploy apps/web/out --project-name=testy-cool`. Use `wrangler` bare, not `npx wrangler`: `npx` is a shell function on this machine and the call fails inside a script.
 - Git push also triggers a Cloudflare build automatically, but Wrangler deploy is faster and more reliable
 - Cloudflare uses `--frozen-lockfile` — if `pnpm-lock.yaml` is out of sync, deploy fails silently. Fix with `pnpm install --no-frozen-lockfile` (do NOT delete and regenerate lockfile — version changes can break the build). Always check Cloudflare build logs when deploy appears to fail.
 

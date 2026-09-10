@@ -12,3 +12,7 @@
 /images/*
   ! Cache-Control
   Cache-Control: public, max-age=3600
+
+/tried/*
+  ! Cache-Control
+  Cache-Control: public, max-age=3600

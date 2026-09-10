@@ -1,19 +1,12 @@
 import type { ReactNode } from "react";
-import localFont from "next/font/local";
-import "./neat-annotations.css";
 
-// One variable woff2 from the Google Fonts CSS API, latin subset, covering the
-// two weights the library uses. OFL notice sits next to it in fonts/.
-const shantellSans = localFont({
-  src: "./fonts/ShantellSans-Latin.woff2",
-  weight: "400 500",
-  style: "normal",
-  display: "swap",
-  variable: "--font-shantell-sans",
-  // Only the Tried note about this library needs it.
-  preload: false,
-  fallback: ["cursive"],
-});
+// The stylesheet and the font are static files under public/, linked from the
+// component with React 19's hoisted <link precedence>. Importing the CSS from
+// this module instead put it on every blog page: fumadocs-mdx generates a
+// source index that statically imports every note, so any page reading the
+// index pulled the chunk. Measured 2026-09-10, 17 of 29 pages. As plain links
+// the files reach only the pages that render an annotation.
+const BASE = "/tried/neat-annotations";
 
 export type AnnDirection = "n" | "ne" | "e" | "se" | "s" | "sw" | "w" | "nw";
 export type AnnColor =
@@ -27,7 +20,7 @@ export type AnnColor =
 export interface AnnProps {
   /** The handwritten label. Leave it off for a plain highlight. */
   note?: string;
-  /** Where the label and arrow sit relative to the target. Defaults to north. */
+  /** Where the arrow points. Defaults to north, which parks the label below. */
   dir?: AnnDirection;
   color?: AnnColor;
   /** Drop the highlighter background and keep only the arrow and label. */
@@ -46,28 +39,19 @@ export function Ann({ note, dir = "n", color, noMark, children }: AnnProps) {
     `ann-${dir}`,
     color ? `ann-${color}` : null,
     noMark ? "ann-no-mark" : null,
-    shantellSans.variable,
   ]
     .filter(Boolean)
     .join(" ");
 
   return (
-    <span
-      className={classes}
-      data-note={note}
-      style={{ ["--ann-font" as string]: `var(--font-shantell-sans), cursive` }}
-    >
-      {children}
-    </span>
+    <>
+      <link rel="stylesheet" href={`${BASE}/neat-annotations.css`} precedence="tried" />
+      <link rel="stylesheet" href={`${BASE}/shantell-sans.css`} precedence="tried" />
+      <span className={classes} data-note={note}>
+        {children}
+      </span>
+    </>
   );
 }
 
 export default Ann;
-
-// Deliberately not registered in mdx-components.tsx, and route-scoping the CSS
-// is not possible here either. Measured on 2026-09-10: fumadocs-mdx generates
-// .source/index.ts with a static import of every .mdx file, so any page that
-// reads the post index pulls this module's stylesheet into its chunk. The
-// stylesheet is its own 8.2 KB chunk rather than part of the 218 KB global one,
-// and the font is preload: false so it downloads only where a label renders.
-// Registering in the shared MDX map on top of that would add nothing but noise.

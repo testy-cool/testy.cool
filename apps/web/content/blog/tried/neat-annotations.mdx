@@ -115,8 +115,8 @@ the element needs `color-scheme` set on it or an ancestor. My stage sets it.
 
 **The font is a separate download.** The labels want Shantell Sans and fall
 back to whatever the system calls `cursive`, which on this machine is not
-hand-written at all. I pulled one latin variable woff2 through `next/font/local`
-and kept the OFL notice next to it, so the build stays offline.
+hand-written at all. I put one latin variable woff2 next to the stylesheet with
+its own `@font-face` and the OFL notice, so nothing loads from Google.
 
 One more thing worth saying out loud. There are no tags and no releases on the
 repo, and no npm package, so the only version marker is a commit hash. The
@@ -127,8 +127,7 @@ cache headers should not depend on a file that can change under it.
 ## Verdict
 
 Kept. It does one thing that nothing else does without JavaScript, the cost is
-an 8 KB stylesheet that the build attaches to every blog page because the post
-index imports every note, and the failure mode is a plain highlighted word
-rather than a broken page. The catch is that it is not a drop-in for running
+an 8 KB stylesheet that only the pages with an annotation load, and the failure
+mode is a plain highlighted word rather than a broken page. The catch is that it is not a drop-in for running
 prose. Labels need room, so this is a thing I put on a stage inside a post, not
 a thing I sprinkle through paragraphs.

@@ -31,7 +31,14 @@ export const mdtaskGrammar: LanguageRegistration = {
         { match: "(?<=\\s|^)#[\\w-]+", name: "entity.name.tag.mdtask" },
         { match: "(?<=\\s|^)![\\w-]+", name: "keyword.mdtask" },
         { match: "(?<=\\s|^)@[\\w-]+:[\\w-]+", name: "variable.parameter.mdtask" },
-        { match: "\\*\\*[^*]+\\*\\*", name: "markup.bold.mdtask" },
+        { match: "\\*\\*[^*]+\\*\\*", name: "markup.heading.mdtask" },
+        {
+          match:
+            "\\b(mdtask(-[a-z]+)?|sdd|npx|list|view|done|open|move|archive|validate|install-skills|set|ids)\\b",
+          name: "support.function.mdtask",
+        },
+        { match: "(?<=\\s|^)--[\\w-]+(=[\\w-]+)?", name: "string.mdtask" },
+        { match: "\\b[\\w./-]*\\.md\\b", name: "string.mdtask" },
       ],
     },
   },

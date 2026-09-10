@@ -13,7 +13,7 @@ kind: cli
 Syabro, who also wrote [neat-annotations](/blog/tried/neat-annotations). A
 task is a checkbox line in any markdown file in your repo, and the tool reads
 them from there. There is no database and no separate app. Run it with
-`npx mdtask`. Everything below is real output from version 0.1.17.
+`npx mdtask{:mdtask}`. Everything below is real output from version 0.1.17.
 
 ## What it is
 
@@ -82,7 +82,7 @@ docs/specs/auth.md:9
 ```
 
 Close a task, then move the closed ones out of the spec file into
-`_archive.md` at the repo root:
+`_archive.md{:mdtask}` at the repo root:
 
 ```mdtask
 $ mdtask done AUTH-001
@@ -96,9 +96,9 @@ $ cat _archive.md
   POST /auth/login checks the password and sets a 30 day cookie.
 ```
 
-`list` filters by tag and priority with `--tag auth` and `--priority high`,
-and sorts with `--sort=priority`. `validate` checks for duplicate ids and
-broken lines. `move` and `open` move a task to another file or open it in your
+`list{:mdtask}` filters by tag and priority with `--tag auth{:mdtask}` and `--priority high{:mdtask}`,
+and sorts with `--sort=priority{:mdtask}`. `validate{:mdtask}` checks for duplicate ids and
+broken lines. `move{:mdtask}` and `open{:mdtask}` move a task to another file or open it in your
 editor.
 
 ## The agent part
@@ -111,18 +111,18 @@ $ mdtask install-skills skills
 Linked sdd, mdtask, mdtask-create, mdtask-next into skills
 ```
 
-- `sdd` is the working rule: "No code without a spec. PRD is both the spec and
+- `sdd{:mdtask}` is the working rule: "No code without a spec. PRD is both the spec and
   the manual." Write the task, build it, then tick the box, add
   `**Implemented:**{:mdtask}` bullets under it, and update the feature text above the
   tasks.
-- `mdtask` explains the file format to the agent and tells it to use the CLI
+- `mdtask{:mdtask}` explains the file format to the agent and tells it to use the CLI
   rather than parse the files itself.
-- `mdtask-create` turns "add a task for X" into a task line, asks before
+- `mdtask-create{:mdtask}` turns "add a task for X" into a task line, asks before
   saving, and assigns the id.
-- `mdtask-next` picks the next open task, plans it, sends the plan to a
+- `mdtask-next{:mdtask}` picks the next open task, plans it, sends the plan to a
   reviewer, builds it, reviews the code, records what was done, and commits.
   When no tasks are left it stops, so it can run in a loop.
 
-The README on GitHub describes a `list --blocked` option and skills named
-`mdtask-add` and `mdtask-do`. The version on npm has neither. The GitHub
+The README on GitHub describes a `list --blocked{:mdtask}` option and skills named
+`mdtask-add{:mdtask}` and `mdtask-do{:mdtask}`. The version on npm has neither. The GitHub
 copy is ahead of what installs.

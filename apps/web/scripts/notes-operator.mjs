@@ -23,6 +23,7 @@ const FIELD_ORDER = [
   "supersedes",
   "draft",
   "tags",
+  "kind",
   "image",
   "series",
   "seriesPart",
@@ -84,6 +85,7 @@ function printHelp() {
     "  --category <slug>",
     "  --slug <slug>",
     "  --tags <comma,separated>",
+    "  --kind <library|agent-skill|cli|service|mcp-server|...>",
     "  --body <text>",
     "  --body-file <path>",
     "  --append <text>",
@@ -163,6 +165,7 @@ async function handleCapture(flags) {
     supersedes: parseList(flags.supersedes),
     draft,
     tags: parseList(flags.tags),
+    kind: flags.kind,
     image: flags.image,
     series: flags.series,
     seriesPart: parseOptionalInteger(flags["series-part"], "series-part"),
@@ -235,6 +238,7 @@ async function reviseExistingNote(note, flags, options) {
   if (flags.canonical) nextData.canonical = flags.canonical;
   if (flags.supersedes) nextData.supersedes = parseList(flags.supersedes);
   if (flags.tags) nextData.tags = parseList(flags.tags);
+  if (flags.kind) nextData.kind = flags.kind;
   if (flags.image) nextData.image = flags.image;
   if (flags.series) nextData.series = flags.series;
   if (flags["series-part"] !== undefined) {
@@ -673,6 +677,21 @@ function buildBodyTemplate(category) {
       "## Common Pitfalls",
       "",
       "## Quick Reference",
+      "",
+    ].join("\n");
+  }
+
+  if (category === "tried") {
+    return [
+      "One line on what this is and how it went.",
+      "",
+      "## What it is",
+      "",
+      "## Why I tried it",
+      "",
+      "## What I did",
+      "",
+      "## Verdict",
       "",
     ].join("\n");
   }

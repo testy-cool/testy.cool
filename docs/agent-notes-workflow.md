@@ -40,6 +40,7 @@ status: published # draft | published | evergreen | archived
 confidence: high # low | medium | high
 resumeSignal: supporting # none | supporting | featured
 tags: [claude-code, ssh, tutorial]
+kind: cli # tried notes only: library | agent-skill | cli | service | mcp-server
 canonical: /blog/tutorial/claude-code-ssh-setup # optional
 supersedes: [older-note-id] # optional
 image: /images/blog/optional-custom-image.png
@@ -55,6 +56,8 @@ image: /images/blog/optional-custom-image.png
 - `resumeSignal` is only for content that should represent the author publicly.
 - `supersedes` should contain note ids, not URLs.
 - `canonical` should be a URL or site-relative path, not a note id.
+- `kind` says what sort of thing a `tried` note is about. The list is open, and
+  the value renders as a second pill on the blog row.
 
 ## Agent Workflows
 
@@ -73,6 +76,7 @@ Common flags:
 - `--category` to choose or move the note folder
 - `--slug` to change the filename slug
 - `--tags` with a comma-separated list
+- `--kind` to set the kind of thing a Tried note is about
 - `--body` or `--body-file` to replace the body
 - `--append` or `--append-file` to add content to the end
 - `--prepend` or `--prepend-file` to add content to the beginning

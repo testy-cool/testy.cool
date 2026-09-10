@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { BlogPost } from "@repo/fumadocs-blog/blog";
 import { MetaPill } from "@/components/site";
-import { getCategoryBySlug } from "@/lib/categories";
+import { getCategoryBySlug, getKindLabel } from "@/lib/categories";
 
 export type SitePost = NonNullable<BlogPost>;
 
@@ -18,6 +18,8 @@ export function BlogPostRow({ post }: { post: SitePost }) {
   const date: Date = post.data.date;
   // Drafts only ever render on the dev server, so this badge never ships.
   const isDraft = Boolean(post.data.draft);
+  // Tried notes say what the thing was: a library, a CLI, an agent skill.
+  const kind = post.data.kind;
 
   return (
     <Link
@@ -29,6 +31,7 @@ export function BlogPostRow({ post }: { post: SitePost }) {
           <span className="inline-flex rounded-full border border-fd-primary/15 bg-fd-primary/8 px-2.5 py-1 text-fd-primary">
             {label}
           </span>
+          {kind && <MetaPill>{getKindLabel(kind)}</MetaPill>}
           {isDraft && (
             <MetaPill className="border-amber-500/25 bg-amber-500/10 tracking-[0.16em] text-amber-700 dark:text-amber-400">
               Draft

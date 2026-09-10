@@ -57,6 +57,8 @@ export const blog = defineCollections({
       .optional(),
     image: z.string().optional(),
     draft: z.boolean().optional().default(false),
+    // Open list, not an enum: a Tried note can name a new kind of thing.
+    kind: z.string().optional(),
     series: z.string().optional(),
     seriesPart: z.number().optional(),
   }),

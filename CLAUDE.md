@@ -52,6 +52,16 @@ Content here.
 
 `author` is optional and defaults to `testy.cool`.
 
+### The Tried category
+
+`apps/web/content/blog/tried/` holds notes on things I tried: libraries, agent
+skills, CLIs, services, MCP servers. Each note has a `kind` frontmatter field
+naming which of those it is, and that shows as a second pill on the blog row.
+Every Tried note has the same four headings: What it is, Why I tried it, What I
+did, Verdict. The `description` line ends with the verdict, so the index reads
+as outcomes rather than titles. Front-end things get a small component under
+`apps/web/components/tried/` and are used live inside the note.
+
 ## Drafts
 
 Unfinished writing goes in `apps/web/content/blog/drafts/`. That folder is

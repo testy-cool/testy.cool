@@ -6,6 +6,7 @@ import {
   FlaskConical,
   Pencil,
   Rocket,
+  TestTube,
   Wrench,
 } from "lucide-react";
 
@@ -52,6 +53,12 @@ export const getCategoryBySlug = (slug: string) => {
       icon: Rocket,
       description: "Problem-and-solution writeups.",
     },
+    tried: {
+      label: "Tried",
+      icon: TestTube,
+      description:
+        "Things I tried, what happened, and whether I kept them.",
+    },
     tech: {
       label: "Tech Notes",
       icon: Code,
@@ -70,6 +77,28 @@ export const getCategoryBySlug = (slug: string) => {
       icon: Book,
       description: `Posts in ${fallbackLabel}.`,
     }
+  );
+};
+
+/**
+ * Label for the `kind` frontmatter field on a Tried note. The list is open,
+ * so anything unmapped falls back to capitalised words.
+ */
+export const getKindLabel = (kind: string) => {
+  const labels: Record<string, string> = {
+    library: "Library",
+    "agent-skill": "Agent skill",
+    cli: "CLI",
+    service: "Service",
+    "mcp-server": "MCP server",
+  };
+
+  return (
+    labels[kind] ??
+    kind
+      .split("-")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ")
   );
 };
 

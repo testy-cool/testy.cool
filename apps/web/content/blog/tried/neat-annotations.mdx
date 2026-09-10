@@ -16,8 +16,6 @@ import { AnnStage } from "@/components/tried/neat-annotations/AnnStage";
 Every arrow and label on this page is the library running live. No screenshots,
 no JavaScript.
 
-## What it is
-
 [neat-annotations](https://github.com/syabro/neat-annotations) is one CSS file,
 8.5 KB, free to use, by Maxim Syabro. You wrap a word in a tag, give it a class
 name and a `data-note` with the label text, and it draws this:
@@ -56,28 +54,16 @@ Six colours, and the highlighter mark can be turned off.
 Flip the theme with the switch at the top right. Every colour has a light and a
 dark version.
 
-## Why I tried it
+## Three things to know
 
-I write posts where I need to point at a word or a line and say what it is.
-Until now that meant a screenshot with drawings on it, which goes stale the
-moment I edit the sentence. The other option I knew, rough-notation, is
-JavaScript. It has to run in the browser and measure the word before it can
-draw anything.
-
-## What I did
-
-I copied the file into this site, because the project has no version numbers
-and the shared link serves whatever is newest. Then I put it through the things
-a post would do to it.
-
-**Inside a normal paragraph.** This paragraph has a marked word in it, and the
+**The label takes up no space.** This paragraph has a marked word in it, and the
 label for <Ann note="down here" dir="n" color="red">this one</Ann> lands on
 the next line, on top of the text. The page lays out its lines as if the label
-were not there, because the label takes up no space. Every other example on
-this page sits inside a panel with room around it for exactly this reason.
+were not there. That is why every other example on this page sits inside a
+panel with room around it.
 
-**A phrase that wraps.** The marked phrase is one solid box. When it wraps onto
-a second line, the arrow points at the whole block, not at a word.
+**A marked phrase is one solid box.** When it wraps onto a second line, the
+arrow points at the whole block, not at a word.
 
 <AnnStage>
   <p className="mx-auto max-w-56">
@@ -87,10 +73,9 @@ a second line, the arrow points at the whole block, not at a word.
   </p>
 </AnnStage>
 
-**The handwriting font.** The labels expect a font called Shantell Sans, a
-separate download. Without it you get whatever the computer calls its cursive
-font, on the right. I put a copy of the font next to the CSS file so nothing
-loads from Google.
+**The handwriting font is yours to supply.** The labels expect a font called
+Shantell Sans. Without it you get whatever the computer calls its cursive font,
+on the right.
 
 <AnnStage>
   <div className="grid grid-cols-2 gap-x-8 gap-y-24">
@@ -102,10 +87,3 @@ loads from Google.
     </span>
   </div>
 </AnnStage>
-
-**Label size.** The label text is 15px, set as a fraction of the page's base
-text size. That clears my 12px floor, so I did not touch it.
-
-**Browsers.** The file uses four recent CSS colour features. The newest one
-arrived in Safari 18, in late 2024. That is the oldest browser that shows all
-of this right.

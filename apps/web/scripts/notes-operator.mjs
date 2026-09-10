@@ -687,9 +687,7 @@ function buildBodyTemplate(category) {
       "",
       "## What it is",
       "",
-      "## Why I tried it",
-      "",
-      "## What I did",
+      "## Using it",
       "",
     ].join("\n");
   }

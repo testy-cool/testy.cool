@@ -57,11 +57,12 @@ Content here.
 `apps/web/content/blog/tried/` holds notes on things I tried: libraries, agent
 skills, CLIs, services, MCP servers. Each note has a `kind` frontmatter field
 naming which of those it is, and that shows as a second pill on the blog row.
-Every Tried note has the same three headings: What it is, Why I tried it, What
-I did. No verdict section. Show, do not tell: for a front-end thing every claim
-is a live demo with a one-line caption, built from a small component under
-`apps/web/components/tried/`. Words alone are for things that cannot run on a
-page.
+A Tried note is about what the thing does, and nothing else. No verdict, no
+section about why I tried it, nothing about how it was installed, no notes on
+browsers or file sizes beyond one line of what it is. Show, do not tell: for a
+front-end thing every claim is a live demo with a one-line caption, built from
+a small component under `apps/web/components/tried/`. Words alone are for
+things that cannot run on a page.
 
 ## Drafts
 

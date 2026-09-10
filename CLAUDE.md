@@ -302,3 +302,9 @@ Cheat sheet for practical use.
 
 - Use hyphens (-), not em dashes (—)
 - Be straightforward. No rhetorical questions followed by answers like "The fix? A properly configured Bulk Redirect." Just state things directly.
+- High school reading level. Short sentences, everyday words, and every
+  technical term explained in plain words the first time it appears. A
+  reader who has never seen CSS or a terminal should still follow the
+  point. Check a post with `pnpm note:grade <file>`, which prints the
+  Flesch-Kincaid grade. Aim under 9. The score ignores jargon, so read the
+  post for unexplained terms as well.

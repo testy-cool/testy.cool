@@ -12,6 +12,7 @@
     "note:capture": "node scripts/notes-operator.mjs capture",
     "note:revise": "node scripts/notes-operator.mjs revise",
     "note:promote": "node scripts/notes-operator.mjs promote",
+    "note:grade": "uvx --from textstat python scripts/reading-grade.py",
     "serve": "npx serve@latest out",
     "postinstall": "fumadocs-mdx",
     "sitemap": "next-sitemap --config next-sitemap.config.cjs",

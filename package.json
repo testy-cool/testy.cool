@@ -11,6 +11,7 @@
     "note:capture": "pnpm --filter web note:capture",
     "note:revise": "pnpm --filter web note:revise",
     "note:promote": "pnpm --filter web note:promote",
+    "note:grade": "pnpm --filter web note:grade",
     "stream:build": "pnpm --filter stream build",
     "stream:dev": "pnpm --filter stream dev",
     "stream:test": "pnpm --filter stream test",

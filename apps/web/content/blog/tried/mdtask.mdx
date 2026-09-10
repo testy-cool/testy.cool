@@ -20,7 +20,7 @@ them from there. There is no database and no separate app. Run it with
 A spec file with the feature written at the top and the tasks as checkboxes
 underneath:
 
-```md
+```mdtask
 # Authentication
 
 ## Login
@@ -37,14 +37,14 @@ Users sign in with email and password. Sessions last 30 days.
   Cap requests per email and per IP.
 ```
 
-`#auth` is a tag, `!high` is a priority, and the indented lines are the task
+`#auth{:mdtask}` is a tag, `!high{:mdtask}` is a priority, and the indented lines are the task
 body.
 
 ## Using it
 
 Give every task an id. The tool edits the file in place:
 
-```
+```mdtask
 $ mdtask ids --prefix AUTH
 - [ ] AUTH-001 Add email and password login #auth !high
 - [ ] AUTH-002 Add magic link login #auth
@@ -53,18 +53,18 @@ $ mdtask ids --prefix AUTH
 
 List what is open:
 
-```
+```mdtask
 $ mdtask list
 [ ] AUTH-001 Add email and password login !high
 [ ] AUTH-002 Add magic link login
 [ ] AUTH-003 Rate limit the magic link endpoint
 ```
 
-Say that one task waits on another. Ids must be typed in full, `AUTH-3` is not
+Say that one task waits on another. Ids must be typed in full, `AUTH-3{:mdtask}` is not
 found, and this version still lists a blocked task. The agent skill below tells
 the agent to skip it.
 
-```
+```mdtask
 $ mdtask set AUTH-003 @blocked_by:AUTH-002
 $ mdtask list
 [ ] AUTH-001 Add email and password login !high
@@ -74,7 +74,7 @@ $ mdtask list
 
 Look at one task. A bare number works here:
 
-```
+```mdtask
 $ mdtask view 1
 docs/specs/auth.md:9
 - [ ] AUTH-001 Add email and password login #auth !high
@@ -84,7 +84,7 @@ docs/specs/auth.md:9
 Close a task, then move the closed ones out of the spec file into
 `_archive.md` at the repo root:
 
-```
+```mdtask
 $ mdtask done AUTH-001
 $ mdtask list --all
 [x] AUTH-001 Add email and password login !high
@@ -106,14 +106,14 @@ editor.
 The tool ships four skills for coding agents and links them into a folder you
 name:
 
-```
+```mdtask
 $ mdtask install-skills skills
 Linked sdd, mdtask, mdtask-create, mdtask-next into skills
 ```
 
 - `sdd` is the working rule: "No code without a spec. PRD is both the spec and
   the manual." Write the task, build it, then tick the box, add
-  `**Implemented:**` bullets under it, and update the feature text above the
+  `**Implemented:**{:mdtask}` bullets under it, and update the feature text above the
   tasks.
 - `mdtask` explains the file format to the agent and tells it to use the CLI
   rather than parse the files itself.

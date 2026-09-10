@@ -15,6 +15,8 @@ import {
 } from "@shikijs/transformers";
 import { remarkInstall } from "fumadocs-docgen";
 import { rehypeCodeDefaultOptions } from "fumadocs-core/mdx-plugins";
+import { bundledLanguages, type BundledLanguage } from "shiki";
+import { mdtaskGrammar } from "./lib/shiki/mdtask";
 
 export const blog = defineCollections({
   type: "doc",
@@ -75,6 +77,11 @@ export default defineConfig({
     },
     rehypeCodeOptions: {
       inline: "tailing-curly-colon",
+      // Setting langs replaces the default list, so the bundled ones come too.
+      langs: [
+        ...(Object.keys(bundledLanguages) as BundledLanguage[]),
+        mdtaskGrammar,
+      ],
       themes: {
         light: "github-light",
         dark: "github-dark",

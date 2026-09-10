@@ -57,7 +57,7 @@ export const getCategoryBySlug = (slug: string) => {
       label: "Tried",
       icon: TestTube,
       description:
-        "Things I tried, what happened, and whether I kept them.",
+        "Things I tried, shown running where they can be.",
     },
     tech: {
       label: "Tech Notes",

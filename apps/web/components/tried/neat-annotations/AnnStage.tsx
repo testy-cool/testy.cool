@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
  */
 export function AnnStage({ children }: { children: ReactNode }) {
   return (
-    <div className="my-6 rounded-2xl border border-fd-border bg-fd-muted/40 px-10 py-16 text-center text-base leading-7 [color-scheme:light_dark]">
+    <div className="my-6 rounded-2xl border border-fd-border bg-fd-muted/40 px-10 py-16 text-center text-base leading-7">
       {children}
     </div>
   );

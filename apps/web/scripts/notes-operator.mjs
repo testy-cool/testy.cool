@@ -691,8 +691,6 @@ function buildBodyTemplate(category) {
       "",
       "## What I did",
       "",
-      "## Verdict",
-      "",
     ].join("\n");
   }
 

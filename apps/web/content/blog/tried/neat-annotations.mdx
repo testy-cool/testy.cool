@@ -1,6 +1,6 @@
 ---
 title: neat-annotations
-description: A single CSS file that draws hand-written labels and arrows onto anything on the page. Kept, for the sort of post where I want to point at a word.
+description: A single CSS file that draws hand-written labels and arrows onto anything on the page. Every arrow in this note is it running.
 date: 2026-09-10
 author: testy.cool
 id: neat-annotations
@@ -20,16 +20,14 @@ no JavaScript.
 
 [neat-annotations](https://github.com/syabro/neat-annotations) is one CSS file,
 8.5 KB, free to use, by Maxim Syabro. You wrap a word in a tag, give it a class
-name and a `data-note` with the label text, and it draws a highlighter mark
-behind the word, an arrow, and a hand-written label.
+name and a `data-note` with the label text, and it draws this:
 
 <AnnStage>
   <Ann note="the target" dir="n">a word</Ann>
 </AnnStage>
 
-The class name is a compass direction, and there are eight of them. The
-direction is where the arrow points, so `ann-n` sends the arrow up and parks
-the label underneath. That caught me out the first time.
+The class name is a compass direction. It says where the arrow points, so
+`ann-n` sends the arrow up and parks the label underneath.
 
 <AnnStage>
   <div className="grid grid-cols-2 gap-x-8 gap-y-40 md:grid-cols-4">
@@ -44,94 +42,70 @@ the label underneath. That caught me out the first time.
   </div>
 </AnnStage>
 
-There are six colours, and the highlighter mark can be turned off.
+Six colours, and the highlighter mark can be turned off.
+
+<AnnStage>
+  <div className="grid grid-cols-2 gap-x-8 gap-y-24 md:grid-cols-4">
+    <span><Ann note="amber" dir="s" color="amber">one</Ann></span>
+    <span><Ann note="blue" dir="s" color="blue">two</Ann></span>
+    <span><Ann note="green" dir="s" color="green">three</Ann></span>
+    <span><Ann note="no mark" dir="s" noMark>four</Ann></span>
+  </div>
+</AnnStage>
+
+Flip the theme with the switch at the top right. Every colour has a light and a
+dark version.
+
+## Why I tried it
+
+I write posts where I need to point at a word or a line and say what it is.
+Until now that meant a screenshot with drawings on it, which goes stale the
+moment I edit the sentence. The other option I knew, rough-notation, is
+JavaScript. It has to run in the browser and measure the word before it can
+draw anything.
+
+## What I did
+
+I copied the file into this site, because the project has no version numbers
+and the shared link serves whatever is newest. Then I put it through the things
+a post would do to it.
+
+**Inside a normal paragraph.** This paragraph has a marked word in it, and the
+label for <Ann note="down here" dir="n" color="red">this one</Ann> lands on
+the next line, on top of the text. The page lays out its lines as if the label
+were not there, because the label takes up no space. Every other example on
+this page sits inside a panel with room around it for exactly this reason.
+
+**A phrase that wraps.** The marked phrase is one solid box. When it wraps onto
+a second line, the arrow points at the whole block, not at a word.
+
+<AnnStage>
+  <p className="mx-auto max-w-56">
+    <Ann note="one box, two lines" dir="n" color="purple">
+      a phrase this long wraps and the arrow loses its target
+    </Ann>
+  </p>
+</AnnStage>
+
+**The handwriting font.** The labels expect a font called Shantell Sans, a
+separate download. Without it you get whatever the computer calls its cursive
+font, on the right. I put a copy of the font next to the CSS file so nothing
+loads from Google.
 
 <AnnStage>
   <div className="grid grid-cols-2 gap-x-8 gap-y-24">
+    <span><Ann note="Shantell Sans" dir="n">with the font</Ann></span>
     <span>
-      <Ann note="a colour" dir="s" color="blue">
-        blue
-      </Ann>
-    </span>
-    <span>
-      <Ann note="no highlighter" dir="s" noMark>
-        plain
+      <Ann note="your cursive" dir="n" style={{ "--ann-font": "cursive" }}>
+        without it
       </Ann>
     </span>
   </div>
 </AnnStage>
 
-The arrow and the label are drawn by CSS alone, as two extra pieces attached
-to the word. Each arrow is a small picture stored inside the CSS file, one per
-direction. Nothing runs in the browser.
+**Label size.** The label text is 15px, set as a fraction of the page's base
+text size. That clears my 12px floor, so I did not touch it.
 
-## Why I tried it
-
-I write posts where I need to point at a specific word or a specific line and
-say what it is. Until now that meant taking a screenshot and drawing on it,
-which goes stale the moment I edit the sentence. The alternative I knew about
-was rough-notation, and that is JavaScript. It has to run in the browser and
-measure the word before it can draw anything.
-
-## What I did
-
-I copied the CSS file into this site's code, wrapped it in two small
-components, and used it on this page. Here is a real sentence with a real
-annotation in it, sitting inside the padded panel I had to build:
-
-<AnnStage>
-  The <Ann note="this is the bit I mean" dir="s" color="green">middle part</Ann>{" "}
-  of a sentence can carry a label.
-</AnnStage>
-
-Seven things I found.
-
-**The labels take up no space.** The page lays out its text as if they were
-not there. Each line of text on this site is 28px tall and paragraphs sit 20px
-apart. A label with its arrow is taller than that, so inside a normal paragraph
-it lands on the line above or below. The instructions say to leave room, and
-the project's own demo page does that by hand, with 58px to 200px of empty
-space around each example. I made that a component instead, which is why every
-annotation above sits inside a bordered panel. The panel is not decoration. It
-is the room the label needs.
-
-**The compass name is the arrow, not the label.** `ann-n` points the arrow
-north and puts the label south of the target. Obvious once you see it, and the
-opposite of what I typed first.
-
-**The marked phrase becomes one solid box.** If the phrase is long enough to
-wrap onto a second line, the box covers both lines and the arrow points at the
-whole block rather than at a word. Mark short phrases.
-
-**The label text is 15px.** The file sets it as a fraction of the page's base
-text size, so if the base size changes, the label follows. That clears my 12px
-floor, so I did not have to change it.
-
-**You need a browser from late 2024 or newer.** The file uses four recent CSS
-colour features. The newest one, a way to write a colour as a change to another
-colour, arrived in Safari 18. That is the oldest browser that shows it right.
-
-**Dark mode works on its own, with one condition.** Each colour has a light
-and a dark version and picks one by reading a page setting called
-`color-scheme`. That setting has to be present on the marked word or something
-around it. My panel sets it.
-
-**The handwriting font is a separate download.** The labels expect a font
-called Shantell Sans. Without it they fall back to whatever the computer calls
-its `cursive` font, and on my machine that looks nothing like handwriting. I
-put a copy of the font next to the CSS file, with its licence, so nothing loads
-from Google.
-
-One more thing worth saying out loud. The project has no version numbers. The
-link everyone uses always serves the newest copy of the file, so it can change
-under you without warning. I copied the file into this site and wrote the date
-and the exact version I took at the top of it, so this page keeps working if
-the file changes later.
-
-## Verdict
-
-Kept. It does one thing that nothing else does without JavaScript. The cost is
-an 8 KB file that only pages with an annotation load. If it ever fails, you see
-a plain highlighted word, not a broken page. The catch is that you cannot drop
-it into normal paragraphs. Labels need room, so this is a thing I put in a
-panel inside a post, not a thing I sprinkle through the text.
+**Browsers.** The file uses four recent CSS colour features. The newest one
+arrived in Safari 18, in late 2024. That is the oldest browser that shows all
+of this right.

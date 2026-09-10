@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 // The stylesheet and the font are static files under public/, linked from the
 // component with React 19's hoisted <link precedence>. Importing the CSS from
@@ -25,6 +25,8 @@ export interface AnnProps {
   color?: AnnColor;
   /** Drop the highlighter background and keep only the arrow and label. */
   noMark?: boolean;
+  /** For the library's own CSS variables, such as --ann-font. */
+  style?: CSSProperties;
   children: ReactNode;
 }
 
@@ -33,7 +35,7 @@ export interface AnnProps {
  * are ::before and ::after on this span, so they reserve no layout space.
  * Give it room with AnnStage.
  */
-export function Ann({ note, dir = "n", color, noMark, children }: AnnProps) {
+export function Ann({ note, dir = "n", color, noMark, style, children }: AnnProps) {
   const classes = [
     "ann",
     `ann-${dir}`,
@@ -46,8 +48,8 @@ export function Ann({ note, dir = "n", color, noMark, children }: AnnProps) {
   return (
     <>
       <link rel="stylesheet" href={`${BASE}/neat-annotations.css`} precedence="tried" />
-      <link rel="stylesheet" href={`${BASE}/shantell-sans.css`} precedence="tried" />
-      <span className={classes} data-note={note}>
+      <link rel="stylesheet" href={`${BASE}/site.css`} precedence="tried" />
+      <span className={classes} data-note={note} style={style}>
         {children}
       </span>
     </>

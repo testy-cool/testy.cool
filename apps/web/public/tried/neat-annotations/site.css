@@ -1,0 +1,19 @@
+/* Site glue for neat-annotations, two rules.
+
+   1. Shantell Sans, latin subset, one variable woff2 from the Google Fonts CSS
+      API, covering the two weights the library uses. OFL notice is in
+      LICENSE-shantell-sans.txt next to this file. The family name matches the
+      library's default --ann-font, so no override is needed.
+   2. The library picks light or dark colours with light-dark(), which reads
+      color-scheme. This site switches theme with a .dark class on <html>, not
+      with the OS setting, so the class has to drive color-scheme here or the
+      arrows follow the OS while the page follows the toggle. */
+@font-face {
+  font-family: "Shantell Sans";
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url("/tried/neat-annotations/ShantellSans-Latin.woff2") format("woff2");
+}
+.ann { color-scheme: light; }
+.dark .ann { color-scheme: dark; }

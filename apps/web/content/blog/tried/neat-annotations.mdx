@@ -127,7 +127,8 @@ cache headers should not depend on a file that can change under it.
 ## Verdict
 
 Kept. It does one thing that nothing else does without JavaScript, the cost is
-8.5 KB of CSS on one route, and the failure mode is a plain highlighted word
+an 8 KB stylesheet that the build attaches to every blog page because the post
+index imports every note, and the failure mode is a plain highlighted word
 rather than a broken page. The catch is that it is not a drop-in for running
 prose. Labels need room, so this is a thing I put on a stage inside a post, not
 a thing I sprinkle through paragraphs.

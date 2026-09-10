@@ -9,6 +9,9 @@ testy.cool - A fumadocs-based blog using the documentation aesthetic instead of 
 ## Commands
 
 ```bash
+# See a built page the way a reader will, on the zenbook
+bin/zenbook-check /blog/tried/mdtask      # add --build to rebuild first
+
 # Development
 pnpm dev              # Run all apps in dev mode
 pnpm web:dev          # Run only the web app (faster)

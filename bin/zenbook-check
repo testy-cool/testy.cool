@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+# See a built page the way a reader will, on the zenbook.
+#
+#   bin/zenbook-check /blog/tried/mdtask [/more/paths ...]
+#   bin/zenbook-check --build /blog/tried        # rebuild the export first
+#
+# Copies apps/web/out to the zenbook, serves it there, and drives the zenbook's
+# automation Chrome on port 9335. For every path, in light and dark, it prints
+# the smallest text on the page, anything under 12px, whether the page scrolls
+# sideways at 400px, and saves a screenshot.
+#
+# Browser checks never run on this machine, not even headless. If the zenbook
+# Chrome is down, this stops and says so rather than falling back.
+set -euo pipefail
+
+HOST=zenbook
+CDP=http://127.0.0.1:9335
+PORT=${ZC_PORT:-8771}
+REMOTE=/tmp/zenbook-check
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(dirname "$HERE")"
+OUT="$REPO/apps/web/out"
+SHOTS="${TMPDIR:-/tmp}/zenbook-check"
+
+BUILD=no
+if [ "${1:-}" = "--build" ]; then BUILD=yes; shift; fi
+if [ $# -eq 0 ]; then sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 1; fi
+
+if [ "$BUILD" = yes ] || [ ! -d "$OUT" ]; then
+  # A build while the dev server is up leaves that server answering 500.
+  if ss -ltn 2>/dev/null | grep -q ':3000 '; then
+    echo "Something is on port 3000. Stop pnpm web:dev first: a build shares .next with it."
+    exit 1
+  fi
+  echo "Building the static export."
+  (cd "$REPO" && pnpm web:build --force >/dev/null)
+fi
+
+echo "Export built $(( ($(date +%s) - $(stat -c %Y "$OUT")) / 60 )) minutes ago."
+
+# The static export writes page.html, not page/index.html, so a bare route has
+# to be resolved before the server sees it.
+: > /tmp/zenbook-check-paths.txt
+for path in "$@"; do
+  case "$path" in /*) ;; *) path="/$path" ;; esac
+  if [ -f "$OUT$path" ]; then resolved="$path"
+  elif [ -f "$OUT$path.html" ]; then resolved="$path.html"
+  elif [ -f "$OUT$path/index.html" ]; then resolved="$path/index.html"
+  else echo "Not in the export: $path"; exit 1
+  fi
+  echo "$resolved" >> /tmp/zenbook-check-paths.txt
+done
+
+if ! ssh "$HOST" "curl -s -m3 $CDP/json/version >/dev/null"; then
+  echo "The zenbook Chrome on 9335 is not answering. Start it there and rerun."
+  echo "Do not use a browser on this machine."
+  exit 1
+fi
+
+cat > /tmp/zenbook-check-run.sh <<EOF
+set -u
+export PATH=\$HOME/.local/bin:\$PATH
+export BU_CDP_URL=$CDP
+export ZC_DIR=$REMOTE
+export ZC_PORT=$PORT
+rm -rf $REMOTE/shots
+cd $REMOTE/site
+setsid nohup python3 -m http.server $PORT --bind 127.0.0.1 >/tmp/zenbook-check-server.log 2>&1 </dev/null &
+sleep 1
+set +e
+browser-harness < $REMOTE/check.py
+rc=\$?
+set -e
+pid=\$(ss -ltnp "sport = :$PORT" | grep -oP 'pid=\K[0-9]+' | head -1)
+[ -n "\$pid" ] && kill "\$pid"
+exit \$rc
+EOF
+
+ssh "$HOST" "mkdir -p $REMOTE/site"
+rsync -a --delete "$OUT/" "$HOST:$REMOTE/site/"
+scp -q "$HERE/zenbook-check.py" "$HOST:$REMOTE/check.py"
+scp -q /tmp/zenbook-check-paths.txt "$HOST:$REMOTE/paths.txt"
+scp -q /tmp/zenbook-check-run.sh "$HOST:$REMOTE/run.sh"
+
+echo ""
+status=0
+ssh "$HOST" "bash $REMOTE/run.sh" || status=$?
+
+mkdir -p "$SHOTS"
+rm -f "$SHOTS"/*.png
+scp -q "$HOST:$REMOTE/shots/*.png" "$SHOTS/" 2>/dev/null || true
+ssh "$HOST" "rm -rf $REMOTE"
+
+echo "screenshots in $SHOTS"
+ls "$SHOTS" 2>/dev/null | sed 's/^/  /'
+exit $status

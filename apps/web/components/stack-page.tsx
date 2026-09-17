@@ -76,6 +76,55 @@ function getFaviconUrl(url: string): string {
   return `https://icons.duckduckgo.com/ip3/${domain}.ico`;
 }
 
+function renderFormattedTake(text: string) {
+  const linkRegex =
+    /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
+  const elements: (string | React.ReactNode)[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = linkRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      elements.push(text.slice(lastIndex, match.index));
+    }
+
+    if (match[1] && match[2]) {
+      elements.push(
+        <a
+          key={match.index}
+          href={match[2]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-fd-primary underline decoration-fd-primary/30 underline-offset-2 transition-colors hover:decoration-fd-primary"
+        >
+          {match[1]}
+        </a>
+      );
+    } else if (match[3]) {
+      const url = match[3];
+      elements.push(
+        <a
+          key={match.index}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-fd-primary underline decoration-fd-primary/30 underline-offset-2 transition-colors hover:decoration-fd-primary"
+        >
+          {url.replace(/^https?:\/\/(www\.)?/, "")}
+        </a>
+      );
+    }
+
+    lastIndex = linkRegex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    elements.push(text.slice(lastIndex));
+  }
+
+  return elements.length > 0 ? elements : text;
+}
+
 function StackToolRow({ tool }: { tool: StackTool }) {
   return (
     <article className="-mx-3 min-w-0 rounded-2xl border-b border-fd-border/80 px-3 py-4 transition-colors hover:bg-fd-background/75 last:border-b-0">
@@ -122,7 +171,7 @@ function StackToolRow({ tool }: { tool: StackTool }) {
 
         {tool.take && (
           <p className="mt-2 text-sm leading-6 text-fd-foreground/76">
-            {tool.take}
+            {renderFormattedTake(tool.take)}
           </p>
         )}
 

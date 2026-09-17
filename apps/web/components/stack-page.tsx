@@ -31,15 +31,26 @@ const statusConfig: Record<StackStatus, { label: string; className: string }> =
     },
   };
 
-function ToolLogo({ tool }: { tool: StackTool }) {
+function ToolLogo({
+  tool,
+  size = "md",
+}: {
+  tool: StackTool;
+  size?: "sm" | "md";
+}) {
   const [failed, setFailed] = useState(false);
   const isGitHub = tool.url?.includes("github.com");
   const src =
     tool.logo || (!isGitHub && tool.url ? getFaviconUrl(tool.url) : null);
 
+  const dimClass = size === "sm" ? "h-6 w-6" : "h-7 w-7";
+  const textClass = size === "sm" ? "text-xs" : "text-[13px]";
+
   if (!src || failed) {
     return (
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-fd-border bg-fd-muted text-[13px] font-bold text-fd-foreground/70">
+      <div
+        className={`flex ${dimClass} shrink-0 items-center justify-center rounded-lg border border-fd-border bg-fd-muted ${textClass} font-bold text-fd-foreground/70`}
+      >
         {tool.name[0]}
       </div>
     );
@@ -49,9 +60,9 @@ function ToolLogo({ tool }: { tool: StackTool }) {
     <img
       src={src}
       alt=""
-      width={28}
-      height={28}
-      className="h-7 w-7 shrink-0 rounded-lg object-contain"
+      width={size === "sm" ? 24 : 28}
+      height={size === "sm" ? 24 : 28}
+      className={`${dimClass} shrink-0 rounded-lg object-contain`}
       onError={() => setFailed(true)}
     />
   );
@@ -141,18 +152,18 @@ function StackToolRow({
     <article
       className={
         isNested
-          ? "mt-3.5 rounded-xl border border-fd-border/70 bg-fd-card/50 p-3.5 sm:p-4"
-          : "-mx-3 min-w-0 rounded-2xl border-b border-fd-border/80 px-3 py-5 transition-colors hover:bg-fd-background/75 last:border-b-0"
+          ? "mt-2.5 rounded-xl border border-fd-border/70 bg-fd-card/40 p-3 sm:p-3.5"
+          : "-mx-2 min-w-0 rounded-xl border-b border-fd-border/70 px-2.5 py-4 transition-colors hover:bg-fd-background/70 last:border-b-0"
       }
     >
-      <div className="flex flex-col items-start gap-2.5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-start gap-3">
-          <ToolLogo tool={tool} />
-          <div className="min-w-0">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+          <ToolLogo tool={tool} size={isNested ? "sm" : "md"} />
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
             <h3
               className={`${
-                isNested ? "text-[15px]" : "text-base"
-              } font-semibold leading-tight tracking-tight text-fd-foreground`}
+                isNested ? "text-[14px] sm:text-[15px]" : "text-base"
+              } font-semibold leading-none tracking-tight text-fd-foreground`}
             >
               {tool.url ? (
                 <a
@@ -173,7 +184,7 @@ function StackToolRow({
                 href={tool.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-1 inline-flex max-w-full break-all text-[13px] text-fd-muted-foreground transition-colors hover:text-fd-primary"
+                className="text-[13px] text-fd-muted-foreground/80 transition-colors hover:text-fd-primary"
               >
                 {getDomain(tool.url)}
               </a>
@@ -183,25 +194,29 @@ function StackToolRow({
         <StatusBadge status={tool.status} />
       </div>
 
-      <div className={`mt-2.5 ${isNested ? "" : "sm:pl-10"}`}>
+      <div className={`mt-2 ${isNested ? "sm:pl-8.5" : "sm:pl-10"}`}>
         {tool.replacedBy && (
-          <p className="text-[13px] text-fd-muted-foreground">
+          <p className="text-[13px] font-medium text-fd-muted-foreground">
             Replaced by {tool.replacedBy}
           </p>
         )}
 
         {tool.take && (
-          <p className="mt-2 text-sm leading-6 text-fd-foreground/76">
+          <p
+            className={`${
+              tool.replacedBy ? "mt-1" : ""
+            } text-sm leading-relaxed text-fd-foreground/80`}
+          >
             {renderFormattedTake(tool.take)}
           </p>
         )}
 
         {tool.history && tool.history.length > 0 && (
-          <details className="group mt-3">
+          <details className="group mt-2">
             <summary className="cursor-pointer select-none text-[13px] text-fd-muted-foreground transition-colors hover:text-fd-foreground">
               Changelog ({tool.history.length})
             </summary>
-            <ul className="mt-2 space-y-2 border-l border-fd-border pl-3">
+            <ul className="mt-1.5 space-y-1.5 border-l border-fd-border pl-3">
               {tool.history.map((entry, i) => (
                 <li key={i} className="text-[13px] leading-5">
                   <span className="font-medium text-fd-muted-foreground">
@@ -217,7 +232,7 @@ function StackToolRow({
         )}
 
         {tool.children && tool.children.length > 0 && (
-          <div className="mt-3.5 space-y-3">
+          <div className="mt-2.5 space-y-2.5">
             {tool.children.map((child) => (
               <StackToolRow key={child.name} tool={child} isNested />
             ))}

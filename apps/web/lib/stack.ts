@@ -1,4 +1,9 @@
-export type StackStatus = "using" | "dropped" | "watching" | "replaced";
+export type StackStatus =
+  | "using"
+  | "dropped"
+  | "watching"
+  | "replaced"
+  | "reading";
 
 export interface StackHistoryEntry {
   date: string;
@@ -223,6 +228,36 @@ export const stack: StackTool[] = [
     category: "Infrastructure & Automation",
     status: "using",
     take: "I like it but I'm not great with managing workers, and the community version has some annoying limitations. May move to Kestra so people can see flows easily. It's way easier on the brain for me to just push to git and deploy.",
+  },
+
+  // Blogs I Read
+  {
+    name: "Hamel Hussein",
+    url: "https://hamel.dev",
+    category: "Blogs I Read",
+    status: "reading",
+    take: "One of the top authorities on evals. Very pragmatic, cuts to the chase, and focuses on what actually works instead of assumptions or gut feelings. Does the rigorous work and encourages everyone else to do the same.",
+  },
+  {
+    name: "Simon Willison",
+    url: "https://simonwillison.net",
+    category: "Blogs I Read",
+    status: "reading",
+    take: "One of the most prolific and insightful developers in AI. Researches at lightning speed, stays on top of everything emerging, and explains complex tech in a very clear, approachable, and easy-to-read way.",
+  },
+  {
+    name: "Dylan Castillo",
+    url: "https://dylancastillo.co",
+    category: "Blogs I Read",
+    status: "reading",
+    take: "Writes grounded, practical posts on data science, LLMs, and agents. Doesn't parrot generic advice - shares hands-on experience and real takeaways that validate what actually happens in practice.",
+  },
+  {
+    name: "Michael Lynch",
+    url: "https://mtlynch.io",
+    category: "Blogs I Read",
+    status: "reading",
+    take: "Fantastic, thoughtful writer. I pre-ordered his book. He has a deeply deliberate, high-craft way of writing and reasoning through engineering and indie projects that I aspire to.",
   },
 ];
 

@@ -11,6 +11,11 @@ const statusConfig: Record<StackStatus, { label: string; className: string }> =
       label: "Using",
       className: "border-fd-primary/25 bg-fd-primary/10 text-fd-primary",
     },
+    reading: {
+      label: "Reading",
+      className:
+        "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+    },
     dropped: {
       label: "Dropped",
       className: "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-400",

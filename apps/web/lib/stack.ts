@@ -257,7 +257,7 @@ export const stack: StackTool[] = [
     url: "https://mtlynch.io",
     category: "Blogs I Read",
     status: "reading",
-    take: "Fantastic, thoughtful writer. I pre-ordered his book. He has a deeply deliberate, high-craft way of writing and reasoning through engineering and indie projects that I aspire to.",
+    take: "Fantastic, thoughtful writer. I pre-ordered his book. He writes with immense clarity - it looks simple from the outside, but only because he focuses so much on communicating correctly and respecting people's time. That's what I aspire to.",
   },
 ];
 

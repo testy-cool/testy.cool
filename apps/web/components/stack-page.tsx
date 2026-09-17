@@ -125,14 +125,30 @@ function renderFormattedTake(text: string) {
   return elements.length > 0 ? elements : text;
 }
 
-function StackToolRow({ tool }: { tool: StackTool }) {
+function StackToolRow({
+  tool,
+  isNested = false,
+}: {
+  tool: StackTool;
+  isNested?: boolean;
+}) {
   return (
-    <article className="-mx-3 min-w-0 rounded-2xl border-b border-fd-border/80 px-3 py-4 transition-colors hover:bg-fd-background/75 last:border-b-0">
+    <article
+      className={
+        isNested
+          ? "mt-3 rounded-xl border border-fd-border/70 bg-fd-card/40 p-3.5 sm:p-4"
+          : "-mx-3 min-w-0 rounded-2xl border-b border-fd-border/80 px-3 py-4 transition-colors hover:bg-fd-background/75 last:border-b-0"
+      }
+    >
       <div className="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           <ToolLogo tool={tool} />
           <div className="min-w-0">
-            <h3 className="text-base font-semibold leading-tight tracking-tight text-fd-foreground">
+            <h3
+              className={`${
+                isNested ? "text-[15px]" : "text-base"
+              } font-semibold leading-tight tracking-tight text-fd-foreground`}
+            >
               {tool.url ? (
                 <a
                   href={tool.url}
@@ -194,6 +210,17 @@ function StackToolRow({ tool }: { tool: StackTool }) {
             </ul>
           </details>
         )}
+
+        {tool.children && tool.children.length > 0 && (
+          <div className="mt-3 space-y-3">
+            <div className="text-[13px] font-medium text-fd-muted-foreground">
+              Nested tools & workflows:
+            </div>
+            {tool.children.map((child) => (
+              <StackToolRow key={child.name} tool={child} isNested />
+            ))}
+          </div>
+        )}
       </div>
     </article>
   );
@@ -205,23 +232,30 @@ export default function StackPage() {
 
   return (
     <div className="not-prose space-y-6">
-      {categories.map(([category, tools]) => (
-        <SiteSurface key={category} variant="muted">
-          <div className="flex flex-col items-start gap-4 md:flex-row md:justify-between">
-            <SectionHeading
-              eyebrow="Stack"
-              title={category}
-              titleClassName="text-xl md:text-2xl"
-            />
-            <MetaPill>{tools.length} entries</MetaPill>
-          </div>
-          <div className="mt-5">
-            {tools.map((tool) => (
-              <StackToolRow key={tool.name} tool={tool} />
-            ))}
-          </div>
-        </SiteSurface>
-      ))}
+      {categories.map(([category, tools]) => {
+        const totalCount = tools.reduce(
+          (acc, t) => acc + 1 + (t.children?.length ?? 0),
+          0
+        );
+
+        return (
+          <SiteSurface key={category} variant="muted">
+            <div className="flex flex-col items-start gap-4 md:flex-row md:justify-between">
+              <SectionHeading
+                eyebrow="Stack"
+                title={category}
+                titleClassName="text-xl md:text-2xl"
+              />
+              <MetaPill>{totalCount} entries</MetaPill>
+            </div>
+            <div className="mt-5">
+              {tools.map((tool) => (
+                <StackToolRow key={tool.name} tool={tool} />
+              ))}
+            </div>
+          </SiteSurface>
+        );
+      })}
     </div>
   );
 }

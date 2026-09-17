@@ -9,33 +9,19 @@ import {
   useId,
 } from "react";
 
-type Provider =
-  | "anthropic"
-  | "openai"
-  | "google"
-  | "deepseek"
-  | "xai"
-  | "mistral"
-  | "meta"
-  | "qwen"
-  | "xiaomi"
-  | "amazon"
-  | "cohere"
-  | "zhipu";
-type Modality = "text" | "image" | "audio" | "video" | "pdf";
-type CalcMode = "cost" | "budget" | "chain";
-
-interface Model {
-  name: string;
-  provider: Provider;
-  input: number; // $ per 1M tokens
-  output: number; // $ per 1M tokens
-  cachedInput: number; // $ per 1M tokens (cache read/hit price)
-  context: number; // max input context window in tokens
-  maxOutput: number; // max output tokens
-  modalities: Modality[];
-  reasoning?: number; // $ per 1M reasoning/thinking tokens
-}
+import {
+  type Provider,
+  type Modality,
+  type CalcMode,
+  providerLabels,
+  providerOrder,
+  defaultProvider,
+  allProviders,
+  modalityOrder,
+  modalityFullLabels,
+  useLiveModels,
+} from "@/lib/llm-models";
+import { modelsSnapshot } from "@/data/models-snapshot";
 
 function formatTokenCount(n: number): string {
   if (n >= 1_000_000) {
@@ -48,704 +34,6 @@ function formatTokenCount(n: number): string {
   }
   return String(n);
 }
-
-const models: Model[] = [
-  // Anthropic
-  {
-    name: "Claude Opus 4.7",
-    provider: "anthropic",
-    input: 5,
-    output: 25,
-    cachedInput: 0.5,
-    context: 1_000_000,
-    maxOutput: 128_000,
-    modalities: ["text", "image", "pdf"],
-    reasoning: 25,
-  },
-  {
-    name: "Claude Opus 4.6",
-    provider: "anthropic",
-    input: 5,
-    output: 25,
-    cachedInput: 0.5,
-    context: 200_000,
-    maxOutput: 128_000,
-    modalities: ["text", "image", "pdf"],
-    reasoning: 25,
-  },
-  {
-    name: "Claude Sonnet 4.6",
-    provider: "anthropic",
-    input: 3,
-    output: 15,
-    cachedInput: 0.3,
-    context: 1_000_000,
-    maxOutput: 64_000,
-    modalities: ["text", "image", "pdf"],
-    reasoning: 15,
-  },
-  {
-    name: "Claude Sonnet 4.5",
-    provider: "anthropic",
-    input: 3,
-    output: 15,
-    cachedInput: 0.3,
-    context: 200_000,
-    maxOutput: 64_000,
-    modalities: ["text", "image", "pdf"],
-    reasoning: 15,
-  },
-  {
-    name: "Claude Haiku 4.5",
-    provider: "anthropic",
-    input: 1,
-    output: 5,
-    cachedInput: 0.1,
-    context: 200_000,
-    maxOutput: 64_000,
-    modalities: ["text", "image", "pdf"],
-  },
-  // OpenAI
-  {
-    name: "GPT-5.5",
-    provider: "openai",
-    input: 5,
-    output: 30,
-    cachedInput: 0.5,
-    context: 1_050_000,
-    maxOutput: 128_000,
-    modalities: ["text", "image"],
-    reasoning: 30,
-  },
-  {
-    name: "GPT-5.4",
-    provider: "openai",
-    input: 2.5,
-    output: 15,
-    cachedInput: 0.25,
-    context: 1_050_000,
-    maxOutput: 128_000,
-    modalities: ["text", "image"],
-    reasoning: 15,
-  },
-  {
-    name: "GPT-5.4-mini",
-    provider: "openai",
-    input: 0.75,
-    output: 4.5,
-    cachedInput: 0.075,
-    context: 400_000,
-    maxOutput: 128_000,
-    modalities: ["text", "image"],
-    reasoning: 4.5,
-  },
-  {
-    name: "GPT-5.4-nano",
-    provider: "openai",
-    input: 0.2,
-    output: 1.25,
-    cachedInput: 0.02,
-    context: 400_000,
-    maxOutput: 128_000,
-    modalities: ["text", "image"],
-    reasoning: 1.25,
-  },
-  {
-    name: "GPT-5.2",
-    provider: "openai",
-    input: 1.75,
-    output: 14,
-    cachedInput: 0.175,
-    context: 400_000,
-    maxOutput: 128_000,
-    modalities: ["text", "image"],
-    reasoning: 14,
-  },
-  {
-    name: "GPT-5.1",
-    provider: "openai",
-    input: 1.25,
-    output: 10,
-    cachedInput: 0.125,
-    context: 400_000,
-    maxOutput: 128_000,
-    modalities: ["text", "image"],
-    reasoning: 10,
-  },
-  {
-    name: "GPT-5",
-    provider: "openai",
-    input: 1.25,
-    output: 10,
-    cachedInput: 0.125,
-    context: 400_000,
-    maxOutput: 128_000,
-    modalities: ["text", "image"],
-    reasoning: 10,
-  },
-  {
-    name: "GPT-5-mini",
-    provider: "openai",
-    input: 0.25,
-    output: 2,
-    cachedInput: 0.025,
-    context: 400_000,
-    maxOutput: 128_000,
-    modalities: ["text", "image"],
-    reasoning: 2,
-  },
-  {
-    name: "GPT-5-nano",
-    provider: "openai",
-    input: 0.05,
-    output: 0.4,
-    cachedInput: 0.005,
-    context: 400_000,
-    maxOutput: 128_000,
-    modalities: ["text", "image"],
-    reasoning: 0.4,
-  },
-  {
-    name: "GPT-4.1",
-    provider: "openai",
-    input: 2,
-    output: 8,
-    cachedInput: 0.5,
-    context: 1_000_000,
-    maxOutput: 32_000,
-    modalities: ["text", "image"],
-  },
-  {
-    name: "GPT-4.1-mini",
-    provider: "openai",
-    input: 0.4,
-    output: 1.6,
-    cachedInput: 0.1,
-    context: 1_000_000,
-    maxOutput: 32_000,
-    modalities: ["text", "image"],
-  },
-  {
-    name: "GPT-4.1-nano",
-    provider: "openai",
-    input: 0.1,
-    output: 0.4,
-    cachedInput: 0.025,
-    context: 1_000_000,
-    maxOutput: 32_000,
-    modalities: ["text", "image"],
-  },
-  {
-    name: "GPT-4o",
-    provider: "openai",
-    input: 2.5,
-    output: 10,
-    cachedInput: 1.25,
-    context: 128_000,
-    maxOutput: 16_000,
-    modalities: ["text", "image"],
-  },
-  {
-    name: "GPT-4o-mini",
-    provider: "openai",
-    input: 0.15,
-    output: 0.6,
-    cachedInput: 0.075,
-    context: 128_000,
-    maxOutput: 16_000,
-    modalities: ["text", "image"],
-  },
-  {
-    name: "o3-pro",
-    provider: "openai",
-    input: 20,
-    output: 80,
-    cachedInput: 20,
-    context: 200_000,
-    maxOutput: 100_000,
-    modalities: ["text", "image"],
-    reasoning: 80,
-  },
-  {
-    name: "o3",
-    provider: "openai",
-    input: 2,
-    output: 8,
-    cachedInput: 0.5,
-    context: 200_000,
-    maxOutput: 100_000,
-    modalities: ["text", "image"],
-    reasoning: 8,
-  },
-  {
-    name: "o4-mini",
-    provider: "openai",
-    input: 1.1,
-    output: 4.4,
-    cachedInput: 0.275,
-    context: 200_000,
-    maxOutput: 100_000,
-    modalities: ["text", "image"],
-    reasoning: 4.4,
-  },
-  // Google
-  {
-    name: "Gemini 3.5 Flash",
-    provider: "google",
-    input: 1.5,
-    output: 9,
-    cachedInput: 0.15,
-    context: 1_000_000,
-    maxOutput: 65_000,
-    modalities: ["text", "image", "audio", "video", "pdf"],
-    reasoning: 9,
-  },
-  {
-    name: "Gemini 3.1 Pro Preview",
-    provider: "google",
-    input: 2,
-    output: 12,
-    cachedInput: 0.2,
-    context: 1_000_000,
-    maxOutput: 65_000,
-    modalities: ["text", "image", "audio", "video", "pdf"],
-  },
-  {
-    name: "Gemini 3.1 Flash-Lite Preview",
-    provider: "google",
-    input: 0.25,
-    output: 1.5,
-    cachedInput: 0.025,
-    context: 1_000_000,
-    maxOutput: 65_000,
-    modalities: ["text", "image", "audio", "video", "pdf"],
-  },
-  {
-    name: "Gemini 3 Flash Preview",
-    provider: "google",
-    input: 0.5,
-    output: 3,
-    cachedInput: 0.05,
-    context: 1_000_000,
-    maxOutput: 65_000,
-    modalities: ["text", "image", "audio", "video", "pdf"],
-    reasoning: 3,
-  },
-  {
-    name: "Gemini 2.5 Pro",
-    provider: "google",
-    input: 1.25,
-    output: 10,
-    cachedInput: 0.125,
-    context: 1_000_000,
-    maxOutput: 65_000,
-    modalities: ["text", "image", "audio", "video", "pdf"],
-    reasoning: 10,
-  },
-  {
-    name: "Gemini 2.5 Flash",
-    provider: "google",
-    input: 0.3,
-    output: 2.5,
-    cachedInput: 0.03,
-    context: 1_000_000,
-    maxOutput: 65_000,
-    modalities: ["text", "image", "audio", "video", "pdf"],
-    reasoning: 2.5,
-  },
-  {
-    name: "Gemini 2.5 Flash-Lite",
-    provider: "google",
-    input: 0.1,
-    output: 0.4,
-    cachedInput: 0.01,
-    context: 1_000_000,
-    maxOutput: 65_000,
-    modalities: ["text", "image", "audio", "video", "pdf"],
-  },
-  {
-    name: "Gemini 2.0 Flash",
-    provider: "google",
-    input: 0.1,
-    output: 0.4,
-    cachedInput: 0.025,
-    context: 1_000_000,
-    maxOutput: 8_192,
-    modalities: ["text", "image", "audio", "video", "pdf"],
-  },
-  // DeepSeek
-  {
-    name: "DeepSeek V4 Pro",
-    provider: "deepseek",
-    input: 0.43,
-    output: 0.87,
-    cachedInput: 0.004,
-    context: 1_000_000,
-    maxOutput: 384_000,
-    modalities: ["text"],
-    reasoning: 0.87,
-  },
-  {
-    name: "DeepSeek V4 Flash",
-    provider: "deepseek",
-    input: 0.14,
-    output: 0.28,
-    cachedInput: 0.0028,
-    context: 1_000_000,
-    maxOutput: 384_000,
-    modalities: ["text"],
-    reasoning: 0.28,
-  },
-  // xAI
-  {
-    name: "Grok 4.3",
-    provider: "xai",
-    input: 1.25,
-    output: 2.5,
-    cachedInput: 0.2,
-    context: 1_000_000,
-    maxOutput: 30_000,
-    modalities: ["text", "image", "pdf"],
-    reasoning: 2.5,
-  },
-  {
-    name: "Grok 4.20",
-    provider: "xai",
-    input: 1.25,
-    output: 2.5,
-    cachedInput: 0.2,
-    context: 2_000_000,
-    maxOutput: 30_000,
-    modalities: ["text", "image", "pdf"],
-    reasoning: 2.5,
-  },
-  {
-    name: "Grok Build 0.1",
-    provider: "xai",
-    input: 1,
-    output: 2,
-    cachedInput: 0.2,
-    context: 256_000,
-    maxOutput: 256_000,
-    modalities: ["text", "image", "pdf"],
-  },
-  // Mistral
-  {
-    name: "Mistral Medium 3.5",
-    provider: "mistral",
-    input: 1.5,
-    output: 7.5,
-    cachedInput: 0.15,
-    context: 262_000,
-    maxOutput: 262_000,
-    modalities: ["text", "image"],
-    reasoning: 7.5,
-  },
-  {
-    name: "Mistral Large 3",
-    provider: "mistral",
-    input: 0.5,
-    output: 1.5,
-    cachedInput: 0.05,
-    context: 262_000,
-    maxOutput: 262_000,
-    modalities: ["text", "image"],
-  },
-  {
-    name: "Mistral Medium 3.1",
-    provider: "mistral",
-    input: 0.4,
-    output: 2,
-    cachedInput: 0.04,
-    context: 262_000,
-    maxOutput: 262_000,
-    modalities: ["text", "image"],
-  },
-  {
-    name: "Mistral Small 4",
-    provider: "mistral",
-    input: 0.15,
-    output: 0.6,
-    cachedInput: 0.015,
-    context: 256_000,
-    maxOutput: 256_000,
-    modalities: ["text", "image"],
-    reasoning: 0.6,
-  },
-  {
-    name: "Magistral Medium",
-    provider: "mistral",
-    input: 2,
-    output: 5,
-    cachedInput: 0.2,
-    context: 128_000,
-    maxOutput: 16_000,
-    modalities: ["text"],
-    reasoning: 5,
-  },
-  {
-    name: "Devstral 2",
-    provider: "mistral",
-    input: 0.4,
-    output: 2,
-    cachedInput: 0.04,
-    context: 262_000,
-    maxOutput: 262_000,
-    modalities: ["text"],
-  },
-  {
-    name: "Codestral",
-    provider: "mistral",
-    input: 0.3,
-    output: 0.9,
-    cachedInput: 0.03,
-    context: 256_000,
-    maxOutput: 4_000,
-    modalities: ["text"],
-  },
-  // Meta
-  {
-    name: "Llama 4 Maverick",
-    provider: "meta",
-    input: 0.15,
-    output: 0.6,
-    cachedInput: 0.015,
-    context: 1_000_000,
-    maxOutput: 16_000,
-    modalities: ["text", "image"],
-  },
-  {
-    name: "Llama 4 Scout",
-    provider: "meta",
-    input: 0.08,
-    output: 0.3,
-    cachedInput: 0.008,
-    context: 328_000,
-    maxOutput: 16_000,
-    modalities: ["text", "image"],
-  },
-  // Qwen (Alibaba)
-  {
-    name: "Qwen3.6 Max Preview",
-    provider: "qwen",
-    input: 1.3,
-    output: 7.8,
-    cachedInput: 0.13,
-    context: 262_000,
-    maxOutput: 65_000,
-    modalities: ["text"],
-    reasoning: 7.8,
-  },
-  {
-    name: "Qwen3 Max",
-    provider: "qwen",
-    input: 1.2,
-    output: 6,
-    cachedInput: 0.12,
-    context: 262_000,
-    maxOutput: 65_000,
-    modalities: ["text"],
-  },
-  {
-    name: "Qwen3 Coder Plus",
-    provider: "qwen",
-    input: 1,
-    output: 5,
-    cachedInput: 0.1,
-    context: 1_000_000,
-    maxOutput: 65_000,
-    modalities: ["text"],
-  },
-  {
-    name: "Qwen3.6 Plus",
-    provider: "qwen",
-    input: 0.5,
-    output: 3,
-    cachedInput: 0.05,
-    context: 1_000_000,
-    maxOutput: 65_000,
-    modalities: ["text", "image", "video"],
-    reasoning: 3,
-  },
-  {
-    name: "Qwen3.6 Flash",
-    provider: "qwen",
-    input: 0.19,
-    output: 1.12,
-    cachedInput: 0.019,
-    context: 1_000_000,
-    maxOutput: 65_000,
-    modalities: ["text", "image", "video"],
-    reasoning: 1.12,
-  },
-  // Xiaomi
-  {
-    name: "MiMo V2.5 Pro",
-    provider: "xiaomi",
-    input: 0.435,
-    output: 0.87,
-    cachedInput: 0.0036,
-    context: 1_000_000,
-    maxOutput: 131_000,
-    modalities: ["text"],
-    reasoning: 0.87,
-  },
-  {
-    name: "MiMo V2.5",
-    provider: "xiaomi",
-    input: 0.14,
-    output: 0.28,
-    cachedInput: 0.0028,
-    context: 1_000_000,
-    maxOutput: 131_000,
-    modalities: ["text", "image", "audio", "video"],
-    reasoning: 0.28,
-  },
-  // Amazon
-  {
-    name: "Nova Premier",
-    provider: "amazon",
-    input: 2.5,
-    output: 12.5,
-    cachedInput: 0.62,
-    context: 1_000_000,
-    maxOutput: 32_000,
-    modalities: ["text", "image"],
-  },
-  {
-    name: "Nova Pro",
-    provider: "amazon",
-    input: 0.8,
-    output: 3.2,
-    cachedInput: 0.2,
-    context: 300_000,
-    maxOutput: 8_000,
-    modalities: ["text", "image", "video"],
-  },
-  {
-    name: "Nova Lite",
-    provider: "amazon",
-    input: 0.06,
-    output: 0.24,
-    cachedInput: 0.01,
-    context: 300_000,
-    maxOutput: 8_000,
-    modalities: ["text", "image", "video"],
-  },
-  // Cohere
-  {
-    name: "Command A",
-    provider: "cohere",
-    input: 2.5,
-    output: 10,
-    cachedInput: 0.25,
-    context: 256_000,
-    maxOutput: 8_000,
-    modalities: ["text"],
-  },
-  // Zhipu AI (GLM)
-  {
-    name: "GLM-5",
-    provider: "zhipu",
-    input: 1,
-    output: 3.2,
-    cachedInput: 0.2,
-    context: 200_000,
-    maxOutput: 128_000,
-    modalities: ["text"],
-  },
-  {
-    name: "GLM-5-Code",
-    provider: "zhipu",
-    input: 1.2,
-    output: 5,
-    cachedInput: 0.3,
-    context: 200_000,
-    maxOutput: 128_000,
-    modalities: ["text"],
-  },
-  {
-    name: "GLM-4.7",
-    provider: "zhipu",
-    input: 0.6,
-    output: 2.2,
-    cachedInput: 0.11,
-    context: 200_000,
-    maxOutput: 128_000,
-    modalities: ["text"],
-  },
-  {
-    name: "GLM-4.7-FlashX",
-    provider: "zhipu",
-    input: 0.07,
-    output: 0.4,
-    cachedInput: 0.01,
-    context: 200_000,
-    maxOutput: 128_000,
-    modalities: ["text"],
-  },
-  {
-    name: "GLM-4.5",
-    provider: "zhipu",
-    input: 0.6,
-    output: 2.2,
-    cachedInput: 0.11,
-    context: 128_000,
-    maxOutput: 128_000,
-    modalities: ["text"],
-  },
-  {
-    name: "GLM-4.5-X",
-    provider: "zhipu",
-    input: 2.2,
-    output: 8.9,
-    cachedInput: 0.45,
-    context: 128_000,
-    maxOutput: 128_000,
-    modalities: ["text"],
-  },
-];
-
-const providerLabels: Record<Provider, string> = {
-  anthropic: "Anthropic",
-  openai: "OpenAI",
-  google: "Google",
-  deepseek: "DeepSeek",
-  xai: "xAI",
-  mistral: "Mistral",
-  meta: "Meta",
-  qwen: "Qwen",
-  xiaomi: "Xiaomi",
-  amazon: "Amazon",
-  cohere: "Cohere",
-  zhipu: "Zhipu AI",
-};
-
-const providerOrder: Provider[] = [
-  "anthropic",
-  "openai",
-  "google",
-  "deepseek",
-  "xai",
-  "mistral",
-  "meta",
-  "qwen",
-  "xiaomi",
-  "amazon",
-  "cohere",
-  "zhipu",
-];
-const defaultProvider = providerOrder[0] ?? "anthropic";
-const allProviders = new Set<Provider>(providerOrder);
-
-const modalityOrder: Modality[] = ["text", "image", "audio", "video", "pdf"];
-const modalityFullLabels: Record<Modality, string> = {
-  text: "Text",
-  image: "Image",
-  audio: "Audio",
-  video: "Video",
-  pdf: "PDF",
-};
 
 const modalityIcons: Record<Modality, React.ReactNode> = {
   text: (
@@ -1029,6 +317,8 @@ function chainCumulativeAt(
 
 export function LlmPriceCalculator() {
   const initial = readParams();
+  const { models, isLive, lastSynced, isSyncing, syncNow } =
+    useLiveModels(modelsSnapshot);
   const [inputTokens, setInputTokens] = useState(initial.inputTokens);
   const [outputTokens, setOutputTokens] = useState(initial.outputTokens);
   const [apiCalls, setApiCalls] = useState(initial.apiCalls);
@@ -1265,6 +555,7 @@ export function LlmPriceCalculator() {
       };
     });
   }, [
+    models,
     inputTokens,
     outputTokens,
     reasoningTokens,
@@ -1407,83 +698,114 @@ export function LlmPriceCalculator() {
 
       {/* Input Controls - Sticky */}
       <div className="mb-5 rounded-xl border border-fd-border bg-fd-card/95 p-3 shadow-sm sm:p-5 md:sticky md:top-[var(--fd-nav-height,3.5rem)] md:z-10 md:p-6 md:backdrop-blur-sm">
-        {/* Mode toggle + Presets row */}
-        <div className="mb-2.5 flex flex-wrap items-center gap-1.5 sm:mb-4 sm:gap-2">
-          <div className="inline-flex rounded-lg border border-fd-border bg-fd-background/80 p-1">
-            <button
-              onClick={() => setMode("cost")}
-              className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                mode === "cost"
-                  ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
-                  : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
-              }`}
-            >
-              Calculate cost
-            </button>
-            <button
-              onClick={() => setMode("budget")}
-              className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                mode === "budget"
-                  ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
-                  : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
-              }`}
-            >
-              Set budget
-            </button>
-            <button
-              onClick={() => setMode("chain")}
-              className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                mode === "chain"
-                  ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
-                  : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
-              }`}
-            >
-              Chain
-            </button>
+        {/* Mode toggle + Presets + Live Status row */}
+        <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2 sm:mb-4">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <div className="inline-flex rounded-lg border border-fd-border bg-fd-background/80 p-1">
+              <button
+                onClick={() => setMode("cost")}
+                className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                  mode === "cost"
+                    ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
+                    : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
+                }`}
+              >
+                Calculate cost
+              </button>
+              <button
+                onClick={() => setMode("budget")}
+                className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                  mode === "budget"
+                    ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
+                    : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
+                }`}
+              >
+                Set budget
+              </button>
+              <button
+                onClick={() => setMode("chain")}
+                className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                  mode === "chain"
+                    ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
+                    : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
+                }`}
+              >
+                Chain
+              </button>
+            </div>
+            {!isBudgetMode && !isChainMode && (
+              <>
+                <span className="text-fd-foreground/40 text-xs">|</span>
+                {presets.map((p) => (
+                  <button
+                    key={p.label}
+                    onClick={() => applyPreset(p)}
+                    className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                      isMatchingPreset(p)
+                        ? "bg-fd-primary/10 text-fd-primary"
+                        : "text-fd-muted-foreground hover:bg-fd-muted/60 hover:text-fd-foreground"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+                <span className="text-fd-foreground/40 text-xs">|</span>
+                <div className="inline-flex rounded-lg border border-fd-border bg-fd-background/80 p-0.5">
+                  <button
+                    onClick={() => setSortBy("provider")}
+                    aria-pressed={sortBy === "provider"}
+                    className={`rounded-md px-2.5 py-1 text-xs font-medium transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                      sortBy === "provider"
+                        ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
+                        : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
+                    }`}
+                  >
+                    By provider
+                  </button>
+                  <button
+                    onClick={() => setSortBy("price")}
+                    aria-pressed={sortBy === "price"}
+                    className={`rounded-md px-2.5 py-1 text-xs font-medium transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
+                      sortBy === "price"
+                        ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
+                        : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
+                    }`}
+                  >
+                    By cost
+                  </button>
+                </div>
+              </>
+            )}
           </div>
-          {!isBudgetMode && !isChainMode && (
-            <>
-              <span className="text-fd-foreground/40 text-xs">|</span>
-              {presets.map((p) => (
-                <button
-                  key={p.label}
-                  onClick={() => applyPreset(p)}
-                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                    isMatchingPreset(p)
-                      ? "bg-fd-primary/10 text-fd-primary"
-                      : "text-fd-muted-foreground hover:bg-fd-muted/60 hover:text-fd-foreground"
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-              <span className="text-fd-foreground/40 text-xs">|</span>
-              <div className="inline-flex rounded-lg border border-fd-border bg-fd-background/80 p-0.5">
-                <button
-                  onClick={() => setSortBy("provider")}
-                  aria-pressed={sortBy === "provider"}
-                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                    sortBy === "provider"
-                      ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
-                      : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
-                  }`}
-                >
-                  By provider
-                </button>
-                <button
-                  onClick={() => setSortBy("price")}
-                  aria-pressed={sortBy === "price"}
-                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
-                    sortBy === "price"
-                      ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
-                      : "text-fd-foreground/68 hover:bg-fd-muted/70 hover:text-fd-foreground"
-                  }`}
-                >
-                  By cost
-                </button>
-              </div>
-            </>
-          )}
+
+          <div className="flex items-center gap-2">
+            <div
+              className="flex items-center gap-1.5 rounded-full border border-fd-border/70 bg-fd-background/80 px-2.5 py-1 text-xs text-fd-foreground/75 shadow-2xs"
+              title={
+                lastSynced
+                  ? `Synced with OpenRouter at ${lastSynced.toLocaleTimeString()}`
+                  : "Using bundled snapshot from OpenRouter"
+              }
+            >
+              <span
+                className={`inline-block h-2 w-2 rounded-full ${
+                  isLive ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-amber-500"
+                }`}
+              />
+              <span className="font-medium">
+                {isLive ? "OpenRouter Live" : "Snapshot"}
+              </span>
+              <button
+                type="button"
+                onClick={() => syncNow()}
+                disabled={isSyncing}
+                title="Fetch latest models and pricing from OpenRouter"
+                className="ml-1 inline-flex items-center font-medium text-fd-muted-foreground transition-colors hover:text-fd-primary disabled:opacity-50"
+              >
+                {isSyncing ? "Syncing..." : "Sync"}
+              </button>
+            </div>
+          </div>
         </div>
 
         {isChainMode ? (

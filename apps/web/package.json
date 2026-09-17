@@ -14,6 +14,7 @@
     "note:promote": "node scripts/notes-operator.mjs promote",
     "note:grade": "uvx --from textstat python scripts/reading-grade.py",
     "serve": "npx serve@latest out",
+    "sync:models": "node scripts/sync-models.mjs",
     "postinstall": "fumadocs-mdx",
     "sitemap": "next-sitemap --config next-sitemap.config.cjs",
     "postbuild": "pnpm sitemap"

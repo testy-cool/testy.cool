@@ -33,6 +33,7 @@ export const stack: StackTool[] = [
     children: [
       {
         name: "Fable",
+        logo: "https://icons.duckduckgo.com/ip3/claude.ai.ico",
         category: "Agents & Models",
         status: "using",
         take: "Fable 5.1 is ok sometimes. In Herdr, I use Codex as a translator between me and Fable, and often have Fable 5.1 order around other agents depending on the case.",
@@ -48,6 +49,7 @@ export const stack: StackTool[] = [
   },
   {
     name: "Antigravity",
+    logo: "/images/stack/antigravity.png",
     category: "Agents & Models",
     status: "using",
     take: "From Google, powered by Gemini. Used for research and fast implementing because it's fast. I love Gemini 3.8 - super fast and responsive.",
@@ -55,6 +57,7 @@ export const stack: StackTool[] = [
   {
     name: "Pi",
     url: "https://github.com/earendil-works/pi",
+    logo: "/images/stack/pi.svg",
     category: "Agents & Models",
     status: "using",
     take: "Minimalist coding agent CLI from Earendil (Mario Zechner / badlogic on GitHub). Paired with DeepSeek 4.1 Flash. Love the feeling of prompt caching making it cost next to nothing.",
@@ -62,9 +65,10 @@ export const stack: StackTool[] = [
   {
     name: "Sitegeist",
     url: "https://github.com/badlogic/sitegeist",
+    logo: "/images/stack/sitegeist.png",
     category: "Agents & Models",
     status: "using",
-    take: "AI research and browser agent originally created by Mario Zechner (creator of Pi). I use a custom fork of it for web research and scraping sessions.",
+    take: "I use it for a lot of things - browser automation, digging up hidden settings in complex dashboards, getting UI feedback on websites, and generating artifacts. It's amazing; I can't believe he isn't actively tending to it anymore. Running my own custom fork of it for research sessions.",
   },
   {
     name: "HermesAgent",

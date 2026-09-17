@@ -141,11 +141,11 @@ function StackToolRow({
     <article
       className={
         isNested
-          ? "mt-3 rounded-xl border border-fd-border/70 bg-fd-card/40 p-3.5 sm:p-4"
-          : "-mx-3 min-w-0 rounded-2xl border-b border-fd-border/80 px-3 py-4 transition-colors hover:bg-fd-background/75 last:border-b-0"
+          ? "mt-3.5 rounded-xl border border-fd-border/70 bg-fd-card/50 p-3.5 sm:p-4"
+          : "-mx-3 min-w-0 rounded-2xl border-b border-fd-border/80 px-3 py-5 transition-colors hover:bg-fd-background/75 last:border-b-0"
       }
     >
-      <div className="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
+      <div className="flex flex-col items-start gap-2.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           <ToolLogo tool={tool} />
           <div className="min-w-0">
@@ -183,7 +183,7 @@ function StackToolRow({
         <StatusBadge status={tool.status} />
       </div>
 
-      <div className="mt-3 sm:pl-10">
+      <div className={`mt-2.5 ${isNested ? "" : "sm:pl-10"}`}>
         {tool.replacedBy && (
           <p className="text-[13px] text-fd-muted-foreground">
             Replaced by {tool.replacedBy}
@@ -217,10 +217,7 @@ function StackToolRow({
         )}
 
         {tool.children && tool.children.length > 0 && (
-          <div className="mt-3 space-y-3">
-            <div className="text-[13px] font-medium text-fd-muted-foreground">
-              Nested tools & workflows:
-            </div>
+          <div className="mt-3.5 space-y-3">
             {tool.children.map((child) => (
               <StackToolRow key={child.name} tool={child} isNested />
             ))}
@@ -236,7 +233,7 @@ export default function StackPage() {
   const categories = Object.entries(grouped);
 
   return (
-    <div className="not-prose space-y-6">
+    <div className="not-prose space-y-8">
       {categories.map(([category, tools]) => {
         const totalCount = tools.reduce(
           (acc, t) => acc + 1 + (t.children?.length ?? 0),

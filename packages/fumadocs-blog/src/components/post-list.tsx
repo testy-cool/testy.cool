@@ -72,9 +72,7 @@ export function PostList({
           <DocsTitle className="dark:text-white capitalize">
             {heading}
           </DocsTitle>
-          <DocsDescription className="mt-3 mb-0">
-            {description}
-          </DocsDescription>
+          <DocsDescription className="mt-3 mb-0">{description}</DocsDescription>
         </div>
       </section>
 
@@ -88,7 +86,7 @@ export function PostList({
         <div className="mx-auto w-full max-w-3xl">
           {posts
             .filter(
-              (post): post is NonNullable<typeof post> => post !== undefined
+              (post): post is NonNullable<typeof post> => post !== undefined,
             )
             .map((post) => {
               if (configuration?.PostCard) {

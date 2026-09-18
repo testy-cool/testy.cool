@@ -43,7 +43,7 @@ export const TOOL_CATEGORIES: {
     id: "extensions",
     label: "Browser Extensions",
     description:
-      "Lightweight Manifest V3 extensions for ChatGPT conversation export and Hacker News power features.",
+      "Lightweight Manifest V3 extensions for GitHub repo health overlays, sidebar AI automation, and productivity.",
   },
   {
     id: "tutorials",
@@ -126,6 +126,30 @@ export const allTools: Tool[] = [
     category: "text-nlp",
     categoryLabel: "Text & Linguistics",
     badge: "Data Extraction",
+  },
+  {
+    slug: "repoaura",
+    title: "RepoAura",
+    description:
+      "Chrome extension that adds GitHub repository health context and signal overlays beside repository links.",
+    screenshot: "/images/tools/repoaura.webp",
+    tags: ["Chrome", "GitHub", "Extension", "WXT"],
+    type: "Extension",
+    category: "extensions",
+    categoryLabel: "Browser Extensions",
+    badge: "Manifest V3",
+  },
+  {
+    slug: "sitegeist",
+    title: "Sitegeist",
+    description:
+      "AI assistant extension living in your browser sidebar. Automate repetitive web tasks, extract data, and execute workflows with human-in-the-loop control.",
+    screenshot: "/images/tools/sitegeist.webp",
+    tags: ["Chrome", "AI", "Browser Automation", "Extension"],
+    type: "Extension",
+    category: "extensions",
+    categoryLabel: "Browser Extensions",
+    badge: "Manifest V3",
   },
   {
     slug: "chatgpt-conversation-exporter",

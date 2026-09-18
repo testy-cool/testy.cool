@@ -57,19 +57,20 @@ export default function LlmPriceCalculatorPage() {
             What this calculator does
           </h2>
           <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
-            This calculator compares live API pricing across 200+ large language models
-            from Anthropic, OpenAI, Google, DeepSeek, xAI, Mistral, Meta, Qwen, and Zhipu AI.
-            It covers input tokens, output tokens, prompt caching discounts, and reasoning token costs -
-            all the variables that affect your actual bill.
+            This calculator compares live API pricing across 200+ large language
+            models from Anthropic, OpenAI, Google, DeepSeek, xAI, Mistral, Meta,
+            Qwen, and Zhipu AI. It covers input tokens, output tokens, prompt
+            caching discounts, and reasoning token costs - all the variables
+            that affect your actual bill.
           </p>
           <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
-            There are three modes. <strong>Calculate cost</strong> shows per-call
-            and total costs for a given workload, with presets for common
-            scenarios. <strong>Set budget</strong> flips the question - enter a
-            dollar amount and see how many API calls each model can handle.{" "}
-            <strong>Chain</strong> models multi-turn conversations where context
-            accumulates. All settings are saved in the URL for bookmarking and
-            sharing.
+            There are three modes. <strong>Calculate cost</strong> shows
+            per-call and total costs for a given workload, with presets for
+            common scenarios. <strong>Set budget</strong> flips the question -
+            enter a dollar amount and see how many API calls each model can
+            handle. <strong>Chain</strong> models multi-turn conversations where
+            context accumulates. All settings are saved in the URL for
+            bookmarking and sharing.
           </p>
 
           <h2 className="text-xl font-semibold mb-3 mt-10 text-fd-foreground">
@@ -85,9 +86,9 @@ export default function LlmPriceCalculatorPage() {
             Input vs. output cost
           </h2>
           <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
-            Input and output tokens are priced separately. Output typically costs
-            3-5x more - a task generating long responses is significantly more
-            expensive than one processing long inputs.
+            Input and output tokens are priced separately. Output typically
+            costs 3-5x more - a task generating long responses is significantly
+            more expensive than one processing long inputs.
           </p>
           <InputOutputCompare />
 
@@ -112,10 +113,11 @@ export default function LlmPriceCalculatorPage() {
           <ChainCostPreview />
 
           <p className="text-base leading-relaxed text-fd-muted-foreground mt-10">
-            Pricing is pulled live from OpenRouter across 200+ models from Anthropic,
-            OpenAI, Google, DeepSeek, xAI, Mistral, Meta, Qwen, and Zhipu AI, with
-            automatic background revalidation. All calculator settings save to the
-            URL - bookmark a comparison or share it with your team.
+            Pricing is pulled live from OpenRouter across 200+ models from
+            Anthropic, OpenAI, Google, DeepSeek, xAI, Mistral, Meta, Qwen, and
+            Zhipu AI, with automatic background revalidation. All calculator
+            settings save to the URL - bookmark a comparison or share it with
+            your team.
           </p>
         </div>
       </section>

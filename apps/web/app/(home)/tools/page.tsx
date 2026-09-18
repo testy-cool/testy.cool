@@ -13,7 +13,9 @@ export const metadata = createMetadata({
 
 const pageTitle = "Tools";
 const toolCount = allTools.filter((tool) => tool.type === "Tool").length;
-const tutorialCount = allTools.filter((tool) => tool.type === "Tutorial").length;
+const tutorialCount = allTools.filter(
+  (tool) => tool.type === "Tutorial",
+).length;
 const extensionCount = allTools.filter(
   (tool) => tool.type === "Extension",
 ).length;

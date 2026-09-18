@@ -66,7 +66,13 @@ export const providerOrder: Provider[] = [
 export const defaultProvider = providerOrder[0] ?? "anthropic";
 export const allProviders = new Set<Provider>(providerOrder);
 
-export const modalityOrder: Modality[] = ["text", "image", "audio", "video", "pdf"];
+export const modalityOrder: Modality[] = [
+  "text",
+  "image",
+  "audio",
+  "video",
+  "pdf",
+];
 export const modalityFullLabels: Record<Modality, string> = {
   text: "Text",
   image: "Image",
@@ -99,7 +105,7 @@ export function cleanModelName(rawName: string, id: string): string {
   return base
     .replace(
       /^(Anthropic|OpenAI|Google|DeepSeek|SpaceXAI|xAI|Mistral|Meta|Qwen|Amazon|Cohere|Z\.ai|Xiaomi):\s*/i,
-      ""
+      "",
     )
     .trim();
 }
@@ -125,7 +131,9 @@ export interface RawOpenRouterModel {
   };
 }
 
-export function normalizeOpenRouterModels(rawList: RawOpenRouterModel[]): Model[] {
+export function normalizeOpenRouterModels(
+  rawList: RawOpenRouterModel[],
+): Model[] {
   const datePattern = /(-\d{4}-\d{2}-\d{2}|-\d{8}|-\d{4,6}$)/;
 
   const candidateModels: {
@@ -176,16 +184,24 @@ export function normalizeOpenRouterModels(rawList: RawOpenRouterModel[]): Model[
 
   for (const { id, slug, provider, raw } of deduped) {
     const pricing = raw.pricing || {};
-    const input = Math.round(parseFloat(pricing.prompt || "0") * 1_000_000 * 10000) / 10000;
-    const output = Math.round(parseFloat(pricing.completion || "0") * 1_000_000 * 10000) / 10000;
+    const input =
+      Math.round(parseFloat(pricing.prompt || "0") * 1_000_000 * 10000) / 10000;
+    const output =
+      Math.round(parseFloat(pricing.completion || "0") * 1_000_000 * 10000) /
+      10000;
 
     // Skip placeholder models with zero cost on both prompt and completion
     if (input === 0 && output === 0) continue;
 
     let cachedInput = input;
-    if (pricing.input_cache_read !== undefined && pricing.input_cache_read !== null) {
+    if (
+      pricing.input_cache_read !== undefined &&
+      pricing.input_cache_read !== null
+    ) {
       cachedInput =
-        Math.round(parseFloat(pricing.input_cache_read || "0") * 1_000_000 * 10000) / 10000;
+        Math.round(
+          parseFloat(pricing.input_cache_read || "0") * 1_000_000 * 10000,
+        ) / 10000;
     }
 
     let reasoning: number | undefined = undefined;
@@ -195,7 +211,8 @@ export function normalizeOpenRouterModels(rawList: RawOpenRouterModel[]): Model[
       parseFloat(pricing.internal_reasoning) > 0
     ) {
       reasoning =
-        Math.round(parseFloat(pricing.internal_reasoning) * 1_000_000 * 10000) / 10000;
+        Math.round(parseFloat(pricing.internal_reasoning) * 1_000_000 * 10000) /
+        10000;
     } else if (
       provider === "anthropic" ||
       /\b(o1|o3|o4|thinking|reasoner|sol)\b/i.test(slug) ||
@@ -297,7 +314,7 @@ export function useLiveModels(initialModels: Model[]): LiveModelsState {
           JSON.stringify({
             timestamp: now.getTime(),
             models: normalized,
-          })
+          }),
         );
       } catch {
         // Ignore localStorage quota or private-mode errors

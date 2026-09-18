@@ -26,7 +26,10 @@ interface BlogWrapperProps {
   getSeriesBySlug: (slug: string) => any;
   mdxComponents: any;
   includeDrafts: boolean;
-  getJsonLd?: (page: any, category?: string) => Record<string, unknown> | Record<string, unknown>[];
+  getJsonLd?: (
+    page: any,
+    category?: string,
+  ) => Record<string, unknown> | Record<string, unknown>[];
 }
 
 export async function BlogWrapper({

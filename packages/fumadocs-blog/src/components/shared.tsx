@@ -10,7 +10,7 @@ export function slot(
     | undefined,
   def: ReactNode,
   customComponentProps?: object,
-  disabled?: ReactNode
+  disabled?: ReactNode,
 ): ReactNode {
   if (obj?.enabled === false) return disabled;
   if (obj?.component !== undefined)
@@ -27,7 +27,7 @@ export function slots<Comp extends Record<string, ReactNode>>(
         configuration?: Comp;
       }
     | undefined,
-  def: ReactNode
+  def: ReactNode,
 ): ReactNode {
   if (obj?.enabled === false) return;
   if (obj?.configuration?.[variant] !== undefined)

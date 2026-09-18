@@ -100,11 +100,11 @@ export function CategoryBlogList({
   const pageSize = configuration?.config?.pageSize || 5;
   const categoryInfo = getCategoryBySlug(category);
   const filteredPosts = posts.filter(
-    (post) => post.slugs && post.slugs[0] === category
+    (post) => post.slugs && post.slugs[0] === category,
   );
   const displayPosts = filteredPosts.slice(
     (page - 1) * pageSize,
-    page * pageSize
+    page * pageSize,
   );
   const totalPages = Math.ceil(filteredPosts.length / pageSize);
 

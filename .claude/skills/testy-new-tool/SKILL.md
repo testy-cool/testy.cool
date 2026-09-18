@@ -11,6 +11,7 @@ Create a new tool for testy.cool. Ask the user which type, then follow the check
 ## Step 1: Gather info
 
 Ask the user (use AskUserQuestion):
+
 - **Tool name** (slug form, e.g. `color-picker`)
 - **Title** (display name)
 - **Short description** (one sentence)
@@ -23,11 +24,13 @@ Ask the user (use AskUserQuestion):
 If standalone:
 
 1. Create `apps/web/app/(home)/tools/[slug]/page.tsx` with:
+
    - `"use client"` directive
    - Page content and interactive component
    - SSR-safe patterns: use `useEffect` for `localStorage`, not `useState(loadFromStorage)`
 
 2. Add entry to `tools` array in `apps/web/app/(home)/tools/page.tsx`:
+
    ```tsx
    {
      slug: "[slug]",
@@ -38,6 +41,7 @@ If standalone:
    ```
 
 3. If the tool needs API keys or a backend:
+
    - Create CF Function in `functions/api/[slug]/index.ts`
    - Export `onRequestGet` / `onRequestPost` typed as `PagesFunction<Env>`
    - Access secrets via `context.env.VAR_NAME` (set in CF dashboard)
@@ -50,6 +54,7 @@ If standalone:
 If tutorial-embedded:
 
 1. Create blog post at `apps/web/content/blog/[category]/[slug].mdx` with frontmatter:
+
    ```mdx
    ---
    title: [Title]
@@ -61,15 +66,18 @@ If tutorial-embedded:
    tags: [tag1, tag2, tool]
    ---
    ```
+
    Include `tool` in the tags array.
 
 2. Create interactive components in `apps/web/components/tools/[ComponentName].tsx`
+
    - Use `"use client"` directive
    - SSR-safe: `useEffect` for browser APIs, not top-level access
 
 3. Register components in `apps/web/mdx-components.tsx`
 
 4. Add entry to `toolTutorials` array in `apps/web/app/(home)/tools/page.tsx`:
+
    ```tsx
    {
      slug: "[slug]",

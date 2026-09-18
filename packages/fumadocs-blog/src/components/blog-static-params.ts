@@ -10,7 +10,9 @@ export async function generateAllParams(
   // The two are otherwise identical: generateParams() is getPages().map(page =>
   // ({ slug: page.slugs })).
   const blogPostsParams = posts
-    .filter((post): post is BlogPost & { slugs: string[] } => post.slugs != null)
+    .filter(
+      (post): post is BlogPost & { slugs: string[] } => post.slugs != null,
+    )
     .map((post) => ({ slug: post.slugs }));
 
   // Generate series page params

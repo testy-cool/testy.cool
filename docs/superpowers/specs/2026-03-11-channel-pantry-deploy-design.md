@@ -106,11 +106,16 @@ The `localStorage` cache initialization must be SSR-safe for Next.js static expo
 
 ```ts
 // Current (breaks during SSR):
-const [cachedChannels, setCachedChannels] = useState<ChannelAnalysisResult[]>(loadCache);
+const [cachedChannels, setCachedChannels] =
+  useState<ChannelAnalysisResult[]>(loadCache);
 
 // Fixed:
-const [cachedChannels, setCachedChannels] = useState<ChannelAnalysisResult[]>([]);
-useEffect(() => { setCachedChannels(loadCache()); }, []);
+const [cachedChannels, setCachedChannels] = useState<ChannelAnalysisResult[]>(
+  [],
+);
+useEffect(() => {
+  setCachedChannels(loadCache());
+}, []);
 ```
 
 ## Styling Adaptation
@@ -118,6 +123,7 @@ useEffect(() => { setCachedChannels(loadCache()); }, []);
 Current pantry app uses Tailwind CDN with Inter font. testy.cool uses Tailwind v4 with fumadocs CSS tokens.
 
 Approach:
+
 - Replace raw Tailwind color classes with fumadocs tokens where they map (e.g., `text-gray-900` -> `text-fd-foreground`, `bg-white` -> `bg-fd-card`, `border-gray-200` -> `border-fd-border`)
 - Keep layout/spacing utilities as-is (they're framework-agnostic)
 - Keep the Inter font (already used by testy.cool)

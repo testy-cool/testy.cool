@@ -30,7 +30,10 @@ export const mdtaskGrammar: LanguageRegistration = {
         { match: "\\b[A-Z]{2,}-\\d+\\b", name: "entity.name.function.mdtask" },
         { match: "(?<=\\s|^)#[\\w-]+", name: "entity.name.tag.mdtask" },
         { match: "(?<=\\s|^)![\\w-]+", name: "keyword.mdtask" },
-        { match: "(?<=\\s|^)@[\\w-]+:[\\w-]+", name: "variable.parameter.mdtask" },
+        {
+          match: "(?<=\\s|^)@[\\w-]+:[\\w-]+",
+          name: "variable.parameter.mdtask",
+        },
         { match: "\\*\\*[^*]+\\*\\*", name: "markup.heading.mdtask" },
         {
           match:

@@ -9,8 +9,7 @@ const siteUrl = "https://testy.cool";
 export function GET() {
   const feed = new Feed({
     title: "testy.cool",
-    description:
-      "Notes on LLMs, agents, automation and development.",
+    description: "Notes on LLMs, agents, automation and development.",
     id: siteUrl,
     link: siteUrl,
     language: "en",

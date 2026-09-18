@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { GridBackground } from "@repo/ui/components/grid-background";
 
 export interface FooterNavigationItem {
@@ -32,6 +33,13 @@ export default function SimpleFooter({
         </div>
         <p className="mt-8 text-center text-sm/6 text-fd-muted-foreground md:order-1 md:mt-0">
           &copy; {new Date().getFullYear()} testy.cool
+          <span className="mx-2">·</span>
+          <Link
+            href="/changelog"
+            className="hover:text-fd-primary transition-colors duration-200"
+          >
+            Changelog
+          </Link>
           <span className="mx-2">·</span>
           <a
             href="https://ailookup.dev"

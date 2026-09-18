@@ -37,15 +37,16 @@ Part 1: The FFmpeg "Cutting" Toolkit
 Run these commands in your terminal to generate the assets for the tutorial.
 Replace input.mp4 with your video filename.
 Purpose Segment FFmpeg Command
-Demo Comparison (GIF)   00:35 - 00:45   ffmpeg -ss 00:00:35 -t 10 -i input.mp4 -filter_complex "[0:v] fps=12,scale=480:-1:flags=lanczos,split [a][b];[a] palettegen [p];[b][p] paletteuse" demo-comparison.gif
-Workflow Diagram (PNG)  01:43   ffmpeg -ss 00:01:43 -i input.mp4 -frames:v 1 workflow-diag.png
-Recipe Nodes (GIF)  02:45 - 02:55   ffmpeg -ss 00:02:45 -t 10 -i input.mp4 -filter_complex "[0:v] fps=10,scale=480:-1:flags=lanczos,split [a][b];[a] palettegen [p];[b][p] paletteuse" recipe-nodes.gif
-Execution Progress (GIF)    05:22 - 05:27   ffmpeg -ss 00:05:22 -t 5 -i input.mp4 -filter_complex "[0:v] fps=10,scale=480:-1:flags=lanczos,split [a][b];[a] palettegen [p];[b][p] paletteuse" execution.gif
-Training Loss (PNG) 06:48   ffmpeg -ss 00:06:48 -i input.mp4 -frames:v 1 training-loss.png
+Demo Comparison (GIF) 00:35 - 00:45 ffmpeg -ss 00:00:35 -t 10 -i input.mp4 -filter_complex "[0:v] fps=12,scale=480:-1:flags=lanczos,split [a][b];[a] palettegen [p];[b][p] paletteuse" demo-comparison.gif
+Workflow Diagram (PNG) 01:43 ffmpeg -ss 00:01:43 -i input.mp4 -frames:v 1 workflow-diag.png
+Recipe Nodes (GIF) 02:45 - 02:55 ffmpeg -ss 00:02:45 -t 10 -i input.mp4 -filter_complex "[0:v] fps=10,scale=480:-1:flags=lanczos,split [a][b];[a] palettegen [p];[b][p] paletteuse" recipe-nodes.gif
+Execution Progress (GIF) 05:22 - 05:27 ffmpeg -ss 00:05:22 -t 5 -i input.mp4 -filter_complex "[0:v] fps=10,scale=480:-1:flags=lanczos,split [a][b];[a] palettegen [p];[b][p] paletteuse" execution.gif
+Training Loss (PNG) 06:48 ffmpeg -ss 00:06:48 -i input.mp4 -frames:v 1 training-loss.png
 Part 2: Updated HTML with Visuals Support
 I have added an .step-image class and placed <img> tags in the relevant sections. When you generate the files above and save them in the same folder as this HTML, they will appear automatically.
 code
 Html
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -76,9 +77,9 @@ Html
 
         .tutorial-container { width: 50%; height: 100vh; overflow-y: auto; padding: 4rem; scroll-behavior: smooth; padding-bottom: 60vh; }
 
-        .step-card { 
-            background: var(--card-bg); border: 2px solid transparent; border-radius: 16px; 
-            padding: 2.5rem; margin-bottom: 3rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); 
+        .step-card {
+            background: var(--card-bg); border: 2px solid transparent; border-radius: 16px;
+            padding: 2.5rem; margin-bottom: 3rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
             transition: all 0.4s ease; opacity: 0.4; transform: scale(0.98);
         }
         .step-card.active { border-color: var(--primary); opacity: 1; transform: scale(1); }
@@ -107,6 +108,7 @@ Html
 
         @media (max-width: 1024px) { body { flex-direction: column; overflow: auto; } .video-container, .tutorial-container { width: 100%; height: auto; } }
     </style>
+
 </head>
 <body>
 
@@ -126,9 +128,9 @@ Html
             </div>
             <h2 class="step-title">Comparison: Base vs. Fine-Tuned</h2>
             <p class="explanation">Watch how the model on the right takes time to <strong>reason</strong> before answering.</p>
-            
+
             <img src="demo-comparison.gif" alt="Before and After comparison" class="step-image">
-            
+
             <p class="explanation">The "After" model uses a specialized thinking trace to ensure accuracy and depth.</p>
         </div>
 
@@ -140,9 +142,9 @@ Html
             </div>
             <h2 class="step-title">The Synthetic Data Pipeline</h2>
             <p class="explanation">This diagram illustrates the Knowledge Distillation process.</p>
-            
+
             <img src="workflow-diag.png" alt="Knowledge Distillation Diagram" class="step-image">
-            
+
             <div class="notion">
                 <p><strong>Teacher (Nemotron):</strong> Generates the high-quality reasoning traces.<br>
                 <strong>Student (OLMo):</strong> Learns to mimic that reasoning at a smaller scale.</p>
@@ -157,9 +159,9 @@ Html
             </div>
             <h2 class="step-title">Building the Recipe Nodes</h2>
             <p class="explanation">In the Recipes tab, we connect various blocks to define the data flow.</p>
-            
+
             <img src="recipe-nodes.gif" alt="Setting up node blocks in Studio" class="step-image">
-            
+
             <p class="explanation">We define the <strong>Model Provider</strong> (local endpoint) and <strong>Model Config</strong> (inference parameters).</p>
         </div>
 
@@ -171,9 +173,9 @@ Html
             </div>
             <h2 class="step-title">Executing the Generation Job</h2>
             <p class="explanation">The generation process sends requests to the teacher model in batches.</p>
-            
+
             <img src="execution.gif" alt="Job progress dashboard" class="step-image">
-            
+
             <p class="explanation">You can monitor the terminal output and row counts as the 1000-row dataset is created.</p>
         </div>
 
@@ -185,16 +187,16 @@ Html
             </div>
             <h2 class="step-title">Monitoring Training Loss</h2>
             <p class="explanation">Once training begins, look for the <strong>Loss</strong> graph to trend downwards.</p>
-            
+
             <img src="training-loss.png" alt="Training loss graphs in Studio" class="step-image">
-            
+
             <p class="explanation">A decreasing loss curve confirms the student model is effectively learning the new reasoning behavior.</p>
         </div>
 
     </div>
 
     <script>
-        const YOUTUBE_VIDEO_ID = 'YE7VzlLtp-4'; 
+        const YOUTUBE_VIDEO_ID = 'YE7VzlLtp-4';
         let player;
         let userScrollingText = false;
         let scrollTimeout;
@@ -234,7 +236,7 @@ Html
         container.addEventListener('scroll', () => {
             if (!userScrollingText) return;
             clearTimeout(scrollTimeout);
-            
+
             let activeStep = steps[0];
             let minDistance = Infinity;
             steps.forEach(step => {
@@ -256,6 +258,7 @@ Html
             player.playVideo();
         }
     </script>
+
 </body>
 </html>
 Pro Tip for Images:

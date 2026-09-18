@@ -16,7 +16,8 @@ export class UrlUtils {
   constructor(config: UrlConfig) {
     this.blogBase = config.blogBase;
     // Default to blogBase-og if blogOgImageBase is not provided
-    this.blogOgImageBase = config.blogOgImageBase || `${config.blogBase.replace(/^\//,'')}-og`;
+    this.blogOgImageBase =
+      config.blogOgImageBase || `${config.blogBase.replace(/^\//, "")}-og`;
   }
 
   /**

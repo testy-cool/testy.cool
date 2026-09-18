@@ -3,10 +3,34 @@
 import { useState, useMemo } from "react";
 
 const SAMPLE_MODELS = [
-  { name: "GPT-5-mini", input: 0.15, output: 0.6, cached: 0.075, color: "bg-emerald-500" },
-  { name: "Claude Haiku 4.5", input: 1, output: 5, cached: 0.1, color: "bg-sky-500" },
-  { name: "Claude Sonnet 4.6", input: 3, output: 15, cached: 0.3, color: "bg-violet-500" },
-  { name: "Claude Opus 4.6", input: 5, output: 25, cached: 0.5, color: "bg-amber-500" },
+  {
+    name: "GPT-5-mini",
+    input: 0.15,
+    output: 0.6,
+    cached: 0.075,
+    color: "bg-emerald-500",
+  },
+  {
+    name: "Claude Haiku 4.5",
+    input: 1,
+    output: 5,
+    cached: 0.1,
+    color: "bg-sky-500",
+  },
+  {
+    name: "Claude Sonnet 4.6",
+    input: 3,
+    output: 15,
+    cached: 0.3,
+    color: "bg-violet-500",
+  },
+  {
+    name: "Claude Opus 4.6",
+    input: 5,
+    output: 25,
+    cached: 0.5,
+    color: "bg-amber-500",
+  },
 ];
 
 function fmt(n: number): string {
@@ -20,7 +44,7 @@ function fmt(n: number): string {
 // --- TokenExplainer ---
 export function TokenExplainer() {
   const [text, setText] = useState(
-    "Large language models process text as tokens, not characters."
+    "Large language models process text as tokens, not characters.",
   );
 
   const estimatedTokens = useMemo(() => {
@@ -44,7 +68,10 @@ export function TokenExplainer() {
       />
       <div className="flex flex-wrap gap-x-6 gap-y-1">
         <div className="text-2xl font-semibold text-fd-foreground tabular-nums">
-          ~{estimatedTokens} <span className="text-base font-normal text-fd-muted-foreground">tokens</span>
+          ~{estimatedTokens}{" "}
+          <span className="text-base font-normal text-fd-muted-foreground">
+            tokens
+          </span>
         </div>
         <div className="text-2xl font-semibold text-fd-muted-foreground tabular-nums">
           {wordCount} <span className="text-base font-normal">words</span>
@@ -53,7 +80,9 @@ export function TokenExplainer() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {SAMPLE_MODELS.map((m) => (
           <div key={m.name} className="rounded-md bg-fd-muted/50 p-3">
-            <div className="text-xs text-fd-muted-foreground truncate">{m.name}</div>
+            <div className="text-xs text-fd-muted-foreground truncate">
+              {m.name}
+            </div>
             <div className="text-base font-medium text-fd-foreground mt-0.5 tabular-nums">
               {fmt((estimatedTokens / 1_000_000) * m.input)}
             </div>
@@ -85,7 +114,9 @@ export function InputOutputCompare() {
         <label className="block">
           <div className="flex justify-between text-base mb-1">
             <span className="text-fd-muted-foreground">Input</span>
-            <span className="font-medium text-fd-foreground tabular-nums">{inputK}K tokens</span>
+            <span className="font-medium text-fd-foreground tabular-nums">
+              {inputK}K tokens
+            </span>
           </div>
           <input
             type="range"
@@ -100,7 +131,9 @@ export function InputOutputCompare() {
         <label className="block">
           <div className="flex justify-between text-base mb-1">
             <span className="text-fd-muted-foreground">Output</span>
-            <span className="font-medium text-fd-foreground tabular-nums">{outputK}K tokens</span>
+            <span className="font-medium text-fd-foreground tabular-nums">
+              {outputK}K tokens
+            </span>
           </div>
           <input
             type="range"
@@ -120,7 +153,9 @@ export function InputOutputCompare() {
           return (
             <div key={c.name}>
               <div className="flex items-baseline justify-between mb-1.5">
-                <span className="text-sm font-medium text-fd-foreground">{c.name}</span>
+                <span className="text-sm font-medium text-fd-foreground">
+                  {c.name}
+                </span>
                 <span className="text-sm tabular-nums text-fd-muted-foreground ml-2">
                   {fmt(c.total)}
                 </span>
@@ -141,10 +176,12 @@ export function InputOutputCompare() {
       </div>
       <div className="flex gap-5 text-sm text-fd-muted-foreground">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rounded-sm bg-sky-500/70" /> Input
+          <span className="inline-block w-3 h-3 rounded-sm bg-sky-500/70" />{" "}
+          Input
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rounded-sm bg-amber-500" /> Output
+          <span className="inline-block w-3 h-3 rounded-sm bg-amber-500" />{" "}
+          Output
         </span>
       </div>
     </div>
@@ -163,7 +200,8 @@ export function CachingImpact() {
       const cacheCost =
         (inputTokens / 1_000_000) *
         (m.input * (1 - hitFraction) + m.cached * hitFraction);
-      const pctSaved = noCacheCost > 0 ? ((noCacheCost - cacheCost) / noCacheCost) * 100 : 0;
+      const pctSaved =
+        noCacheCost > 0 ? ((noCacheCost - cacheCost) / noCacheCost) * 100 : 0;
       return { ...m, noCacheCost, cacheCost, pctSaved };
     });
   }, [cacheHit]);
@@ -173,7 +211,9 @@ export function CachingImpact() {
       <label className="block">
         <div className="flex justify-between text-base mb-1">
           <span className="text-fd-muted-foreground">Cache hit rate</span>
-          <span className="font-medium text-fd-foreground tabular-nums">{cacheHit}%</span>
+          <span className="font-medium text-fd-foreground tabular-nums">
+            {cacheHit}%
+          </span>
         </div>
         <input
           type="range"
@@ -188,7 +228,9 @@ export function CachingImpact() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {costs.map((c) => (
           <div key={c.name} className="rounded-md bg-fd-muted/50 p-3">
-            <div className="text-xs text-fd-muted-foreground truncate">{c.name}</div>
+            <div className="text-xs text-fd-muted-foreground truncate">
+              {c.name}
+            </div>
             <div className="flex items-baseline gap-2 mt-1">
               <span className="text-base font-medium text-fd-foreground tabular-nums">
                 {fmt(c.cacheCost)}
@@ -206,7 +248,8 @@ export function CachingImpact() {
         ))}
       </div>
       <p className="text-sm text-fd-muted-foreground">
-        Based on 4K input tokens per call. Cached tokens use each provider&apos;s discounted rate.
+        Based on 4K input tokens per call. Cached tokens use each
+        provider&apos;s discounted rate.
       </p>
     </div>
   );
@@ -221,7 +264,12 @@ export function ChainCostPreview() {
   const systemPrompt = 1000;
 
   const turnData = useMemo(() => {
-    const data: { turn: number; inputTokens: number; cost: number; cumCost: number }[] = [];
+    const data: {
+      turn: number;
+      inputTokens: number;
+      cost: number;
+      cumCost: number;
+    }[] = [];
     let cumCost = 0;
     for (let t = 1; t <= turns; t++) {
       const priorTokens = (t - 1) * avgOutputPerTurn * 2; // prior user + assistant msgs
@@ -238,14 +286,17 @@ export function ChainCostPreview() {
   const maxInput = Math.max(...turnData.map((d) => d.inputTokens));
   const totalCost = turnData[turnData.length - 1]?.cumCost ?? 0;
   const singleCallCost = turnData[0]?.cost ?? 0;
-  const multiplier = singleCallCost > 0 ? totalCost / (singleCallCost * turns) : 1;
+  const multiplier =
+    singleCallCost > 0 ? totalCost / (singleCallCost * turns) : 1;
 
   return (
     <div className="rounded-lg border border-fd-border bg-fd-card p-5 space-y-4">
       <label className="block">
         <div className="flex justify-between text-base mb-1">
           <span className="text-fd-muted-foreground">Turns</span>
-          <span className="font-medium text-fd-foreground tabular-nums">{turns}</span>
+          <span className="font-medium text-fd-foreground tabular-nums">
+            {turns}
+          </span>
         </div>
         <input
           type="range"

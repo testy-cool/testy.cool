@@ -2,11 +2,81 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import DOMPurify from "dompurify";
-import { chatWithTutorial, getConversations, getConversation } from "@/lib/tools/video-breakdown/tutorialService";
+import {
+  chatWithTutorial,
+  getConversations,
+  getConversation,
+} from "@/lib/tools/video-breakdown/tutorialService";
 import type { ConversationSummary } from "@/lib/tools/video-breakdown/tutorialService";
 
 // Allow all HTML/SVG, just strip scripts and event handlers
-const SANITIZE_CFG = { ADD_TAGS: ['svg', 'path', 'rect', 'circle', 'line', 'text', 'g', 'defs', 'marker', 'polygon', 'polyline', 'ellipse', 'use', 'symbol', 'clipPath', 'linearGradient', 'radialGradient', 'stop', 'foreignObject', 'tspan'], ADD_ATTR: ['style', 'viewBox', 'xmlns', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray', 'stroke-dashoffset', 'd', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height', 'transform', 'text-anchor', 'dominant-baseline', 'font-size', 'font-weight', 'opacity', 'marker-end', 'marker-start', 'points', 'offset', 'stop-color', 'stop-opacity', 'gradientUnits', 'gradientTransform', 'clip-path', 'colspan', 'rowspan'] };
+const SANITIZE_CFG = {
+  ADD_TAGS: [
+    "svg",
+    "path",
+    "rect",
+    "circle",
+    "line",
+    "text",
+    "g",
+    "defs",
+    "marker",
+    "polygon",
+    "polyline",
+    "ellipse",
+    "use",
+    "symbol",
+    "clipPath",
+    "linearGradient",
+    "radialGradient",
+    "stop",
+    "foreignObject",
+    "tspan",
+  ],
+  ADD_ATTR: [
+    "style",
+    "viewBox",
+    "xmlns",
+    "fill",
+    "stroke",
+    "stroke-width",
+    "stroke-linecap",
+    "stroke-linejoin",
+    "stroke-dasharray",
+    "stroke-dashoffset",
+    "d",
+    "x",
+    "y",
+    "x1",
+    "y1",
+    "x2",
+    "y2",
+    "cx",
+    "cy",
+    "r",
+    "rx",
+    "ry",
+    "width",
+    "height",
+    "transform",
+    "text-anchor",
+    "dominant-baseline",
+    "font-size",
+    "font-weight",
+    "opacity",
+    "marker-end",
+    "marker-start",
+    "points",
+    "offset",
+    "stop-color",
+    "stop-opacity",
+    "gradientUnits",
+    "gradientTransform",
+    "clip-path",
+    "colspan",
+    "rowspan",
+  ],
+};
 import type {
   Tutorial,
   TutorialStep,
@@ -16,7 +86,11 @@ import type {
 
 function simpleMarkdown(text: string): string {
   return text
-    .replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => `<pre><code class="language-${lang}">${code.replace(/</g, "&lt;")}</code></pre>`)
+    .replace(
+      /```(\w*)\n([\s\S]*?)```/g,
+      (_, lang, code) =>
+        `<pre><code class="language-${lang}">${code.replace(/</g, "&lt;")}</code></pre>`,
+    )
     .replace(/`([^`]+)`/g, "<code>$1</code>")
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.+?)\*/g, "<em>$1</em>")
@@ -82,7 +156,9 @@ function SignalBadge({
           : "border-fd-border/50 bg-fd-card text-fd-foreground/70";
   return (
     <div className={`rounded-xl border px-3 py-2 ${toneClass}`}>
-      <div className="text-[10px] uppercase tracking-[0.08em] opacity-70 mb-1">{label}</div>
+      <div className="text-xs uppercase tracking-[0.08em] opacity-70 mb-1">
+        {label}
+      </div>
       <div className="text-[13px] font-semibold">{value}</div>
     </div>
   );
@@ -93,7 +169,6 @@ function formatTime(seconds: number): string {
   const s = Math.floor(seconds % 60);
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
-
 
 function TimestampChip({
   timestamp,
@@ -111,11 +186,17 @@ function TimestampChip({
         className="group flex items-center gap-2.5 w-full text-left px-3 py-2 rounded-lg border border-fd-border/50 hover:border-fd-primary/40 bg-fd-card/50 hover:bg-fd-card transition-all duration-200 cursor-pointer"
       >
         {/* Play icon */}
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="shrink-0 text-fd-muted-foreground/50 group-hover:text-fd-primary transition-colors">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 16 16"
+          fill="none"
+          className="shrink-0 text-fd-muted-foreground/50 group-hover:text-fd-primary transition-colors"
+        >
           <path d="M5 3l8 5-8 5V3z" fill="currentColor" />
         </svg>
         {/* Timestamp badge */}
-        <span className="shrink-0 px-1.5 py-0.5 rounded text-[11px] font-mono font-semibold bg-fd-primary/10 text-fd-primary">
+        <span className="shrink-0 px-1.5 py-0.5 rounded text-xs font-mono font-semibold bg-fd-primary/10 text-fd-primary">
           {formatTime(timestamp)}
         </span>
         {/* Caption */}
@@ -164,13 +245,15 @@ function BlockRenderer({
   return (
     <div className="mb-5">
       {block.caption && (
-        <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/60 mb-2 block">
+        <span className="text-xs font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/60 mb-2 block">
           {block.caption}
         </span>
       )}
       <div
         className="visual-block font-sans text-[15px] leading-relaxed text-fd-foreground/80 [&_*]:font-sans [&_strong]:text-fd-foreground [&_strong]:font-semibold [&_code]:bg-fd-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:text-[13px] [&_code]:font-mono [&_code]:border [&_code]:border-fd-border/50 [&_table]:w-full [&_table]:text-[13px] [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_td]:px-4 [&_td]:py-2"
-        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html, SANITIZE_CFG) }}
+        dangerouslySetInnerHTML={{
+          __html: DOMPurify.sanitize(html, SANITIZE_CFG),
+        }}
       />
     </div>
   );
@@ -178,7 +261,9 @@ function BlockRenderer({
 
 function ChatPanel({ videoId }: { videoId: string }) {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<{ role: string; text: string }[]>([]);
+  const [messages, setMessages] = useState<{ role: string; text: string }[]>(
+    [],
+  );
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [convId, setConvId] = useState<string | null>(null);
@@ -206,14 +291,24 @@ function ChatPanel({ videoId }: { videoId: string }) {
     setLoading(true);
     try {
       const { reply, convId: returnedId } = await chatWithTutorial(
-        videoId, msg, messages, convId || undefined, parentId || undefined,
+        videoId,
+        msg,
+        messages,
+        convId || undefined,
+        parentId || undefined,
       );
       if (!convId) setConvId(returnedId);
       if (parentId) setParentId(null); // clear after first branched message
       setMessages([...newMessages, { role: "model", text: reply }]);
       getConversations(videoId).then(setConversations);
     } catch (e: unknown) {
-      setMessages([...newMessages, { role: "model", text: `Error: ${e instanceof Error ? e.message : "Failed"}` }]);
+      setMessages([
+        ...newMessages,
+        {
+          role: "model",
+          text: `Error: ${e instanceof Error ? e.message : "Failed"}`,
+        },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -251,22 +346,37 @@ function ChatPanel({ videoId }: { videoId: string }) {
           onClick={startNew}
           className="w-full py-3 rounded-xl border border-fd-border/50 text-[13px] text-fd-muted-foreground/60 hover:text-fd-foreground hover:border-fd-border transition-colors flex items-center justify-center gap-2"
         >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M2 3h12v8H5l-3 3V3z" />
           </svg>
           Ask a question about this video
         </button>
         {conversations.length > 0 && (
           <div className="space-y-1">
-            <span className="text-[11px] text-fd-muted-foreground/30 uppercase tracking-wider">Previous conversations</span>
+            <span className="text-xs text-fd-muted-foreground/40 uppercase tracking-wider">
+              Previous conversations
+            </span>
             {conversations.slice(0, 5).map((c) => (
               <button
                 key={c.id}
                 onClick={() => loadConversation(c.id)}
                 className="w-full text-left px-3 py-2 rounded-lg border border-fd-border/30 hover:border-fd-border/60 transition-colors flex items-center justify-between gap-2"
               >
-                <span className="text-[13px] text-fd-muted-foreground/70 truncate">{c.preview}</span>
-                <span className="text-[11px] text-fd-muted-foreground/30 shrink-0">{c.messageCount} msgs</span>
+                <span className="text-[13px] text-fd-muted-foreground/70 truncate">
+                  {c.preview}
+                </span>
+                <span className="text-xs text-fd-muted-foreground/40 shrink-0">
+                  {c.messageCount} msgs
+                </span>
               </button>
             ))}
           </div>
@@ -279,11 +389,13 @@ function ChatPanel({ videoId }: { videoId: string }) {
     <div className="mt-4 mb-8 rounded-xl border border-fd-border/50 overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-fd-border/30 bg-fd-card">
         <div className="flex items-center gap-2">
-          <span className="text-[12px] font-medium text-fd-muted-foreground/60 uppercase tracking-wider">Chat</span>
+          <span className="text-xs font-medium text-fd-muted-foreground/60 uppercase tracking-wider">
+            Chat
+          </span>
           {viewingConv && (
             <button
               onClick={branchConversation}
-              className="text-[11px] text-fd-primary/70 hover:text-fd-primary transition-colors font-medium"
+              className="text-xs text-fd-primary/70 hover:text-fd-primary transition-colors font-medium"
             >
               Continue (branch)
             </button>
@@ -291,12 +403,28 @@ function ChatPanel({ videoId }: { videoId: string }) {
         </div>
         <div className="flex items-center gap-2">
           {(messages.length > 0 || viewingConv) && (
-            <button onClick={startNew} className="text-[11px] text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors">
+            <button
+              onClick={startNew}
+              className="text-xs text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors"
+            >
               New
             </button>
           )}
-          <button onClick={() => setOpen(false)} className="text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors">
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 4l8 8M12 4l-8 8" /></svg>
+          <button
+            onClick={() => setOpen(false)}
+            className="text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors"
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            >
+              <path d="M4 4l8 8M12 4l-8 8" />
+            </svg>
           </button>
         </div>
       </div>
@@ -307,8 +435,11 @@ function ChatPanel({ videoId }: { videoId: string }) {
           </p>
         )}
         {messages.map((m, i) => (
-          <div key={i} className={`text-[14px] leading-relaxed ${m.role === "user" ? "text-fd-foreground" : "text-fd-foreground/70"}`}>
-            <span className="text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground/40 block mb-1">
+          <div
+            key={i}
+            className={`text-[14px] leading-relaxed ${m.role === "user" ? "text-fd-foreground" : "text-fd-foreground/70"}`}
+          >
+            <span className="text-xs font-medium uppercase tracking-wider text-fd-muted-foreground/40 block mb-1">
               {m.role === "user" ? "You" : "AI"}
             </span>
             {m.role === "user" ? (
@@ -316,7 +447,12 @@ function ChatPanel({ videoId }: { videoId: string }) {
             ) : (
               <div
                 className="vtg-chat-md prose prose-sm prose-invert max-w-none [&_p]:mb-2 [&_ul]:mb-2 [&_ol]:mb-2 [&_li]:mb-0.5 [&_code]:bg-fd-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-[13px] [&_pre]:bg-fd-muted [&_pre]:p-3 [&_pre]:rounded-lg [&_pre]:text-[13px] [&_strong]:text-fd-foreground [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm"
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(simpleMarkdown(m.text), SANITIZE_CFG) }}
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(
+                    simpleMarkdown(m.text),
+                    SANITIZE_CFG,
+                  ),
+                }}
               />
             )}
           </div>
@@ -325,13 +461,31 @@ function ChatPanel({ videoId }: { videoId: string }) {
           <div className="py-1">
             <svg width="40" height="16" viewBox="0 0 40 16">
               <circle cx="8" cy="8" r="3" fill="hsl(var(--fd-primary))">
-                <animate attributeName="opacity" values="1;0.3;1" dur="0.8s" repeatCount="indefinite" begin="0s" />
+                <animate
+                  attributeName="opacity"
+                  values="1;0.3;1"
+                  dur="0.8s"
+                  repeatCount="indefinite"
+                  begin="0s"
+                />
               </circle>
               <circle cx="20" cy="8" r="3" fill="hsl(var(--fd-primary))">
-                <animate attributeName="opacity" values="1;0.3;1" dur="0.8s" repeatCount="indefinite" begin="0.2s" />
+                <animate
+                  attributeName="opacity"
+                  values="1;0.3;1"
+                  dur="0.8s"
+                  repeatCount="indefinite"
+                  begin="0.2s"
+                />
               </circle>
               <circle cx="32" cy="8" r="3" fill="hsl(var(--fd-primary))">
-                <animate attributeName="opacity" values="1;0.3;1" dur="0.8s" repeatCount="indefinite" begin="0.4s" />
+                <animate
+                  attributeName="opacity"
+                  values="1;0.3;1"
+                  dur="0.8s"
+                  repeatCount="indefinite"
+                  begin="0.4s"
+                />
               </circle>
             </svg>
           </div>
@@ -399,10 +553,10 @@ function StepCard({
         >
           {formatTime(step.startSeconds)}
         </button>
-        <span className="text-[11px] uppercase tracking-[0.06em] text-fd-muted-foreground/60">
+        <span className="text-xs uppercase tracking-[0.06em] text-fd-muted-foreground/60">
           {step.tag}
         </span>
-        <span className="ml-auto text-[11px] text-fd-muted-foreground/40 font-mono tabular-nums">
+        <span className="ml-auto text-xs text-fd-muted-foreground/40 font-mono tabular-nums">
           {index + 1}/{total}
         </span>
       </div>
@@ -437,7 +591,8 @@ function VersionDropdown({
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -449,7 +604,7 @@ function VersionDropdown({
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="text-[11px] font-mono px-1.5 py-0.5 rounded border border-fd-border/50 text-fd-muted-foreground/60 hover:text-fd-foreground hover:border-fd-border transition-colors"
+        className="text-xs font-mono px-1.5 py-0.5 rounded border border-fd-border/50 text-fd-muted-foreground/60 hover:text-fd-foreground hover:border-fd-border transition-colors"
       >
         v{currentVersion}
       </button>
@@ -458,13 +613,18 @@ function VersionDropdown({
           {versions.map((v) => (
             <button
               key={v.version}
-              onClick={() => { onSelect(v.version); setOpen(false); }}
+              onClick={() => {
+                onSelect(v.version);
+                setOpen(false);
+              }}
               className={`w-full text-left px-3 py-1.5 text-[12px] flex items-center justify-between gap-3 hover:bg-fd-muted/50 transition-colors ${
-                v.version === currentVersion ? "text-fd-primary font-medium" : "text-fd-muted-foreground"
+                v.version === currentVersion
+                  ? "text-fd-primary font-medium"
+                  : "text-fd-muted-foreground"
               }`}
             >
               <span>v{v.version}</span>
-              <span className="text-[11px] text-fd-muted-foreground/40">
+              <span className="text-xs text-fd-muted-foreground/40">
                 {new Date(v.timestamp).toLocaleDateString()}
               </span>
             </button>
@@ -475,7 +635,13 @@ function VersionDropdown({
   );
 }
 
-function RegenerateButton({ onRegenerate, isRegenerating }: { onRegenerate: () => void; isRegenerating?: boolean }) {
+function RegenerateButton({
+  onRegenerate,
+  isRegenerating,
+}: {
+  onRegenerate: () => void;
+  isRegenerating?: boolean;
+}) {
   return (
     <button
       onClick={onRegenerate}
@@ -501,7 +667,19 @@ function RegenerateButton({ onRegenerate, isRegenerating }: { onRegenerate: () =
   );
 }
 
-export default function TutorialViewer({ tutorial, _dbg, onBack, onRegenerate, isRegenerating, regenerateError, versions, onSelectVersion, currentVersion, pendingVersion, onDismissPending }: Props) {
+export default function TutorialViewer({
+  tutorial,
+  _dbg,
+  onBack,
+  onRegenerate,
+  isRegenerating,
+  regenerateError,
+  versions,
+  onSelectVersion,
+  currentVersion,
+  pendingVersion,
+  onDismissPending,
+}: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -565,7 +743,7 @@ export default function TutorialViewer({ tutorial, _dbg, onBack, onRegenerate, i
     document.title = `${tutorial.title} — Video Breakdown | testy.cool`;
 
     // Inject JSON-LD if not already present from server
-    if (!document.querySelector('script[data-vtg-jsonld]')) {
+    if (!document.querySelector("script[data-vtg-jsonld]")) {
       const lastStep = tutorial.steps[tutorial.steps.length - 1];
       const dur = lastStep ? lastStep.endSeconds : 0;
       const script = document.createElement("script");
@@ -580,7 +758,11 @@ export default function TutorialViewer({ tutorial, _dbg, onBack, onRegenerate, i
             description: `${tutorial.steps.length}-chapter video breakdown`,
             image: `https://img.youtube.com/vi/${tutorial.videoId}/maxresdefault.jpg`,
             datePublished: new Date(tutorial.generatedAt).toISOString(),
-            publisher: { "@type": "Organization", name: "testy.cool", url: "https://testy.cool" },
+            publisher: {
+              "@type": "Organization",
+              name: "testy.cool",
+              url: "https://testy.cool",
+            },
           },
           {
             "@type": "VideoObject",
@@ -596,7 +778,7 @@ export default function TutorialViewer({ tutorial, _dbg, onBack, onRegenerate, i
 
     return () => {
       document.title = prevTitle;
-      document.querySelector('script[data-vtg-jsonld]')?.remove();
+      document.querySelector("script[data-vtg-jsonld]")?.remove();
     };
   }, [tutorial]);
 
@@ -621,7 +803,7 @@ export default function TutorialViewer({ tutorial, _dbg, onBack, onRegenerate, i
       suppressSyncRef.current = false;
     }, 1000);
     return () => clearTimeout(suppressTimeoutRef.current);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prevGeneratedAt]);
 
   // Video → text sync loop
@@ -636,7 +818,9 @@ export default function TutorialViewer({ tutorial, _dbg, onBack, onRegenerate, i
       const time = playerRef.current.getCurrentTime();
       const idx = tutorial.steps.findIndex((s, i) => {
         const next = tutorial.steps[i + 1];
-        return time >= s.startSeconds && (next ? time < next.startSeconds : true);
+        return (
+          time >= s.startSeconds && (next ? time < next.startSeconds : true)
+        );
       });
 
       const resolved = idx >= 0 ? idx : 0;
@@ -699,10 +883,7 @@ export default function TutorialViewer({ tutorial, _dbg, onBack, onRegenerate, i
       setActiveIndex(closestIdx);
       const nextStep = tutorial.steps[closestIdx];
       if (!nextStep) return;
-      playerRef.current.seekTo(
-        nextStep.startSeconds,
-        true,
-      );
+      playerRef.current.seekTo(nextStep.startSeconds, true);
     }
 
     scrollTimeoutRef.current = window.setTimeout(() => {
@@ -771,17 +952,25 @@ export default function TutorialViewer({ tutorial, _dbg, onBack, onRegenerate, i
           {/* Regenerating banner */}
           {isRegenerating && (
             <div className="shrink-0">
-              <style dangerouslySetInnerHTML={{ __html: `
+              <style
+                dangerouslySetInnerHTML={{
+                  __html: `
                 @keyframes vtg-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
-              `}} />
+              `,
+                }}
+              />
               <div className="flex items-center gap-2.5 px-5 lg:px-8 py-3 text-[13px] text-fd-foreground/80">
                 <span className="h-3.5 w-3.5 rounded-full border-[1.5px] border-fd-primary border-t-transparent animate-spin shrink-0" />
-                Regenerating with Gemini - you'll be switched automatically when ready
+                Regenerating with Gemini - you'll be switched automatically when
+                ready
               </div>
               <div className="h-[2px] w-full bg-fd-border/30 overflow-hidden">
                 <div
                   className="h-full bg-fd-primary rounded-full"
-                  style={{ width: "40%", animation: "vtg-slide 1.4s ease-in-out infinite" }}
+                  style={{
+                    width: "40%",
+                    animation: "vtg-slide 1.4s ease-in-out infinite",
+                  }}
                 />
               </div>
             </div>
@@ -790,7 +979,15 @@ export default function TutorialViewer({ tutorial, _dbg, onBack, onRegenerate, i
           {/* Regeneration error banner */}
           {regenerateError && !isRegenerating && (
             <div className="flex items-center gap-2 px-5 lg:px-8 py-2.5 border-b border-red-300/20 dark:border-red-900/20 shrink-0 text-[13px] text-red-500">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="shrink-0">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                className="shrink-0"
+              >
                 <circle cx="8" cy="8" r="6.5" />
                 <path d="M8 5v3M8 10.5v.5" />
               </svg>
@@ -806,7 +1003,15 @@ export default function TutorialViewer({ tutorial, _dbg, onBack, onRegenerate, i
                 onClick={onDismissPending}
                 className="text-fd-muted-foreground/40 hover:text-fd-muted-foreground transition-colors p-0.5 ml-3"
               >
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                >
                   <path d="M4 4l8 8M12 4l-8 8" />
                 </svg>
               </button>
@@ -820,22 +1025,40 @@ export default function TutorialViewer({ tutorial, _dbg, onBack, onRegenerate, i
               className="text-[13px] text-fd-muted-foreground/60 hover:text-fd-foreground transition-colors flex items-center gap-1.5"
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                <path d="M10 4l-4 4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path
+                  d="M10 4l-4 4 4 4"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
               Back
             </button>
             <div className="flex items-center gap-3">
               {_dbg && (
-                <div className="text-[11px] font-mono text-green-400/80 hidden xl:flex items-center gap-3">
+                <div className="text-xs font-mono text-green-400/80 hidden xl:flex items-center gap-3">
                   <span>mode {tutorial.analysisMode || "auto"}</span>
                   <span>model {tutorial.analysisModel || "unknown"}</span>
                   <span>cost {formatUsd(tutorial.analysisCostUsd)}</span>
                 </div>
               )}
-              {onRegenerate && <RegenerateButton onRegenerate={onRegenerate} isRegenerating={isRegenerating} />}
-              {versions && versions.length > 1 && onSelectVersion && currentVersion && (
-                <VersionDropdown versions={versions} currentVersion={currentVersion} onSelect={onSelectVersion} />
+              {onRegenerate && (
+                <RegenerateButton
+                  onRegenerate={onRegenerate}
+                  isRegenerating={isRegenerating}
+                />
               )}
+              {versions &&
+                versions.length > 1 &&
+                onSelectVersion &&
+                currentVersion && (
+                  <VersionDropdown
+                    versions={versions}
+                    currentVersion={currentVersion}
+                    onSelect={onSelectVersion}
+                  />
+                )}
               <div className="text-[12px] text-fd-muted-foreground/40 font-mono tabular-nums">
                 {activeIndex + 1} of {tutorial.steps.length} chapters
               </div>
@@ -851,7 +1074,7 @@ export default function TutorialViewer({ tutorial, _dbg, onBack, onRegenerate, i
             style={{ paddingBottom: "50vh" }}
           >
             {tutorial.category && (
-              <span className="inline-block text-[11px] font-medium uppercase tracking-[0.1em] text-fd-primary/70 bg-fd-primary/10 px-2 py-0.5 rounded-md mb-2">
+              <span className="inline-block text-xs font-medium uppercase tracking-[0.1em] text-fd-primary/70 bg-fd-primary/10 px-2 py-0.5 rounded-md mb-2">
                 {tutorial.category}
               </span>
             )}
@@ -860,40 +1083,68 @@ export default function TutorialViewer({ tutorial, _dbg, onBack, onRegenerate, i
             </h1>
             {tutorial.summary && (
               <div className="mb-6 pl-4 border-l-2 border-fd-border/40">
-                <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1.5 block">
+                <span className="text-xs font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1.5 block">
                   tl;dr
                 </span>
                 <div
                   className="text-base text-fd-foreground/70 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(tutorial.summary.replace(/\n/g, "<br>"), SANITIZE_CFG) }}
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(
+                      tutorial.summary.replace(/\n/g, "<br>"),
+                      SANITIZE_CFG,
+                    ),
+                  }}
                 />
               </div>
             )}
-            {(tutorial.channelIncentive || tutorial.hypeLevel || tutorial.trustLevel || tutorial.evidenceLevel || tutorial.whoShouldCare || tutorial.whatToDoAboutIt) && (
+            {(tutorial.channelIncentive ||
+              tutorial.hypeLevel ||
+              tutorial.trustLevel ||
+              tutorial.evidenceLevel ||
+              tutorial.whoShouldCare ||
+              tutorial.whatToDoAboutIt) && (
               <div className="mb-6">
-                <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-2 block">
+                <span className="text-xs font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-2 block">
                   Read This First
                 </span>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <SignalBadge
                     label="Hype"
                     value={tutorial.hypeLevel}
-                    tone={tutorial.hypeLevel === "high" ? "warn" : tutorial.hypeLevel === "low" ? "good" : "neutral"}
+                    tone={
+                      tutorial.hypeLevel === "high"
+                        ? "warn"
+                        : tutorial.hypeLevel === "low"
+                          ? "good"
+                          : "neutral"
+                    }
                   />
                   <SignalBadge
                     label="Trust"
                     value={tutorial.trustLevel}
-                    tone={tutorial.trustLevel === "high" ? "good" : tutorial.trustLevel === "low" ? "bad" : "warn"}
+                    tone={
+                      tutorial.trustLevel === "high"
+                        ? "good"
+                        : tutorial.trustLevel === "low"
+                          ? "bad"
+                          : "warn"
+                    }
                   />
                   <SignalBadge
                     label="Evidence"
                     value={tutorial.evidenceLevel}
-                    tone={tutorial.evidenceLevel === "high" ? "good" : tutorial.evidenceLevel === "low" ? "bad" : "warn"}
+                    tone={
+                      tutorial.evidenceLevel === "high"
+                        ? "good"
+                        : tutorial.evidenceLevel === "low"
+                          ? "bad"
+                          : "warn"
+                    }
                   />
                 </div>
                 {tutorial.channelIncentive && (
                   <div className="mt-3 p-4 rounded-xl border border-fd-border/50 bg-fd-card">
-                    <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1.5">
+                    <div className="text-xs font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1.5">
                       Channel Incentive
                     </div>
                     <div className="text-[14px] leading-relaxed text-fd-foreground/75 whitespace-pre-wrap">
@@ -903,7 +1154,7 @@ export default function TutorialViewer({ tutorial, _dbg, onBack, onRegenerate, i
                 )}
                 {tutorial.whoShouldCare && (
                   <div className="mt-3 p-4 rounded-xl border border-fd-border/50 bg-fd-card">
-                    <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1.5">
+                    <div className="text-xs font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1.5">
                       Who Should Care
                     </div>
                     <div className="text-[14px] leading-relaxed text-fd-foreground/75 whitespace-pre-wrap">
@@ -913,7 +1164,7 @@ export default function TutorialViewer({ tutorial, _dbg, onBack, onRegenerate, i
                 )}
                 {tutorial.whatToDoAboutIt && (
                   <div className="mt-3 p-4 rounded-xl border border-fd-border/50 bg-fd-card">
-                    <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1.5">
+                    <div className="text-xs font-medium uppercase tracking-[0.08em] text-fd-muted-foreground/40 mb-1.5">
                       What To Do About It
                     </div>
                     <div className="text-[14px] leading-relaxed text-fd-foreground/75 whitespace-pre-wrap">
@@ -925,12 +1176,17 @@ export default function TutorialViewer({ tutorial, _dbg, onBack, onRegenerate, i
             )}
             {tutorial.incentiveAnalysis && (
               <div className="mb-6 pl-4 border-l-2 border-fd-primary/40">
-                <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fd-primary/70 mb-1.5 block">
+                <span className="text-xs font-medium uppercase tracking-[0.08em] text-fd-primary/70 mb-1.5 block">
                   Incentive
                 </span>
                 <div
                   className="text-base text-fd-foreground/70 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(tutorial.incentiveAnalysis.replace(/\n/g, "<br>"), SANITIZE_CFG) }}
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(
+                      tutorial.incentiveAnalysis.replace(/\n/g, "<br>"),
+                      SANITIZE_CFG,
+                    ),
+                  }}
                 />
               </div>
             )}

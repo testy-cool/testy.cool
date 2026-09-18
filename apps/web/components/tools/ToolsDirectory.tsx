@@ -23,27 +23,31 @@ function FeaturedToolCard({ tool }: { tool: Tool }) {
     <article className="group relative overflow-hidden rounded-3xl border border-fd-border/90 bg-fd-card/95 p-5 shadow-sm transition-all hover:border-fd-primary/50 sm:p-7 md:p-8">
       <div className="grid gap-6 lg:grid-cols-12 lg:items-center lg:gap-8">
         {tool.screenshot && (
-          <div className="lg:col-span-5">
+          <div className="min-w-0 lg:col-span-5">
             <Link
               href={url}
-              className="block overflow-hidden rounded-2xl border border-fd-border bg-fd-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/30"
+              className="block w-full overflow-hidden rounded-2xl border border-fd-border bg-fd-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/30"
               tabIndex={-1}
             >
-              <div className="aspect-[16/9] overflow-hidden">
+              <div className="aspect-[16/9] w-full overflow-hidden">
                 <img
                   src={tool.screenshot}
                   alt={`${tool.title} preview`}
                   width={1280}
                   height={720}
                   loading="eager"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="h-full w-full max-w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
             </Link>
           </div>
         )}
 
-        <div className={tool.screenshot ? "lg:col-span-7" : "lg:col-span-12"}>
+        <div
+          className={
+            tool.screenshot ? "min-w-0 lg:col-span-7" : "min-w-0 lg:col-span-12"
+          }
+        >
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-fd-primary/30 bg-fd-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-fd-primary">
               <Sparkles className="size-3.5" />
@@ -108,6 +112,7 @@ function FeaturedToolCard({ tool }: { tool: Tool }) {
 
 function StandardToolCard({ tool }: { tool: Tool }) {
   const url = getToolUrl(tool);
+  const isExternal = url.startsWith("http://") || url.startsWith("https://");
   const isExtension = tool.type === "Extension";
   const isTutorial = tool.type === "Tutorial";
   const isLiveSync = tool.badge?.includes("Live");
@@ -115,11 +120,13 @@ function StandardToolCard({ tool }: { tool: Tool }) {
   return (
     <Link
       href={url}
+      target={isExternal ? "_blank" : undefined}
+      rel={isExternal ? "noopener noreferrer" : undefined}
       className="group block h-full rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/30"
     >
       <article className="flex h-full min-w-0 flex-col overflow-hidden rounded-3xl border border-fd-border/80 bg-fd-card shadow-sm transition-all duration-200 hover:border-fd-primary/50 hover:shadow-md">
         {tool.screenshot && (
-          <div className="relative aspect-[16/9] overflow-hidden border-b border-fd-border/80 bg-fd-muted/30">
+          <div className="relative aspect-[16/9] w-full min-w-0 overflow-hidden border-b border-fd-border/80 bg-fd-muted/30">
             <img
               src={tool.screenshot}
               alt={`${tool.title} screenshot`}
@@ -127,7 +134,7 @@ function StandardToolCard({ tool }: { tool: Tool }) {
               height={720}
               loading="lazy"
               decoding="async"
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="h-full w-full max-w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
             {tool.badge && (
               <div className="absolute top-3 right-3">
@@ -178,7 +185,7 @@ function StandardToolCard({ tool }: { tool: Tool }) {
                 : isTutorial
                   ? "Read Tutorial"
                   : "Open Tool"}
-              {isExtension ? (
+              {isExternal ? (
                 <ExternalLink className="size-4" />
               ) : (
                 <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -192,14 +199,11 @@ function StandardToolCard({ tool }: { tool: Tool }) {
 }
 
 export function ToolsDirectory({ tools }: ToolsDirectoryProps) {
-  const [selectedCategory, setSelectedCategory] = useState<ToolCategory | "all">(
-    "all"
-  );
+  const [selectedCategory, setSelectedCategory] = useState<
+    ToolCategory | "all"
+  >("all");
 
-  const featuredTools = useMemo(
-    () => tools.filter((t) => t.featured),
-    [tools]
-  );
+  const featuredTools = useMemo(() => tools.filter((t) => t.featured), [tools]);
 
   const filteredTools = useMemo(() => {
     if (selectedCategory === "all") return tools;
@@ -220,7 +224,7 @@ export function ToolsDirectory({ tools }: ToolsDirectoryProps) {
       <div className="flex flex-wrap items-center gap-2 border-b border-fd-border/70 pb-4">
         <button
           onClick={() => setSelectedCategory("all")}
-          className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/30 ${
+          className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[14px] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/30 ${
             selectedCategory === "all"
               ? "border border-fd-primary/50 bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
               : "border border-fd-border/80 bg-fd-background/70 text-fd-muted-foreground hover:bg-fd-muted/50 hover:text-fd-foreground"
@@ -240,7 +244,7 @@ export function ToolsDirectory({ tools }: ToolsDirectoryProps) {
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/30 ${
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[14px] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/30 ${
                 isActive
                   ? "border border-fd-primary/50 bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
                   : "border border-fd-border/80 bg-fd-background/70 text-fd-muted-foreground hover:bg-fd-muted/50 hover:text-fd-foreground"
@@ -268,7 +272,8 @@ export function ToolsDirectory({ tools }: ToolsDirectoryProps) {
                   Flagship Workbenches
                 </h3>
                 <p className="mt-0.5 text-sm text-fd-muted-foreground">
-                  Interactive tools with real-time models and exportable workflows.
+                  Interactive tools with real-time models and exportable
+                  workflows.
                 </p>
               </div>
               <MetaPill className="self-start sm:self-auto">
@@ -322,10 +327,7 @@ export function ToolsDirectory({ tools }: ToolsDirectoryProps) {
           <div className="flex flex-col gap-1 border-b border-fd-border/70 pb-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-xl font-bold tracking-tight text-fd-foreground sm:text-2xl">
-                {
-                  TOOL_CATEGORIES.find((c) => c.id === selectedCategory)
-                    ?.label
-                }
+                {TOOL_CATEGORIES.find((c) => c.id === selectedCategory)?.label}
               </h3>
               <p className="mt-0.5 text-sm text-fd-muted-foreground">
                 {

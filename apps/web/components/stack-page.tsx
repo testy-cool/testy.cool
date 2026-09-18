@@ -18,7 +18,8 @@ const statusConfig: Record<StackStatus, { label: string; className: string }> =
     },
     dropped: {
       label: "Dropped",
-      className: "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-400",
+      className:
+        "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-400",
     },
     watching: {
       label: "Watching",
@@ -93,8 +94,7 @@ function getFaviconUrl(url: string): string {
 }
 
 function renderFormattedTake(text: string) {
-  const linkRegex =
-    /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
+  const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
   const elements: (string | React.ReactNode)[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
@@ -114,7 +114,7 @@ function renderFormattedTake(text: string) {
           className="text-fd-primary underline decoration-fd-primary/30 underline-offset-2 transition-colors hover:decoration-fd-primary"
         >
           {match[1]}
-        </a>
+        </a>,
       );
     } else if (match[3]) {
       const url = match[3];
@@ -127,7 +127,7 @@ function renderFormattedTake(text: string) {
           className="text-fd-primary underline decoration-fd-primary/30 underline-offset-2 transition-colors hover:decoration-fd-primary"
         >
           {url.replace(/^https?:\/\/(www\.)?/, "")}
-        </a>
+        </a>,
       );
     }
 
@@ -252,7 +252,7 @@ export default function StackPage() {
       {categories.map(([category, tools]) => {
         const totalCount = tools.reduce(
           (acc, t) => acc + 1 + (t.children?.length ?? 0),
-          0
+          0,
         );
 
         return (

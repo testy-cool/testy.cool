@@ -47,7 +47,7 @@ function Book(props: BookProps) {
               grow
               direction="row"
               className={cn(
-                "min-w-[calc(var(--book-width))] bg-[var(--book-color)] relative overflow-hidden"
+                "min-w-[calc(var(--book-width))] bg-[var(--book-color)] relative overflow-hidden",
               )}
             >
               <div className="absolute inset-y-0 mix-blend-overlay opacity-100 min-w-[8.2%] bg-book-bind-bg" />

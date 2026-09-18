@@ -789,7 +789,9 @@ export function LlmPriceCalculator() {
             >
               <span
                 className={`inline-block h-2 w-2 rounded-full ${
-                  isLive ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-amber-500"
+                  isLive
+                    ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                    : "bg-amber-500"
                 }`}
               />
               <span className="font-medium">

@@ -13,7 +13,13 @@ interface TutorialCache {
   videoId: string;
   videoTitle: string;
   title: string;
-  steps: { startSeconds: number; endSeconds: number; tag: string; title: string; blocks: { type: string; html?: string; caption?: string }[] }[];
+  steps: {
+    startSeconds: number;
+    endSeconds: number;
+    tag: string;
+    title: string;
+    blocks: { type: string; html?: string; caption?: string }[];
+  }[];
   generatedAt: number;
 }
 
@@ -54,7 +60,10 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const ogTags = buildBasicOgTags(videoId);
     const modified = html.replace("</head>", `${ogTags}\n</head>`);
     return new Response(modified, {
-      headers: { ...Object.fromEntries(assetResponse.headers), "Content-Type": "text/html; charset=utf-8" },
+      headers: {
+        ...Object.fromEntries(assetResponse.headers),
+        "Content-Type": "text/html; charset=utf-8",
+      },
     });
   }
 
@@ -64,7 +73,10 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const modified = html.replace("</head>", `${metaTags}\n${jsonLd}\n</head>`);
 
   return new Response(modified, {
-    headers: { ...Object.fromEntries(assetResponse.headers), "Content-Type": "text/html; charset=utf-8" },
+    headers: {
+      ...Object.fromEntries(assetResponse.headers),
+      "Content-Type": "text/html; charset=utf-8",
+    },
   });
 };
 
@@ -83,7 +95,7 @@ function buildRichMetaTags(tutorial: TutorialCache): string {
   const thumb = `https://img.youtube.com/vi/${tutorial.videoId}/maxresdefault.jpg`;
   const stepCount = tutorial.steps.length;
   const description = escapeHtml(
-    `${stepCount}-chapter video breakdown with scroll-synced video. Generated from "${tutorial.videoTitle}" on YouTube.`
+    `${stepCount}-chapter video breakdown with scroll-synced video. Generated from "${tutorial.videoTitle}" on YouTube.`,
   );
 
   return `

@@ -44,7 +44,7 @@ export const GridBackground: FC<GridBackgroundProps> = ({
           <div
             className={cn(
               "relative mx-auto grid h-full grid-cols-4 grid-rows-1",
-              maxWidthClass
+              maxWidthClass,
             )}
           >
             {columnElements}

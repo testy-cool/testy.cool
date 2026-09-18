@@ -104,7 +104,7 @@ function parseGitHubUrl(url: string): GitHubReference {
   } catch (error) {
     console.error("Error parsing GitHub URL:", error);
     throw new Error(
-      `Invalid GitHub URL: ${error instanceof Error ? error.message : String(error)}`
+      `Invalid GitHub URL: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 }
@@ -115,7 +115,7 @@ async function fetchCode(url: string, fromLine?: number, toLine?: number) {
 
     if (!response.ok) {
       throw new Error(
-        `Failed to fetch code: ${response.status} ${response.statusText}`
+        `Failed to fetch code: ${response.status} ${response.statusText}`,
       );
     }
 
@@ -141,7 +141,7 @@ async function fetchCode(url: string, fromLine?: number, toLine?: number) {
         const spaces = line.match(/^\s+/);
         return spaces ? Math.min(indent, spaces[0].length) : 0;
       },
-      Infinity
+      Infinity,
     );
 
     // Remove common indentation and join lines
@@ -198,14 +198,14 @@ export default async function GithubCodeBlock({
     // Format highlight lines for Shiki
     // Priority: explicitly provided highlightLines prop > lines from URL loc
     const formattedHighlightLines = formatHighlightLines(
-      highlightLines || reference.highlightLines
+      highlightLines || reference.highlightLines,
     );
 
     // Fetch the code content, extracting specific lines if needed
     const code = await fetchCode(
       reference.rawUrl,
       extractLines ? reference.fromLine : undefined,
-      extractLines ? reference.toLine : undefined
+      extractLines ? reference.toLine : undefined,
     );
 
     const lang = getLanguageFromUrl(reference.rawUrl);

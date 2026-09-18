@@ -47,7 +47,7 @@ export function SeriesPopoverContent({
               "flex items-center",
               post.data.seriesPart === currentPart
                 ? "font-medium text-blue-600 dark:text-blue-400"
-                : "text-gray-600 dark:text-gray-400"
+                : "text-gray-600 dark:text-gray-400",
             )}
           >
             <span className="mr-2 text-sm">
@@ -59,7 +59,7 @@ export function SeriesPopoverContent({
                 "hover:underline",
                 post.data.seriesPart === currentPart
                   ? ""
-                  : "hover:text-blue-600 dark:hover:text-blue-400"
+                  : "hover:text-blue-600 dark:hover:text-blue-400",
               )}
             >
               {post.data.title}
@@ -107,7 +107,7 @@ export function SeriesInfo({
               "flex items-center",
               post.data.seriesPart === currentPart
                 ? "font-medium text-blue-600 dark:text-blue-400"
-                : "text-gray-600 dark:text-gray-400"
+                : "text-gray-600 dark:text-gray-400",
             )}
           >
             <span className="mr-2 text-sm">
@@ -119,7 +119,7 @@ export function SeriesInfo({
                 "hover:underline",
                 post.data.seriesPart === currentPart
                   ? ""
-                  : "hover:text-blue-600 dark:hover:text-blue-400"
+                  : "hover:text-blue-600 dark:hover:text-blue-400",
               )}
             >
               {post.data.title}

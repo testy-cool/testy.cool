@@ -21,6 +21,7 @@ import { SearchOnly } from "fumadocs-ui/provider";
 import { ChevronDown, Languages } from "lucide-react";
 import type { ReactNode } from "react";
 import { ThemeToggle } from "../theme-toggle";
+import { latestUpdate } from "@/lib/changelog";
 import { Menu, MenuContent, MenuLinkItem, MenuTrigger } from "./menu";
 import { Navbar, NavbarMenuLink } from "./navbar";
 
@@ -65,8 +66,28 @@ export const Header = ({
               className="text-sm"
             />
           ))}
+        <Link
+          href="/changelog"
+          className="ml-1 inline-flex items-center gap-1.5 rounded-full border border-fd-border/80 bg-fd-muted/50 px-2.5 py-1 text-xs font-medium text-fd-muted-foreground transition-colors hover:border-fd-primary/40 hover:bg-fd-accent/60 hover:text-fd-foreground"
+        >
+          <span
+            className="size-1.5 rounded-full bg-emerald-500 shrink-0"
+            aria-hidden="true"
+          />
+          <span>Updated {latestUpdate?.shortDate ?? "Sep 18"}</span>
+        </Link>
       </NavigationMenuList>
-      <div className="flex flex-1 flex-row items-center justify-end lg:gap-1.5">
+      <div className="flex flex-1 flex-row items-center justify-end gap-2 lg:gap-2.5">
+        <Link
+          href="/changelog"
+          className="sm:hidden inline-flex items-center gap-1 rounded-full border border-fd-border/70 bg-fd-muted/50 px-2 py-0.5 text-xs font-medium text-fd-muted-foreground transition-colors hover:text-fd-foreground mr-1"
+        >
+          <span
+            className="size-1.5 rounded-full bg-emerald-500 shrink-0"
+            aria-hidden="true"
+          />
+          <span>{latestUpdate?.shortDate ?? "Sep 18"}</span>
+        </Link>
         {enableSearch ? (
           <SearchOnly>
             <SearchToggle className="lg:hidden" />
@@ -95,6 +116,23 @@ export const Header = ({
                   className="sm:hidden"
                 />
               ))}
+            <div className="sm:hidden pt-2 pb-1 border-t border-fd-border/50">
+              <Link
+                href="/changelog"
+                className="flex items-center justify-between text-xs text-fd-muted-foreground hover:text-fd-foreground py-1.5 px-2 rounded-md hover:bg-fd-muted/50 transition-colors"
+              >
+                <span className="flex items-center gap-1.5 font-medium">
+                  <span
+                    className="size-1.5 rounded-full bg-emerald-500 shrink-0"
+                    aria-hidden="true"
+                  />
+                  Changelog
+                </span>
+                <span className="font-mono text-fd-muted-foreground/80">
+                  Updated {latestUpdate?.shortDate ?? "Sep 18"}
+                </span>
+              </Link>
+            </div>
             <div className="-ms-1.5 flex flex-row items-center gap-1.5 max-sm:mt-2">
               {menuItems.filter(isSecondary).map((item, i) => (
                 <MenuLinkItem

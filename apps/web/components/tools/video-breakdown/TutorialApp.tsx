@@ -673,14 +673,14 @@ export default function TutorialApp() {
               />
               {noteHistory.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
-                  <span className="text-[11px] text-fd-muted-foreground/30 self-center mr-1">
+                  <span className="text-xs text-fd-muted-foreground/50 self-center mr-1">
                     Previous:
                   </span>
                   {noteHistory.slice(0, 8).map((note, i) => (
                     <button
                       key={i}
                       onClick={() => setCustomNote(note)}
-                      className={`px-2.5 py-1 text-[11px] rounded-lg border transition-colors truncate max-w-[200px] ${
+                      className={`px-2.5 py-1 text-xs rounded-lg border transition-colors truncate max-w-[200px] ${
                         customNote === note
                           ? "border-fd-primary/50 text-fd-primary bg-fd-primary/10"
                           : "border-fd-border/50 text-fd-muted-foreground/50 hover:text-fd-muted-foreground hover:border-fd-border"
@@ -697,7 +697,7 @@ export default function TutorialApp() {
             {/* God mode model selector */}
             {_dbg && (
               <div className="mt-3 flex items-center gap-2 flex-wrap">
-                <span className="text-[11px] font-mono text-green-500/80 uppercase tracking-wider">
+                <span className="text-xs font-mono text-green-500/80 uppercase tracking-wider">
                   IDDQD
                 </span>
                 <div className="flex rounded-lg border border-green-500/30 overflow-hidden">

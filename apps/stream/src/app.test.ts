@@ -10,8 +10,13 @@ class MemoryPostStore implements PostStore {
   async list(query: string, limit: number): Promise<Post[]> {
     const needle = query.toLowerCase();
     return this.posts
-      .filter((post) => `${post.body} ${post.tags.join(" ")}`.toLowerCase().includes(needle))
-      .sort((left, right) => Number(right.pinned) - Number(left.pinned) || right.id - left.id)
+      .filter((post) =>
+        `${post.body} ${post.tags.join(" ")}`.toLowerCase().includes(needle),
+      )
+      .sort(
+        (left, right) =>
+          Number(right.pinned) - Number(left.pinned) || right.id - left.id,
+      )
       .slice(0, limit);
   }
 
@@ -58,7 +63,9 @@ describe("Stream API", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true });
     expect(response.headers.get("cache-control")).toBe("no-store");
-    expect(response.headers.get("content-security-policy")).toContain("default-src 'none'");
+    expect(response.headers.get("content-security-policy")).toContain(
+      "default-src 'none'",
+    );
     expect(response.headers.get("x-content-type-options")).toBe("nosniff");
   });
 
@@ -70,7 +77,10 @@ describe("Stream API", () => {
           "content-type": "application/json",
           origin: "https://stream.testy.cool",
         },
-        body: JSON.stringify({ body: "  A useful thought. ", tags: "LLMs, notes" }),
+        body: JSON.stringify({
+          body: "  A useful thought. ",
+          tags: "LLMs, notes",
+        }),
       }),
       store,
     );
@@ -82,7 +92,10 @@ describe("Stream API", () => {
       status: "thought",
     });
 
-    const listResponse = await handleApiRequest(request("/api/posts?q=useful"), store);
+    const listResponse = await handleApiRequest(
+      request("/api/posts?q=useful"),
+      store,
+    );
     const list = (await listResponse.json()) as { posts: Post[] };
     expect(list.posts).toHaveLength(1);
   });
@@ -105,7 +118,11 @@ describe("Stream API", () => {
   });
 
   it("updates and deletes a post", async () => {
-    const post = await store.create({ body: "Draft", tags: [], status: "thought" });
+    const post = await store.create({
+      body: "Draft",
+      tags: [],
+      status: "thought",
+    });
     const updateResponse = await handleApiRequest(
       request(`/api/posts/${post.id}`, {
         method: "PATCH",
@@ -113,7 +130,11 @@ describe("Stream API", () => {
           "content-type": "application/json",
           origin: "https://stream.testy.cool",
         },
-        body: JSON.stringify({ body: "Better draft", pinned: true, status: "idea" }),
+        body: JSON.stringify({
+          body: "Better draft",
+          pinned: true,
+          status: "idea",
+        }),
       }),
       store,
     );

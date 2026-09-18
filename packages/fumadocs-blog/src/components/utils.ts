@@ -14,14 +14,14 @@ export function cn(...inputs: ClassValue[]) {
  */
 export const getSortedByDatePosts = (
   posts: BlogPost[],
-  includeDrafts: boolean = false
+  includeDrafts: boolean = false,
 ): BlogPost[] => {
   const filteredPosts = posts.filter(
-    (post) => includeDrafts || !post.data.draft
+    (post) => includeDrafts || !post.data.draft,
   );
 
   return [...filteredPosts].sort(
-    (a, b) => b.data.date.getTime() - a.data.date.getTime()
+    (a, b) => b.data.date.getTime() - a.data.date.getTime(),
   );
 };
 
@@ -92,12 +92,12 @@ export const getPostsByCategory = (category: string, posts: BlogPost[]) => {
 export const getPostsByCategoryAndSlug = (
   category: string,
   slug: string,
-  posts: BlogPost[]
+  posts: BlogPost[],
 ) => {
   return (
     posts.filter(
       (post) =>
-        post.slugs && post.slugs[0] === category && post.slugs[1] === slug
+        post.slugs && post.slugs[0] === category && post.slugs[1] === slug,
     )[0] || undefined
   );
 };

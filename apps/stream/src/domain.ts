@@ -60,7 +60,8 @@ function normalizeTags(values: unknown[]): string[] {
   });
 
   const unique = [...new Set(tags.filter(Boolean))].sort();
-  if (unique.length > MAX_TAGS) throw new InputError(`Use at most ${MAX_TAGS} tags`);
+  if (unique.length > MAX_TAGS)
+    throw new InputError(`Use at most ${MAX_TAGS} tags`);
   if (unique.some((tag) => tag.length > MAX_TAG_LENGTH)) {
     throw new InputError(`Tags can be at most ${MAX_TAG_LENGTH} characters`);
   }
@@ -99,13 +100,15 @@ export function parseUpdatePost(value: unknown): UpdatePostInput {
     update.pinned = input.pinned;
   }
 
-  if (Object.keys(update).length === 0) throw new InputError("No changes provided");
+  if (Object.keys(update).length === 0)
+    throw new InputError("No changes provided");
   return update;
 }
 
 export function parsePostId(value: string): number {
   if (!/^\d+$/.test(value)) throw new InputError("Invalid post id");
   const id = Number(value);
-  if (!Number.isSafeInteger(id) || id < 1) throw new InputError("Invalid post id");
+  if (!Number.isSafeInteger(id) || id < 1)
+    throw new InputError("Invalid post id");
   return id;
 }

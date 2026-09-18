@@ -110,9 +110,7 @@ export function SinglePost({
                   React.createElement(categoryInfo.icon, {
                     className: "h-4 w-4",
                   })}
-                <Link href={categoryUrl}>
-                  {categoryInfo.label}
-                </Link>
+                <Link href={categoryUrl}>{categoryInfo.label}</Link>
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <Calendar className="h-4 w-4" />
@@ -191,7 +189,7 @@ export function SinglePost({
         containerProps={{
           className: classNames(
             "flex-row-reverse",
-            "relative container [--fd-nav-height:calc(var(--spacing)*14)] md:[--fd-nav-height:57px]"
+            "relative container [--fd-nav-height:calc(var(--spacing)*14)] md:[--fd-nav-height:57px]",
           ),
         }}
       >
@@ -211,7 +209,7 @@ export function SinglePost({
             }}
             article={{
               className: classNames(
-                "!m-[unset] max-w-none bg-fd-muted/50 py-8 md:py-12"
+                "!m-[unset] max-w-none bg-fd-muted/50 py-8 md:py-12",
               ),
             }}
           >

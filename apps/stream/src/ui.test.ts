@@ -21,7 +21,9 @@ describe("Stream UI rendering", () => {
       updatedAt: "2026-08-27T16:00:00.000Z",
     });
 
-    expect(markup).toContain("Line one<br>&lt;script&gt;alert(1)&lt;/script&gt;");
+    expect(markup).toContain(
+      "Line one<br>&lt;script&gt;alert(1)&lt;/script&gt;",
+    );
     expect(markup).toContain("Pinned");
     expect(markup).toContain("Idea");
     expect(markup).not.toContain("<script>");

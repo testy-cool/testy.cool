@@ -21,6 +21,8 @@ interface Env {
   WINDMILL_SCRIPT_PATH?: string;
   WINDMILL_FLOW_PATH?: string;
   TUTORIAL_CALLBACK_SECRET?: string;
+  CF_ACCESS_CLIENT_ID?: string;
+  CF_ACCESS_CLIENT_SECRET?: string;
 }
 
 interface VersionMeta {
@@ -125,12 +127,18 @@ function normalizePublicJob(job: TutorialJobRecord | null) {
   };
 }
 
-async function getJobForVideo(kv: KVNamespace, videoId: string): Promise<TutorialJobRecord | null> {
+async function getJobForVideo(
+  kv: KVNamespace,
+  videoId: string,
+): Promise<TutorialJobRecord | null> {
   const raw = await kv.get(jobByVideoKey(videoId));
   return raw ? JSON.parse(raw) : null;
 }
 
-async function getJobById(kv: KVNamespace, id: string): Promise<TutorialJobRecord | null> {
+async function getJobById(
+  kv: KVNamespace,
+  id: string,
+): Promise<TutorialJobRecord | null> {
   const raw = await kv.get(jobByIdKey(id));
   return raw ? JSON.parse(raw) : null;
 }
@@ -138,7 +146,9 @@ async function getJobById(kv: KVNamespace, id: string): Promise<TutorialJobRecor
 async function putJob(kv: KVNamespace, job: TutorialJobRecord) {
   const serialized = JSON.stringify(job);
   await Promise.all([
-    kv.put(jobByVideoKey(job.videoId), serialized, { expirationTtl: JOB_TTL_SECONDS }),
+    kv.put(jobByVideoKey(job.videoId), serialized, {
+      expirationTtl: JOB_TTL_SECONDS,
+    }),
     kv.put(jobByIdKey(job.id), serialized, { expirationTtl: JOB_TTL_SECONDS }),
   ]);
 }
@@ -164,10 +174,23 @@ async function getTutorialState(kv: KVNamespace, videoId: string) {
   ]);
   const tutorial = rawTutorial ? JSON.parse(rawTutorial) : null;
   const job = rawJob ? (JSON.parse(rawJob) as TutorialJobRecord) : null;
+  const isStale =
+    job &&
+    (job.state === "queued" || job.state === "running") &&
+    Date.now() - job.updatedAt > 10 * 60 * 1000;
+
+  if (isStale && job) {
+    job.state = "failed";
+    job.error = "Generation timed out after 10 minutes without completion.";
+    await putJob(kv, job);
+  }
+
   return {
     tutorial,
     job: normalizePublicJob(job),
-    pending: job ? job.state === "queued" || job.state === "running" : false,
+    pending: job
+      ? (job.state === "queued" || job.state === "running") && !isStale
+      : false,
     ...(job?.state === "failed" && job.error ? { error: job.error } : {}),
   };
 }
@@ -190,26 +213,38 @@ function getWindmillRunUrl(env: Env) {
   const flowPath = env.WINDMILL_FLOW_PATH?.trim();
   const scriptPath = env.WINDMILL_SCRIPT_PATH?.trim();
   if (!base || !env.WINDMILL_TOKEN) return null;
-  if (flowPath) return `${base}/api/w/${workspace}/jobs/run/f/${normalizeWindmillPath(flowPath)}`;
-  if (scriptPath) return `${base}/api/w/${workspace}/jobs/run/p/${normalizeWindmillPath(scriptPath)}`;
+  if (flowPath)
+    return `${base}/api/w/${workspace}/jobs/run/f/${normalizeWindmillPath(flowPath)}`;
+  if (scriptPath)
+    return `${base}/api/w/${workspace}/jobs/run/p/${normalizeWindmillPath(scriptPath)}`;
   return null;
 }
 
 async function startWindmillJob(
   env: Env,
   payload: Record<string, unknown>,
-): Promise<{ windmillJobId: string; responseText: string; responseData: unknown }> {
+): Promise<{
+  windmillJobId: string;
+  responseText: string;
+  responseData: unknown;
+}> {
   const runUrl = getWindmillRunUrl(env);
   if (!runUrl || !env.WINDMILL_TOKEN) {
     throw new Error("Windmill is not configured");
   }
 
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${env.WINDMILL_TOKEN}`,
+    "Content-Type": "application/json",
+  };
+  if (env.CF_ACCESS_CLIENT_ID && env.CF_ACCESS_CLIENT_SECRET) {
+    headers["CF-Access-Client-Id"] = env.CF_ACCESS_CLIENT_ID;
+    headers["CF-Access-Client-Secret"] = env.CF_ACCESS_CLIENT_SECRET;
+  }
+
   const res = await fetch(runUrl, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.WINDMILL_TOKEN}`,
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify(payload),
   });
 
@@ -219,32 +254,60 @@ async function startWindmillJob(
     data = text ? JSON.parse(text) : null;
   } catch {}
 
-  if (!res.ok) {
+  const isHtml =
+    text.trim().startsWith("<") ||
+    res.headers.get("content-type")?.includes("text/html");
+
+  if (!res.ok || isHtml) {
+    if (
+      isHtml &&
+      (text.includes("cloudflareaccess") || text.includes("Log in to Windmill"))
+    ) {
+      throw new Error(
+        "Windmill is protected by Cloudflare Access. Configure CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET in Pages environment variables.",
+      );
+    }
     const message =
-      typeof data === "object" && data && "error" in data && typeof (data as { error?: unknown }).error === "string"
+      typeof data === "object" &&
+      data &&
+      "error" in data &&
+      typeof (data as { error?: unknown }).error === "string"
         ? (data as { error: string }).error
-        : `Windmill request failed (${res.status})`;
+        : isHtml
+          ? `Windmill request returned HTML (${res.status})`
+          : `Windmill request failed (${res.status})`;
     throw new Error(message);
   }
 
   const windmillJobId =
     typeof data === "string"
       ? data
-      : typeof text === "string" && text.trim()
-        ? text.trim()
       : typeof data === "object" && data
-        ? (
-            ("job_id" in data && typeof (data as { job_id?: unknown }).job_id === "string" && (data as { job_id: string }).job_id) ||
-            ("jobId" in data && typeof (data as { jobId?: unknown }).jobId === "string" && (data as { jobId: string }).jobId) ||
-            ("id" in data && typeof (data as { id?: unknown }).id === "string" && (data as { id: string }).id)
-          )
+        ? ("job_id" in data &&
+            typeof (data as { job_id?: unknown }).job_id === "string" &&
+            (data as { job_id: string }).job_id) ||
+          ("jobId" in data &&
+            typeof (data as { jobId?: unknown }).jobId === "string" &&
+            (data as { jobId: string }).jobId) ||
+          ("id" in data &&
+            typeof (data as { id?: unknown }).id === "string" &&
+            (data as { id: string }).id)
         : null;
 
-  if (!windmillJobId) throw new Error("Windmill did not return a job id");
+  if (
+    !windmillJobId ||
+    typeof windmillJobId !== "string" ||
+    windmillJobId.startsWith("<")
+  ) {
+    throw new Error("Windmill did not return a valid job id");
+  }
   return { windmillJobId, responseText: text, responseData: data };
 }
 
-function ensureTutorialShape(videoId: string, tutorial: TutorialPayload | undefined): TutorialPayload {
+function ensureTutorialShape(
+  videoId: string,
+  tutorial: TutorialPayload | undefined,
+): TutorialPayload {
   if (!tutorial || typeof tutorial !== "object") {
     throw new Error("Callback did not include tutorial data");
   }
@@ -300,14 +363,25 @@ async function persistTutorialResult(
   });
 
   if (meta.versions.length > MAX_VERSIONS) {
-    const dropped = meta.versions.splice(0, meta.versions.length - MAX_VERSIONS);
-    await Promise.all(dropped.map((d) => kv.delete(`tutorial:${tutorial.videoId}:v${d.version}`)));
+    const dropped = meta.versions.splice(
+      0,
+      meta.versions.length - MAX_VERSIONS,
+    );
+    await Promise.all(
+      dropped.map((d) =>
+        kv.delete(`tutorial:${tutorial.videoId}:v${d.version}`),
+      ),
+    );
   }
 
   await Promise.all([
-    kv.put(`tutorial:${tutorial.videoId}:v${newVersion}`, JSON.stringify(tutorial), {
-      expirationTtl: TTL_SECONDS,
-    }),
+    kv.put(
+      `tutorial:${tutorial.videoId}:v${newVersion}`,
+      JSON.stringify(tutorial),
+      {
+        expirationTtl: TTL_SECONDS,
+      },
+    ),
     kv.put(`tutorial:${tutorial.videoId}:meta`, JSON.stringify(meta), {
       expirationTtl: TTL_SECONDS,
     }),
@@ -334,13 +408,21 @@ async function persistTutorialResult(
   return newVersion;
 }
 
-async function handleCallback(context: EventContext<Env, string, unknown>, body: CallbackBody) {
+async function handleCallback(
+  context: EventContext<Env, string, unknown>,
+  body: CallbackBody,
+) {
   const kv = context.env.PANTRY_CACHE;
   if (!kv) return json({ error: "KV not configured" }, 503);
 
-  const headerSecret = context.request.headers.get("x-tutorial-callback-secret");
+  const headerSecret = context.request.headers.get(
+    "x-tutorial-callback-secret",
+  );
   const expectedSecret = context.env.TUTORIAL_CALLBACK_SECRET;
-  if (!expectedSecret || (body.secret !== expectedSecret && headerSecret !== expectedSecret)) {
+  if (
+    !expectedSecret ||
+    (body.secret !== expectedSecret && headerSecret !== expectedSecret)
+  ) {
     return json({ error: "Invalid callback secret" }, 403);
   }
 
@@ -370,7 +452,11 @@ async function handleCallback(context: EventContext<Env, string, unknown>, body:
   if (body.success) {
     try {
       const tutorial = ensureTutorialShape(job.videoId, body.tutorial);
-      const version = await persistTutorialResult(kv, tutorial, job.usedCustomPrompt);
+      const version = await persistTutorialResult(
+        kv,
+        tutorial,
+        job.usedCustomPrompt,
+      );
       await langfuseSpan(context.env, {
         traceId,
         spanId: `${traceId}-callback-persist`,
@@ -402,7 +488,8 @@ async function handleCallback(context: EventContext<Env, string, unknown>, body:
       await putJob(kv, updatedJob);
       return json({ ok: true, version });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to persist tutorial";
+      const message =
+        error instanceof Error ? error.message : "Failed to persist tutorial";
       const failedJob: TutorialJobRecord = {
         ...job,
         state: "failed",
@@ -414,9 +501,10 @@ async function handleCallback(context: EventContext<Env, string, unknown>, body:
     }
   }
 
-  const message = typeof body.error === "string" && body.error.trim()
-    ? body.error.trim()
-    : "Tutorial generation failed.";
+  const message =
+    typeof body.error === "string" && body.error.trim()
+      ? body.error.trim()
+      : "Tutorial generation failed.";
   await langfuseSpan(context.env, {
     traceId,
     spanId: `${traceId}-callback-persist-failed`,
@@ -489,7 +577,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   if (action === "worker-config") {
     const id = url.searchParams.get("id");
     const expectedSecret = context.env.TUTORIAL_CALLBACK_SECRET;
-    const headerSecret = context.request.headers.get("x-tutorial-callback-secret");
+    const headerSecret = context.request.headers.get(
+      "x-tutorial-callback-secret",
+    );
     if (!id) return json({ error: "Missing job id" }, 400);
     if (!expectedSecret || headerSecret !== expectedSecret) {
       return json({ error: "Invalid worker config secret" }, 403);
@@ -603,7 +693,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   const videoId = body.videoId;
   const force = intentFromUrl === "refresh";
-  const customNote = typeof body.customNote === "string" ? body.customNote.slice(0, 500) : "";
+  const customNote =
+    typeof body.customNote === "string" ? body.customNote.slice(0, 500) : "";
   const model = DEFAULT_MODEL;
   const analysisMode =
     body.analysisMode === "transcript" || body.analysisMode === "video"
@@ -619,8 +710,13 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 
   const currentTutorialRaw = await kv.get(`tutorial:${videoId}`);
-  let currentTutorial = currentTutorialRaw ? JSON.parse(currentTutorialRaw) : null;
-  if (currentTutorial && (!currentTutorial.steps || currentTutorial.steps.length === 0)) {
+  let currentTutorial = currentTutorialRaw
+    ? JSON.parse(currentTutorialRaw)
+    : null;
+  if (
+    currentTutorial &&
+    (!currentTutorial.steps || currentTutorial.steps.length === 0)
+  ) {
     await kv.delete(`tutorial:${videoId}`);
     currentTutorial = null;
   }
@@ -630,7 +726,20 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 
   const existingJob = await getJobForVideo(kv, videoId);
-  if (existingJob && (existingJob.state === "queued" || existingJob.state === "running")) {
+  const existingJobIsStale =
+    existingJob &&
+    (existingJob.state === "queued" || existingJob.state === "running") &&
+    Date.now() - existingJob.updatedAt > 10 * 60 * 1000;
+
+  if (existingJobIsStale && existingJob) {
+    existingJob.state = "failed";
+    existingJob.error = "Previous job timed out after 10 minutes.";
+    await putJob(kv, existingJob);
+  } else if (
+    !force &&
+    existingJob &&
+    (existingJob.state === "queued" || existingJob.state === "running")
+  ) {
     return json({
       tutorial: currentTutorial || undefined,
       job: normalizePublicJob(existingJob),
@@ -653,7 +762,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   });
 
   const runUrl = getWindmillRunUrl(context.env);
-  if (!runUrl || !context.env.WINDMILL_TOKEN || !context.env.TUTORIAL_CALLBACK_SECRET) {
+  if (
+    !runUrl ||
+    !context.env.WINDMILL_TOKEN ||
+    !context.env.TUTORIAL_CALLBACK_SECRET
+  ) {
     return json({ error: "Windmill queue is not configured" }, 503);
   }
 
@@ -693,7 +806,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   const callbackUrl = new URL(context.request.url);
   callbackUrl.search = "?action=callback";
-  const resolvedPrompt = enforcePromptSchema(storedPrompt || "", "{videoTitle}");
+  const resolvedPrompt = enforcePromptSchema(
+    storedPrompt || "",
+    "{videoTitle}",
+  );
   const payload = {
     jobId: job.id,
     videoId,
@@ -720,7 +836,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   });
 
   try {
-    const { windmillJobId, responseText, responseData } = await startWindmillJob(context.env, payload);
+    const { windmillJobId, responseText, responseData } =
+      await startWindmillJob(context.env, payload);
     const runningJob: TutorialJobRecord = {
       ...job,
       state: "running",
@@ -751,7 +868,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       status: runningJob.state,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to start queued generation";
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to start queued generation";
     const failedJob: TutorialJobRecord = {
       ...job,
       state: "failed",
@@ -784,7 +904,8 @@ async function handleChat(
   convId?: string,
   parentId?: string,
 ): Promise<Response> {
-  if (!videoId || !message) return json({ error: "Missing videoId or message" }, 400);
+  if (!videoId || !message)
+    return json({ error: "Missing videoId or message" }, 400);
 
   const apiKey = env.GEMINI_API_KEY;
   if (!apiKey) return json({ error: "Gemini API key not configured" }, 503);
@@ -793,7 +914,11 @@ async function handleChat(
   if (!kv) return json({ error: "KV not configured" }, 503);
 
   const raw = await kv.get(`tutorial:${videoId}`);
-  if (!raw) return json({ error: "No tutorial found for this video. Generate one first." }, 404);
+  if (!raw)
+    return json(
+      { error: "No tutorial found for this video. Generate one first." },
+      404,
+    );
 
   const tutorial = JSON.parse(raw);
   const context = [
@@ -802,14 +927,23 @@ async function handleChat(
     tutorial.summary ? `Summary: ${tutorial.summary}` : "",
     tutorial.transcript ? `\nTRANSCRIPT:\n${tutorial.transcript}` : "",
     `\nBREAKDOWN CONTENT:\n${tutorial.steps.map((s: any, i: number) => `[${i + 1}] ${s.tag}: ${s.title}\n${s.blocks.map((b: any) => b.html || b.code || "").join("\n")}`).join("\n\n")}`,
-  ].filter(Boolean).join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   const systemPrompt = `You have access to a video breakdown and its full transcript. Answer the user's question based on this content. Be direct and specific. Reference timestamps when relevant. If the answer isn't in the content, say so.\n\n${context}`;
 
   const ai = new GoogleGenAI({ apiKey });
   const contents = [
     { role: "user" as const, parts: [{ text: systemPrompt }] },
-    { role: "model" as const, parts: [{ text: "Understood. I have the full breakdown and transcript. Ask me anything about this video." }] },
+    {
+      role: "model" as const,
+      parts: [
+        {
+          text: "Understood. I have the full breakdown and transcript. Ask me anything about this video.",
+        },
+      ],
+    },
     ...history.map((h) => ({
       role: (h.role === "user" ? "user" : "model") as "user" | "model",
       parts: [{ text: h.text }],
@@ -826,7 +960,11 @@ async function handleChat(
     const reply = response.text || "No response generated.";
 
     const id = convId || crypto.randomUUID().slice(0, 8);
-    const allMessages = [...history, { role: "user", text: message }, { role: "model", text: reply }];
+    const allMessages = [
+      ...history,
+      { role: "user", text: message },
+      { role: "model", text: reply },
+    ];
     const conv = {
       id,
       videoId,
@@ -834,11 +972,18 @@ async function handleChat(
       messages: allMessages,
       createdAt: Date.now(),
     };
-    await kv.put(`chat:${videoId}:${id}`, JSON.stringify(conv), { expirationTtl: TTL_SECONDS });
+    await kv.put(`chat:${videoId}:${id}`, JSON.stringify(conv), {
+      expirationTtl: TTL_SECONDS,
+    });
 
     const indexRaw = await kv.get(`chat:${videoId}:index`);
-    const index: { id: string; preview: string; messageCount: number; createdAt: number; parentId?: string }[] =
-      indexRaw ? JSON.parse(indexRaw) : [];
+    const index: {
+      id: string;
+      preview: string;
+      messageCount: number;
+      createdAt: number;
+      parentId?: string;
+    }[] = indexRaw ? JSON.parse(indexRaw) : [];
     const existing = index.findIndex((c) => c.id === id);
     const entry = {
       id,
@@ -852,7 +997,9 @@ async function handleChat(
     } else {
       index.unshift(entry);
     }
-    await kv.put(`chat:${videoId}:index`, JSON.stringify(index.slice(0, 50)), { expirationTtl: TTL_SECONDS });
+    await kv.put(`chat:${videoId}:index`, JSON.stringify(index.slice(0, 50)), {
+      expirationTtl: TTL_SECONDS,
+    });
 
     return json({ reply, convId: id });
   } catch (e: unknown) {
@@ -917,7 +1064,10 @@ Use hsl(var(--fd-foreground)) for body text (NOT --fd-muted-foreground, that's t
 }`;
 }
 
-function enforcePromptSchema(promptTemplate: string, videoTitle: string): string {
+function enforcePromptSchema(
+  promptTemplate: string,
+  videoTitle: string,
+): string {
   const canonical = buildPrompt(videoTitle);
   if (!promptTemplate.trim()) return canonical;
 
@@ -1054,12 +1204,15 @@ async function langfuseSpan(
   ]);
 }
 
-async function langfuseIngest(
-  env: Env,
-  batch: unknown[],
-): Promise<void> {
+async function langfuseIngest(env: Env, batch: unknown[]): Promise<void> {
   const { LANGFUSE_SECRET_KEY, LANGFUSE_PUBLIC_KEY, LANGFUSE_BASE_URL } = env;
-  if (!LANGFUSE_SECRET_KEY || !LANGFUSE_PUBLIC_KEY || !LANGFUSE_BASE_URL || batch.length === 0) return;
+  if (
+    !LANGFUSE_SECRET_KEY ||
+    !LANGFUSE_PUBLIC_KEY ||
+    !LANGFUSE_BASE_URL ||
+    batch.length === 0
+  )
+    return;
 
   const payload = {
     batch,

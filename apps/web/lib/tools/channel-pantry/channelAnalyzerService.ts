@@ -1,9 +1,12 @@
 import type {
-  VideoInfo, VideoProgress, ExtractedIngredient,
-  IngredientFrequency, CostAccumulator,
-} from './types';
-import { getTranscript } from './youtubeService';
-import { createCostTracker, trackGeminiResponse } from './costTracker';
+  VideoInfo,
+  VideoProgress,
+  ExtractedIngredient,
+  IngredientFrequency,
+  CostAccumulator,
+} from "./types";
+import { getTranscript } from "./youtubeService";
+import { createCostTracker, trackGeminiResponse } from "./costTracker";
 
 const EXTRACTION_PROMPT = `You are analyzing a cooking video. Extract ALL ingredients mentioned.
 
@@ -32,16 +35,16 @@ type ProgressCallback = (progress: VideoProgress) => void;
 async function callGemini(
   contents: string,
   costTracker: ReturnType<typeof createCostTracker>,
-  responseMimeType?: string
+  responseMimeType?: string,
 ): Promise<{ text: string; usageMetadata?: any }> {
-  const res = await fetch('/api/pantry/gemini', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const res = await fetch("/api/pantry/gemini", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ contents, responseMimeType }),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Gemini proxy error' }));
-    throw new Error(err.error || 'Gemini proxy error');
+    const err = await res.json().catch(() => ({ error: "Gemini proxy error" }));
+    throw new Error(err.error || "Gemini proxy error");
   }
   const data = await res.json();
   trackGeminiResponse(costTracker, data);
@@ -52,36 +55,75 @@ async function callGemini(
 async function extractFromVideo(
   video: VideoInfo,
   costTracker: ReturnType<typeof createCostTracker>,
-  onProgress: ProgressCallback
+  onProgress: ProgressCallback,
 ): Promise<ExtractedIngredient[]> {
-  onProgress({ videoId: video.videoId, title: video.title, publishedAt: video.publishedAt, status: 'extracting_description', ingredients: [] });
+  onProgress({
+    videoId: video.videoId,
+    title: video.title,
+    publishedAt: video.publishedAt,
+    status: "extracting_description",
+    ingredients: [],
+  });
 
   const descResult = await tryExtract(video.description, costTracker);
   if (descResult.length > 0) {
-    onProgress({ videoId: video.videoId, title: video.title, publishedAt: video.publishedAt, status: 'done', tier: 'description', ingredients: descResult });
+    onProgress({
+      videoId: video.videoId,
+      title: video.title,
+      publishedAt: video.publishedAt,
+      status: "done",
+      tier: "description",
+      ingredients: descResult,
+    });
     return descResult;
   }
 
-  onProgress({ videoId: video.videoId, title: video.title, publishedAt: video.publishedAt, status: 'fetching_transcript', ingredients: [] });
+  onProgress({
+    videoId: video.videoId,
+    title: video.title,
+    publishedAt: video.publishedAt,
+    status: "fetching_transcript",
+    ingredients: [],
+  });
   const transcript = await getTranscript(video.videoId);
 
   if (transcript && transcript.length > 50) {
-    onProgress({ videoId: video.videoId, title: video.title, publishedAt: video.publishedAt, status: 'extracting_transcript', ingredients: [] });
+    onProgress({
+      videoId: video.videoId,
+      title: video.title,
+      publishedAt: video.publishedAt,
+      status: "extracting_transcript",
+      ingredients: [],
+    });
     const transResult = await tryExtract(transcript, costTracker);
     if (transResult.length > 0) {
-      onProgress({ videoId: video.videoId, title: video.title, publishedAt: video.publishedAt, status: 'done', tier: 'transcript', ingredients: transResult });
+      onProgress({
+        videoId: video.videoId,
+        title: video.title,
+        publishedAt: video.publishedAt,
+        status: "done",
+        tier: "transcript",
+        ingredients: transResult,
+      });
       return transResult;
     }
   }
 
-  onProgress({ videoId: video.videoId, title: video.title, publishedAt: video.publishedAt, status: 'skipped', tier: 'skipped', ingredients: [] });
+  onProgress({
+    videoId: video.videoId,
+    title: video.title,
+    publishedAt: video.publishedAt,
+    status: "skipped",
+    tier: "skipped",
+    ingredients: [],
+  });
   return [];
 }
 
 /** Send text to Gemini for ingredient extraction */
 async function tryExtract(
   text: string,
-  costTracker: ReturnType<typeof createCostTracker>
+  costTracker: ReturnType<typeof createCostTracker>,
 ): Promise<ExtractedIngredient[]> {
   if (!text || text.trim().length < 20) return [];
 
@@ -89,11 +131,11 @@ async function tryExtract(
     const data = await callGemini(
       `${EXTRACTION_PROMPT}\n\nText to analyze:\n${text.slice(0, 8000)}`,
       costTracker,
-      'application/json'
+      "application/json",
     );
     const parsed = JSON.parse(data.text);
     return (parsed.ingredients || []).filter(
-      (i: any) => i.name && typeof i.name === 'string' && i.category
+      (i: any) => i.name && typeof i.name === "string" && i.category,
     );
   } catch {
     return [];
@@ -101,7 +143,11 @@ async function tryExtract(
 }
 
 /** Batch helper */
-async function batchAsync<T>(items: T[], batchSize: number, fn: (item: T) => Promise<void>) {
+async function batchAsync<T>(
+  items: T[],
+  batchSize: number,
+  fn: (item: T) => Promise<void>,
+) {
   for (let i = 0; i < items.length; i += batchSize) {
     await Promise.all(items.slice(i, i + batchSize).map(fn));
   }
@@ -109,7 +155,7 @@ async function batchAsync<T>(items: T[], batchSize: number, fn: (item: T) => Pro
 
 /** Aggregate ingredients across videos into frequency map */
 function aggregate(
-  videoResults: Map<string, ExtractedIngredient[]>
+  videoResults: Map<string, ExtractedIngredient[]>,
 ): IngredientFrequency[] {
   const freq = new Map<string, IngredientFrequency>();
 
@@ -128,7 +174,10 @@ function aggregate(
           existing.videoIds.push(videoId);
         }
         if (ing.quantity) {
-          existing.videoQuantities = { ...existing.videoQuantities, [videoId]: ing.quantity };
+          existing.videoQuantities = {
+            ...existing.videoQuantities,
+            [videoId]: ing.quantity,
+          };
         }
       } else {
         freq.set(key, {
@@ -148,7 +197,7 @@ function aggregate(
 /** Post-aggregation dedup via Gemini */
 async function dedup(
   ingredients: IngredientFrequency[],
-  costTracker: ReturnType<typeof createCostTracker>
+  costTracker: ReturnType<typeof createCostTracker>,
 ): Promise<IngredientFrequency[]> {
   if (ingredients.length === 0) return [];
 
@@ -172,11 +221,14 @@ async function dedup(
     const data = await callGemini(
       `${DEDUP_PROMPT}\n\n${JSON.stringify(stripped)}`,
       costTracker,
-      'application/json'
+      "application/json",
     );
     const parsed = JSON.parse(data.text);
-    const deduped: IngredientFrequency[] = (Array.isArray(parsed) ? parsed : parsed.ingredients || ingredients)
-      .sort((a: IngredientFrequency, b: IngredientFrequency) => b.count - a.count);
+    const deduped: IngredientFrequency[] = (
+      Array.isArray(parsed) ? parsed : parsed.ingredients || ingredients
+    ).sort(
+      (a: IngredientFrequency, b: IngredientFrequency) => b.count - a.count,
+    );
 
     // Re-attach videoQuantities from the original data based on videoIds
     for (const ing of deduped) {
@@ -184,7 +236,10 @@ async function dedup(
       for (const vid of ing.videoIds) {
         // Search all original ingredients for this videoId's quantity
         for (const [, qtys] of qtyLookup) {
-          if (qtys[vid]) { merged[vid] = qtys[vid]; break; }
+          if (qtys[vid]) {
+            merged[vid] = qtys[vid];
+            break;
+          }
         }
       }
       if (Object.keys(merged).length > 0) ing.videoQuantities = merged;
@@ -200,13 +255,23 @@ async function dedup(
 export async function analyzeChannel(
   videos: VideoInfo[],
   onProgress: ProgressCallback,
-  onCostUpdate: (cost: CostAccumulator) => void
-): Promise<{ ingredients: IngredientFrequency[]; cost: CostAccumulator; videosWithIngredients: number }> {
+  onCostUpdate: (cost: CostAccumulator) => void,
+): Promise<{
+  ingredients: IngredientFrequency[];
+  cost: CostAccumulator;
+  videosWithIngredients: number;
+}> {
   const costTracker = createCostTracker();
   const videoResults = new Map<string, ExtractedIngredient[]>();
 
   for (const v of videos) {
-    onProgress({ videoId: v.videoId, title: v.title, publishedAt: v.publishedAt, status: 'pending', ingredients: [] });
+    onProgress({
+      videoId: v.videoId,
+      title: v.title,
+      publishedAt: v.publishedAt,
+      status: "pending",
+      ingredients: [],
+    });
   }
 
   await batchAsync(videos, 5, async (video) => {
@@ -215,10 +280,16 @@ export async function analyzeChannel(
     onCostUpdate(costTracker.get());
   });
 
-  const videosWithIngredients = Array.from(videoResults.values()).filter(v => v.length > 0).length;
+  const videosWithIngredients = Array.from(videoResults.values()).filter(
+    (v) => v.length > 0,
+  ).length;
   const aggregated = aggregate(videoResults);
   const deduped = await dedup(aggregated, costTracker);
   onCostUpdate(costTracker.get());
 
-  return { ingredients: deduped, cost: costTracker.get(), videosWithIngredients };
+  return {
+    ingredients: deduped,
+    cost: costTracker.get(),
+    videosWithIngredients,
+  };
 }

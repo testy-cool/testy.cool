@@ -10,15 +10,20 @@ interface Model {
 }
 
 const MODELS: Model[] = [
-  { name: "Gemini 3.1 Flash-Lite", input: 0.25, output: 1.50, cachedInput: 0.0625 },
-  { name: "Gemini 3 Flash", input: 0.50, output: 3.00, cachedInput: 0.125 },
-  { name: "Gemini 3.1 Pro", input: 2.00, output: 12.00, cachedInput: 0.50 },
-  { name: "Gemini 2.5 Flash", input: 0.30, output: 2.50, cachedInput: 0.075 },
-  { name: "Gemini 2.5 Pro", input: 1.25, output: 10.00, cachedInput: 0.3125 },
-  { name: "OpenAI gpt-5.4-mini", input: 0.75, output: 4.50, cachedInput: 0.075 },
-  { name: "OpenAI gpt-5.4", input: 2.50, output: 15.00, cachedInput: 0.25 },
-  { name: "OpenAI gpt-5.5", input: 5.00, output: 30.00, cachedInput: 0.50 },
-  { name: "OpenAI o3", input: 10.00, output: 40.00, cachedInput: 1.00 },
+  {
+    name: "Gemini 3.1 Flash-Lite",
+    input: 0.25,
+    output: 1.5,
+    cachedInput: 0.0625,
+  },
+  { name: "Gemini 3 Flash", input: 0.5, output: 3.0, cachedInput: 0.125 },
+  { name: "Gemini 3.1 Pro", input: 2.0, output: 12.0, cachedInput: 0.5 },
+  { name: "Gemini 2.5 Flash", input: 0.3, output: 2.5, cachedInput: 0.075 },
+  { name: "Gemini 2.5 Pro", input: 1.25, output: 10.0, cachedInput: 0.3125 },
+  { name: "OpenAI gpt-5.4-mini", input: 0.75, output: 4.5, cachedInput: 0.075 },
+  { name: "OpenAI gpt-5.4", input: 2.5, output: 15.0, cachedInput: 0.25 },
+  { name: "OpenAI gpt-5.5", input: 5.0, output: 30.0, cachedInput: 0.5 },
+  { name: "OpenAI o3", input: 10.0, output: 40.0, cachedInput: 1.0 },
 ];
 
 function fmt(n: number): string {
@@ -65,7 +70,12 @@ export function FlexSavingsCalculator() {
     <div className="rounded-lg border border-fd-border bg-fd-card p-4 space-y-4">
       <div className="grid grid-cols-3 gap-2">
         <div className="space-y-1">
-          <label htmlFor={`${id}-requests`} className="text-xs text-fd-muted-foreground">Requests</label>
+          <label
+            htmlFor={`${id}-requests`}
+            className="text-xs text-fd-muted-foreground"
+          >
+            Requests
+          </label>
           <input
             id={`${id}-requests`}
             type="text"
@@ -75,7 +85,12 @@ export function FlexSavingsCalculator() {
           />
         </div>
         <div className="space-y-1">
-          <label htmlFor={`${id}-input-tokens`} className="text-xs text-fd-muted-foreground">Input tokens/req</label>
+          <label
+            htmlFor={`${id}-input-tokens`}
+            className="text-xs text-fd-muted-foreground"
+          >
+            Input tokens/req
+          </label>
           <input
             id={`${id}-input-tokens`}
             type="text"
@@ -85,7 +100,12 @@ export function FlexSavingsCalculator() {
           />
         </div>
         <div className="space-y-1">
-          <label htmlFor={`${id}-output-tokens`} className="text-xs text-fd-muted-foreground">Output tokens/req</label>
+          <label
+            htmlFor={`${id}-output-tokens`}
+            className="text-xs text-fd-muted-foreground"
+          >
+            Output tokens/req
+          </label>
           <input
             id={`${id}-output-tokens`}
             type="text"
@@ -124,7 +144,9 @@ export function FlexSavingsCalculator() {
                 <span className="text-sm text-fd-foreground">{r.name}</span>
                 <span className="text-xs tabular-nums text-fd-muted-foreground ml-2">
                   {fmt(r.standard)} → {fmt(r.flex)}
-                  <span className="text-green-800 dark:text-green-400 ml-1">(-{fmt(r.saved)})</span>
+                  <span className="text-green-800 dark:text-green-400 ml-1">
+                    (-{fmt(r.saved)})
+                  </span>
                 </span>
               </div>
               <div className="h-5 w-full rounded bg-fd-muted/30 flex overflow-hidden">
@@ -144,10 +166,12 @@ export function FlexSavingsCalculator() {
 
       <div className="flex gap-4 text-xs text-fd-muted-foreground">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rounded-sm bg-fd-primary/60" /> Flex cost
+          <span className="inline-block w-3 h-3 rounded-sm bg-fd-primary/60" />{" "}
+          Flex cost
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rounded-sm bg-green-500/30" /> Saved
+          <span className="inline-block w-3 h-3 rounded-sm bg-green-500/30" />{" "}
+          Saved
         </span>
       </div>
     </div>

@@ -31,7 +31,148 @@ const TYPE_COLORS: Record<string, string> = {
 const EXAMPLE: { image: string; label: string; elements: Element[] } = {
   image: "/images/blog/bounding-boxes/testy-cool-homepage.png",
   label: "testy.cool /blog",
-  elements: [{"label":"navbar","type":"navbar","box_2d":[0,0,50,1000]},{"label":"logo","type":"container","box_2d":[13,18,36,117],"text":"testy.cool"},{"label":"nav_links","type":"container","box_2d":[18,135,32,316]},{"label":"blog_link","type":"link","box_2d":[18,135,32,163],"text":"Blog"},{"label":"tools_link","type":"link","box_2d":[18,179,32,212],"text":"Tools"},{"label":"stack_link","type":"link","box_2d":[18,228,32,264],"text":"Stack"},{"label":"about_link","type":"link","box_2d":[18,281,32,316],"text":"About"},{"label":"search_input","type":"input","box_2d":[8,706,42,908],"text":"Search"},{"label":"theme_toggle","type":"button","box_2d":[8,916,42,964]},{"label":"header_section","type":"header","box_2d":[98,342,197,658]},{"label":"breadcrumb","type":"text","box_2d":[98,450,112,537],"text":"Home > Blog"},{"label":"page_title","type":"text","box_2d":[131,427,161,572],"text":"Blog Posts"},{"label":"page_subtitle","type":"text","box_2d":[177,342,197,658],"text":"Notes and ramblings, typically about LLMs."},{"label":"post_1_container","type":"section","box_2d":[310,99,575,888]},{"label":"post_1_badges","type":"container","box_2d":[310,99,328,397]},{"label":"badge_agents","type":"badge","box_2d":[310,99,328,148],"text":"agents"},{"label":"badge_commerce","type":"badge","box_2d":[310,155,328,221],"text":"commerce"},{"label":"badge_protocols","type":"badge","box_2d":[310,228,328,293],"text":"protocols"},{"label":"badge_ai","type":"badge","box_2d":[310,300,328,323],"text":"ai"},{"label":"badge_standards","type":"badge","box_2d":[310,330,328,397],"text":"standards"},{"label":"post_1_title","type":"text","box_2d":[344,99,407,460],"text":"UCP - How to Actually Make Money With It"},{"label":"post_1_description","type":"text","box_2d":[428,99,490,460]},{"label":"post_1_meta","type":"text","box_2d":[516,99,531,386]},{"label":"post_1_read_more","type":"link","box_2d":[556,99,573,187],"text":"Read more ->"},{"label":"post_1_card","type":"card","box_2d":[328,513,557,888]},{"label":"post_2_container","type":"section","box_2d":[673,99,915,888]},{"label":"post_2_badges","type":"container","box_2d":[673,99,691,275]},{"label":"badge_claude_code","type":"badge","box_2d":[673,99,691,177],"text":"claude-code"},{"label":"badge_ssh","type":"badge","box_2d":[673,184,691,217],"text":"ssh"},{"label":"badge_devops","type":"badge","box_2d":[673,224,691,275],"text":"devops"},{"label":"post_2_title","type":"text","box_2d":[707,99,770,460],"text":"Setting Up SSH for Claude Code"},{"label":"post_2_description","type":"text","box_2d":[791,99,830,460]},{"label":"post_2_meta","type":"text","box_2d":[856,99,871,384]},{"label":"post_2_read_more","type":"link","box_2d":[896,99,913,187],"text":"Read more ->"},{"label":"post_2_card","type":"card","box_2d":[681,513,909,888]}],
+  elements: [
+    { label: "navbar", type: "navbar", box_2d: [0, 0, 50, 1000] },
+    {
+      label: "logo",
+      type: "container",
+      box_2d: [13, 18, 36, 117],
+      text: "testy.cool",
+    },
+    { label: "nav_links", type: "container", box_2d: [18, 135, 32, 316] },
+    {
+      label: "blog_link",
+      type: "link",
+      box_2d: [18, 135, 32, 163],
+      text: "Blog",
+    },
+    {
+      label: "tools_link",
+      type: "link",
+      box_2d: [18, 179, 32, 212],
+      text: "Tools",
+    },
+    {
+      label: "stack_link",
+      type: "link",
+      box_2d: [18, 228, 32, 264],
+      text: "Stack",
+    },
+    {
+      label: "about_link",
+      type: "link",
+      box_2d: [18, 281, 32, 316],
+      text: "About",
+    },
+    {
+      label: "search_input",
+      type: "input",
+      box_2d: [8, 706, 42, 908],
+      text: "Search",
+    },
+    { label: "theme_toggle", type: "button", box_2d: [8, 916, 42, 964] },
+    { label: "header_section", type: "header", box_2d: [98, 342, 197, 658] },
+    {
+      label: "breadcrumb",
+      type: "text",
+      box_2d: [98, 450, 112, 537],
+      text: "Home > Blog",
+    },
+    {
+      label: "page_title",
+      type: "text",
+      box_2d: [131, 427, 161, 572],
+      text: "Blog Posts",
+    },
+    {
+      label: "page_subtitle",
+      type: "text",
+      box_2d: [177, 342, 197, 658],
+      text: "Notes and ramblings, typically about LLMs.",
+    },
+    { label: "post_1_container", type: "section", box_2d: [310, 99, 575, 888] },
+    { label: "post_1_badges", type: "container", box_2d: [310, 99, 328, 397] },
+    {
+      label: "badge_agents",
+      type: "badge",
+      box_2d: [310, 99, 328, 148],
+      text: "agents",
+    },
+    {
+      label: "badge_commerce",
+      type: "badge",
+      box_2d: [310, 155, 328, 221],
+      text: "commerce",
+    },
+    {
+      label: "badge_protocols",
+      type: "badge",
+      box_2d: [310, 228, 328, 293],
+      text: "protocols",
+    },
+    {
+      label: "badge_ai",
+      type: "badge",
+      box_2d: [310, 300, 328, 323],
+      text: "ai",
+    },
+    {
+      label: "badge_standards",
+      type: "badge",
+      box_2d: [310, 330, 328, 397],
+      text: "standards",
+    },
+    {
+      label: "post_1_title",
+      type: "text",
+      box_2d: [344, 99, 407, 460],
+      text: "UCP - How to Actually Make Money With It",
+    },
+    { label: "post_1_description", type: "text", box_2d: [428, 99, 490, 460] },
+    { label: "post_1_meta", type: "text", box_2d: [516, 99, 531, 386] },
+    {
+      label: "post_1_read_more",
+      type: "link",
+      box_2d: [556, 99, 573, 187],
+      text: "Read more ->",
+    },
+    { label: "post_1_card", type: "card", box_2d: [328, 513, 557, 888] },
+    { label: "post_2_container", type: "section", box_2d: [673, 99, 915, 888] },
+    { label: "post_2_badges", type: "container", box_2d: [673, 99, 691, 275] },
+    {
+      label: "badge_claude_code",
+      type: "badge",
+      box_2d: [673, 99, 691, 177],
+      text: "claude-code",
+    },
+    {
+      label: "badge_ssh",
+      type: "badge",
+      box_2d: [673, 184, 691, 217],
+      text: "ssh",
+    },
+    {
+      label: "badge_devops",
+      type: "badge",
+      box_2d: [673, 224, 691, 275],
+      text: "devops",
+    },
+    {
+      label: "post_2_title",
+      type: "text",
+      box_2d: [707, 99, 770, 460],
+      text: "Setting Up SSH for Claude Code",
+    },
+    { label: "post_2_description", type: "text", box_2d: [791, 99, 830, 460] },
+    { label: "post_2_meta", type: "text", box_2d: [856, 99, 871, 384] },
+    {
+      label: "post_2_read_more",
+      type: "link",
+      box_2d: [896, 99, 913, 187],
+      text: "Read more ->",
+    },
+    { label: "post_2_card", type: "card", box_2d: [681, 513, 909, 888] },
+  ],
 };
 
 function BoxOverlay({
@@ -160,9 +301,7 @@ export function BoundingBoxDemo() {
             .map(([type, count]) => (
               <button
                 key={type}
-                onClick={() =>
-                  setFilterType(filterType === type ? null : type)
-                }
+                onClick={() => setFilterType(filterType === type ? null : type)}
                 className="rounded-full px-2.5 py-1 text-xs font-medium transition-colors"
                 style={{
                   backgroundColor:

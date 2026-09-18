@@ -19,10 +19,14 @@ const uiSecurityHeaders: Record<string, string> = {
   "X-Frame-Options": "DENY",
 };
 
-async function secureAssetResponse(request: Request, env: Env): Promise<Response> {
+async function secureAssetResponse(
+  request: Request,
+  env: Env,
+): Promise<Response> {
   const response = await env.ASSETS.fetch(request);
   const headers = new Headers(response.headers);
-  for (const [name, value] of Object.entries(uiSecurityHeaders)) headers.set(name, value);
+  for (const [name, value] of Object.entries(uiSecurityHeaders))
+    headers.set(name, value);
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
@@ -30,7 +34,10 @@ async function secureAssetResponse(request: Request, env: Env): Promise<Response
   });
 }
 
-export function routeWorkerRequest(request: Request, env: Env): Promise<Response> {
+export function routeWorkerRequest(
+  request: Request,
+  env: Env,
+): Promise<Response> {
   const pathname = new URL(request.url).pathname;
   if (pathname === "/api" || pathname.startsWith("/api/")) {
     return handleApiRequest(request, new D1PostStore(env.DB));

@@ -12,7 +12,9 @@ describe("Stream worker", () => {
 
     expect(await response.text()).toBe("stream-ui");
     expect(response.headers.get("cache-control")).toBe("no-store");
-    expect(response.headers.get("content-security-policy")).toContain("script-src 'self'");
+    expect(response.headers.get("content-security-policy")).toContain(
+      "script-src 'self'",
+    );
     expect(response.headers.get("x-frame-options")).toBe("DENY");
     expect(fetch).toHaveBeenCalledWith(request);
   });

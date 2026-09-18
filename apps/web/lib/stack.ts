@@ -113,6 +113,19 @@ export const stack: StackTool[] = [
     take: "Very versatile to have around in the CLI. Use it for agents to call other LLMs fast. It logs stuff too.",
   },
   {
+    name: "Archtoys",
+    url: "https://github.com/Mujtaba1i/Archtoys",
+    category: "CLI Tools",
+    status: "using",
+    take: "Linux alternative to Windows PowerToys. I used PowerToys on Windows and on Linux I didn't have a fast color picker - Archtoys fills that gap. The maintainer knows what's up.",
+    history: [
+      {
+        date: "2026-09-18",
+        note: "Added to stack.",
+      },
+    ],
+  },
+  {
     name: "Obsidian + AI Canvas",
     url: "https://github.com/testy-cool/obsidian-ai-canvas",
     logo: "https://obsidian.md/favicon.ico",

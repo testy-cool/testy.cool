@@ -1,8 +1,12 @@
 "use client";
 
-import { useMemo, useState, useRef, useEffect } from 'react';
-import type { IngredientFrequency, FoodCategory, VideoProgress } from '@/lib/tools/channel-pantry/types';
-import { FOOD_CATEGORIES } from '@/lib/tools/channel-pantry/types';
+import { useMemo, useState, useRef, useEffect } from "react";
+import type {
+  IngredientFrequency,
+  FoodCategory,
+  VideoProgress,
+} from "@/lib/tools/channel-pantry/types";
+import { FOOD_CATEGORIES } from "@/lib/tools/channel-pantry/types";
 
 interface Props {
   ingredients: IngredientFrequency[];
@@ -15,20 +19,22 @@ interface Props {
 }
 
 const CATEGORY_ACCENT: Record<FoodCategory, string> = {
-  'Proteins': 'bg-red-500',
-  'Dairy & Eggs': 'bg-amber-500',
-  'Vegetables': 'bg-emerald-500',
-  'Fruits': 'bg-pink-500',
-  'Grains & Starches': 'bg-yellow-500',
-  'Spices & Seasonings': 'bg-orange-500',
-  'Oils & Fats': 'bg-lime-500',
-  'Sauces & Condiments': 'bg-purple-500',
-  'Other': 'bg-gray-400',
+  Proteins: "bg-red-500",
+  "Dairy & Eggs": "bg-amber-500",
+  Vegetables: "bg-emerald-500",
+  Fruits: "bg-pink-500",
+  "Grains & Starches": "bg-yellow-500",
+  "Spices & Seasonings": "bg-orange-500",
+  "Oils & Fats": "bg-lime-500",
+  "Sauces & Condiments": "bg-purple-500",
+  Other: "bg-gray-400",
 };
 
-function typicalQuantity(videoQuantities?: Record<string, string>): string | null {
+function typicalQuantity(
+  videoQuantities?: Record<string, string>,
+): string | null {
   if (!videoQuantities) return null;
-  const vals = Object.values(videoQuantities).filter(v => v && v !== 'null');
+  const vals = Object.values(videoQuantities).filter((v) => v && v !== "null");
   if (vals.length === 0) return null;
   // Most common quantity
   const freq = new Map<string, number>();
@@ -56,8 +62,8 @@ function IngredientPopover({
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose();
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, [onClose]);
 
   const videoMap = useMemo(() => {
@@ -70,14 +76,15 @@ function IngredientPopover({
     <div
       ref={ref}
       className="absolute left-0 top-full mt-1 z-50 w-80 max-h-64 overflow-y-auto rounded-xl border border-fd-border bg-fd-card shadow-xl animate-fade-slide-in"
-      style={{ animationDuration: '150ms' }}
+      style={{ animationDuration: "150ms" }}
     >
       <div className="p-3">
         <div className="text-[13px] font-semibold text-fd-foreground mb-2">
-          {ing.name} — {ing.videoIds.length} video{ing.videoIds.length !== 1 ? 's' : ''}
+          {ing.name} — {ing.videoIds.length} video
+          {ing.videoIds.length !== 1 ? "s" : ""}
         </div>
         <div className="space-y-1.5">
-          {ing.videoIds.map(vid => {
+          {ing.videoIds.map((vid) => {
             const vp = videoMap.get(vid);
             const qty = ing.videoQuantities?.[vid];
             return (
@@ -98,8 +105,10 @@ function IngredientPopover({
                   <p className="text-[12px] text-fd-foreground leading-tight line-clamp-2 group-hover/row:underline">
                     {vp?.title || vid}
                   </p>
-                  {qty && qty !== 'null' && (
-                    <p className="text-[11px] text-fd-muted-foreground mt-0.5">{qty}</p>
+                  {qty && qty !== "null" && (
+                    <p className="text-xs text-fd-muted-foreground mt-0.5">
+                      {qty}
+                    </p>
                   )}
                 </div>
               </a>
@@ -112,7 +121,13 @@ function IngredientPopover({
 }
 
 export default function IngredientStream({
-  ingredients, videosAnalyzed, isLoading, isComplete, onCopyList, onReset, videoProgress,
+  ingredients,
+  videosAnalyzed,
+  isLoading,
+  isComplete,
+  onCopyList,
+  onReset,
+  videoProgress,
 }: Props) {
   const [hoveredIng, setHoveredIng] = useState<string | null>(null);
 
@@ -123,12 +138,13 @@ export default function IngredientStream({
       list.push(ing);
       map.set(ing.category, list);
     }
-    return FOOD_CATEGORIES
-      .filter(cat => map.has(cat.name))
-      .map(cat => ({ ...cat, items: map.get(cat.name)! }));
+    return FOOD_CATEGORIES.filter((cat) => map.has(cat.name)).map((cat) => ({
+      ...cat,
+      items: map.get(cat.name)!,
+    }));
   }, [ingredients]);
 
-  const maxCount = Math.max(...ingredients.map(i => i.count), 1);
+  const maxCount = Math.max(...ingredients.map((i) => i.count), 1);
 
   if (ingredients.length === 0 && !isLoading) return null;
 
@@ -224,7 +240,7 @@ export default function IngredientStream({
                       <div className="flex items-center gap-1.5 shrink-0">
                         <div className="w-12 md:w-16 h-1 bg-fd-muted/40 rounded-full overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${CATEGORY_ACCENT[ing.category] || 'bg-gray-400'} transition-all duration-500 ease-out`}
+                            className={`h-full rounded-full ${CATEGORY_ACCENT[ing.category] || "bg-gray-400"} transition-all duration-500 ease-out`}
                             style={{ width: `${pct}%`, opacity: 0.65 }}
                           />
                         </div>

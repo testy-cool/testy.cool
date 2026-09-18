@@ -17,7 +17,8 @@ function fromRow(row: PostRow): Post {
   let tags: string[] = [];
   try {
     const value: unknown = JSON.parse(row.tags);
-    if (Array.isArray(value) && value.every((tag) => typeof tag === "string")) tags = value;
+    if (Array.isArray(value) && value.every((tag) => typeof tag === "string"))
+      tags = value;
   } catch {
     // Treat malformed legacy data as untagged instead of breaking the whole feed.
   }
@@ -111,7 +112,10 @@ export class D1PostStore implements PostStore {
   }
 
   async delete(id: number): Promise<boolean> {
-    const result = await this.database.prepare("DELETE FROM posts WHERE id = ?").bind(id).run();
+    const result = await this.database
+      .prepare("DELETE FROM posts WHERE id = ?")
+      .bind(id)
+      .run();
     return result.meta.changes > 0;
   }
 }

@@ -58,9 +58,15 @@ describe("D1PostStore", () => {
   });
 
   it("updates and deletes existing posts", async () => {
-    const post = await store.create({ body: "Draft", tags: [], status: "thought" });
+    const post = await store.create({
+      body: "Draft",
+      tags: [],
+      status: "thought",
+    });
 
-    expect(await store.update(post.id, { body: "Edited", tags: ["notes"] })).toMatchObject({
+    expect(
+      await store.update(post.id, { body: "Edited", tags: ["notes"] }),
+    ).toMatchObject({
       body: "Edited",
       tags: ["notes"],
     });

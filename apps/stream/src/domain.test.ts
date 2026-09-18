@@ -23,7 +23,9 @@ describe("parseCreatePost", () => {
   });
 
   it("rejects an empty thought", () => {
-    expect(() => parseCreatePost({ body: "   " })).toThrow("Write something first");
+    expect(() => parseCreatePost({ body: "   " })).toThrow(
+      "Write something first",
+    );
   });
 
   it("rejects a thought over 10,000 characters", () => {
@@ -33,9 +35,9 @@ describe("parseCreatePost", () => {
   });
 
   it("rejects unknown statuses", () => {
-    expect(() => parseCreatePost({ body: "Hello", status: "published" })).toThrow(
-      "Status must be thought or idea",
-    );
+    expect(() =>
+      parseCreatePost({ body: "Hello", status: "published" }),
+    ).toThrow("Status must be thought or idea");
   });
 });
 
@@ -45,7 +47,9 @@ describe("parseUpdatePost", () => {
   });
 
   it("rejects updates without editable fields", () => {
-    expect(() => parseUpdatePost({ ignored: true })).toThrow("No changes provided");
+    expect(() => parseUpdatePost({ ignored: true })).toThrow(
+      "No changes provided",
+    );
   });
 });
 

@@ -19,15 +19,16 @@
 ### Task 1: Create Gemini proxy function
 
 **Files:**
+
 - Create: `functions/api/pantry/gemini.ts`
 
 - [ ] **Step 1: Create the function file**
 
 ```ts
 // functions/api/pantry/gemini.ts
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI } from "@google/genai";
 
-const MODEL = 'gemini-3-flash-preview';
+const MODEL = "gemini-3-flash-preview";
 const MAX_BODY = 16_384; // 16KB
 
 interface Env {
@@ -36,22 +37,31 @@ interface Env {
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const key = context.env.GEMINI_API_KEY;
-  if (!key) return new Response(JSON.stringify({ error: 'API key not configured' }), { status: 502 });
+  if (!key)
+    return new Response(JSON.stringify({ error: "API key not configured" }), {
+      status: 502,
+    });
 
   const raw = await context.request.text();
   if (raw.length > MAX_BODY) {
-    return new Response(JSON.stringify({ error: 'Request too large' }), { status: 413 });
+    return new Response(JSON.stringify({ error: "Request too large" }), {
+      status: 413,
+    });
   }
 
   let body: { contents: string; responseMimeType?: string };
   try {
     body = JSON.parse(raw);
   } catch {
-    return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400 });
+    return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+      status: 400,
+    });
   }
 
-  if (!body.contents || typeof body.contents !== 'string') {
-    return new Response(JSON.stringify({ error: 'Missing contents field' }), { status: 400 });
+  if (!body.contents || typeof body.contents !== "string") {
+    return new Response(JSON.stringify({ error: "Missing contents field" }), {
+      status: 400,
+    });
   }
 
   try {
@@ -59,17 +69,25 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const response = await ai.models.generateContent({
       model: MODEL,
       contents: body.contents,
-      config: body.responseMimeType ? { responseMimeType: body.responseMimeType } : undefined,
+      config: body.responseMimeType
+        ? { responseMimeType: body.responseMimeType }
+        : undefined,
     });
 
-    return new Response(JSON.stringify({
-      text: response.text,
-      usageMetadata: response.usageMetadata,
-    }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({
+        text: response.text,
+        usageMetadata: response.usageMetadata,
+      }),
+      {
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: e.message || 'Gemini error' }), { status: 502 });
+    return new Response(
+      JSON.stringify({ error: e.message || "Gemini error" }),
+      { status: 502 },
+    );
   }
 };
 ```
@@ -84,13 +102,14 @@ git commit -m "feat(pantry): add Gemini proxy CF function"
 ### Task 2: Create YouTube Data API proxy function
 
 **Files:**
+
 - Create: `functions/api/pantry/youtube.ts`
 
 - [ ] **Step 1: Create the function file**
 
 ```ts
 // functions/api/pantry/youtube.ts
-const YT_API = 'https://www.googleapis.com/youtube/v3';
+const YT_API = "https://www.googleapis.com/youtube/v3";
 
 interface Env {
   YOUTUBE_API_KEY: string;
@@ -98,47 +117,65 @@ interface Env {
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const key = context.env.YOUTUBE_API_KEY;
-  if (!key) return new Response(JSON.stringify({ error: 'YouTube API key not configured' }), { status: 502 });
+  if (!key)
+    return new Response(
+      JSON.stringify({ error: "YouTube API key not configured" }),
+      { status: 502 },
+    );
 
   const url = new URL(context.request.url);
-  const action = url.searchParams.get('action');
+  const action = url.searchParams.get("action");
 
   let ytUrl: string;
 
   switch (action) {
-    case 'channelInfo': {
-      const handle = url.searchParams.get('handle');
-      if (!handle) return new Response(JSON.stringify({ error: 'Missing handle' }), { status: 400 });
-      const params = new URLSearchParams({ part: 'contentDetails,snippet', key });
-      if (handle.startsWith('@')) params.set('forHandle', handle);
-      else if (handle.startsWith('UC')) params.set('id', handle);
-      else params.set('forHandle', '@' + handle);
+    case "channelInfo": {
+      const handle = url.searchParams.get("handle");
+      if (!handle)
+        return new Response(JSON.stringify({ error: "Missing handle" }), {
+          status: 400,
+        });
+      const params = new URLSearchParams({
+        part: "contentDetails,snippet",
+        key,
+      });
+      if (handle.startsWith("@")) params.set("forHandle", handle);
+      else if (handle.startsWith("UC")) params.set("id", handle);
+      else params.set("forHandle", "@" + handle);
       ytUrl = `${YT_API}/channels?${params}`;
       break;
     }
-    case 'videos': {
-      const playlistId = url.searchParams.get('playlistId');
-      const maxResults = url.searchParams.get('maxResults') || '20';
-      if (!playlistId) return new Response(JSON.stringify({ error: 'Missing playlistId' }), { status: 400 });
+    case "videos": {
+      const playlistId = url.searchParams.get("playlistId");
+      const maxResults = url.searchParams.get("maxResults") || "20";
+      if (!playlistId)
+        return new Response(JSON.stringify({ error: "Missing playlistId" }), {
+          status: 400,
+        });
       const params = new URLSearchParams({
-        part: 'snippet',
+        part: "snippet",
         playlistId,
         maxResults: String(Math.min(50, Number(maxResults))),
         key,
       });
-      const pageToken = url.searchParams.get('pageToken');
-      if (pageToken) params.set('pageToken', pageToken);
+      const pageToken = url.searchParams.get("pageToken");
+      if (pageToken) params.set("pageToken", pageToken);
       ytUrl = `${YT_API}/playlistItems?${params}`;
       break;
     }
-    case 'channelFromVideo': {
-      const videoId = url.searchParams.get('videoId');
-      if (!videoId) return new Response(JSON.stringify({ error: 'Missing videoId' }), { status: 400 });
-      ytUrl = `${YT_API}/videos?${new URLSearchParams({ part: 'snippet', id: videoId, key })}`;
+    case "channelFromVideo": {
+      const videoId = url.searchParams.get("videoId");
+      if (!videoId)
+        return new Response(JSON.stringify({ error: "Missing videoId" }), {
+          status: 400,
+        });
+      ytUrl = `${YT_API}/videos?${new URLSearchParams({ part: "snippet", id: videoId, key })}`;
       break;
     }
     default:
-      return new Response(JSON.stringify({ error: 'Invalid action' }), { status: 400 });
+      return new Response(JSON.stringify({ error: "Invalid action" }), {
+        status: 400,
+      });
   }
 
   try {
@@ -146,10 +183,13 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     const data = await res.text();
     return new Response(data, {
       status: res.status,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: e.message || 'YouTube API error' }), { status: 502 });
+    return new Response(
+      JSON.stringify({ error: e.message || "YouTube API error" }),
+      { status: 502 },
+    );
   }
 };
 ```
@@ -164,6 +204,7 @@ git commit -m "feat(pantry): add YouTube Data API proxy CF function"
 ### Task 3: Create transcript proxy function
 
 **Files:**
+
 - Create: `functions/api/pantry/transcript.ts`
 
 - [ ] **Step 1: Create the function file**
@@ -174,9 +215,12 @@ Ported from the Vite `transcriptProxyPlugin` in `F:\code\recipe-ingredient-resol
 // functions/api/pantry/transcript.ts
 export const onRequestGet: PagesFunction = async (context) => {
   const url = new URL(context.request.url);
-  const videoId = url.searchParams.get('videoId') || url.searchParams.get('v');
+  const videoId = url.searchParams.get("videoId") || url.searchParams.get("v");
   if (!videoId) {
-    return new Response(JSON.stringify({ error: 'Missing videoId' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ error: "Missing videoId" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   try {
@@ -185,44 +229,69 @@ export const onRequestGet: PagesFunction = async (context) => {
     const html = await watchRes.text();
     const apiKeyMatch = html.match(/"INNERTUBE_API_KEY":"([^"]+)"/);
     if (!apiKeyMatch) {
-      return new Response(JSON.stringify({ error: 'Could not extract API key' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+      return new Response(
+        JSON.stringify({ error: "Could not extract API key" }),
+        { status: 404, headers: { "Content-Type": "application/json" } },
+      );
     }
 
     // Use ANDROID client to get caption tracks (bypasses POT requirement)
-    const playerRes = await fetch(`https://www.youtube.com/youtubei/v1/player?key=${apiKeyMatch[1]}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        context: { client: { clientName: 'ANDROID', clientVersion: '20.10.38' } },
-        videoId,
-      }),
-    });
-    const playerData = await playerRes.json() as any;
-    const tracks = playerData?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+    const playerRes = await fetch(
+      `https://www.youtube.com/youtubei/v1/player?key=${apiKeyMatch[1]}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          context: {
+            client: { clientName: "ANDROID", clientVersion: "20.10.38" },
+          },
+          videoId,
+        }),
+      },
+    );
+    const playerData = (await playerRes.json()) as any;
+    const tracks =
+      playerData?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
 
     if (!tracks || tracks.length === 0) {
-      return new Response(JSON.stringify({ error: 'No captions available' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ error: "No captions available" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Pick English track or first available
-    const enTrack = tracks.find((t: any) => t.languageCode === 'en') || tracks[0];
-    const captionRes = await fetch(enTrack.baseUrl.replace(/&fmt=\w+$/, ''));
+    const enTrack =
+      tracks.find((t: any) => t.languageCode === "en") || tracks[0];
+    const captionRes = await fetch(enTrack.baseUrl.replace(/&fmt=\w+$/, ""));
     const xml = await captionRes.text();
     if (!xml) {
-      return new Response(JSON.stringify({ error: 'Empty transcript' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ error: "Empty transcript" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Parse XML caption segments
     const text = [...xml.matchAll(/<text[^>]*>([^<]*)<\/text>/g)]
-      .map(m => m[1])
-      .join(' ')
-      .replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-      .replace(/\s+/g, ' ')
+      .map((m) => m[1])
+      .join(" ")
+      .replace(/&#39;/g, "'")
+      .replace(/&amp;/g, "&")
+      .replace(/&quot;/g, '"')
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/\s+/g, " ")
       .trim();
 
-    return new Response(JSON.stringify({ text }), { headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ text }), {
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ error: e.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 };
 ```
@@ -239,6 +308,7 @@ git commit -m "feat(pantry): add transcript proxy CF function"
 The Gemini function needs the SDK at build time. CF Pages Functions bundling will pick it up.
 
 **Files:**
+
 - Modify: `package.json` (root)
 
 - [ ] **Step 1: Install the dependency**
@@ -263,6 +333,7 @@ git commit -m "chore: add @google/genai for CF Functions"
 ### Task 5: Create pantry types
 
 **Files:**
+
 - Create: `apps/web/lib/tools/channel-pantry/types.ts`
 
 - [ ] **Step 1: Create the types file**
@@ -284,43 +355,43 @@ export interface ExtractedIngredient {
 }
 
 export type FoodCategory =
-  | 'Proteins'
-  | 'Dairy & Eggs'
-  | 'Vegetables'
-  | 'Fruits'
-  | 'Grains & Starches'
-  | 'Spices & Seasonings'
-  | 'Oils & Fats'
-  | 'Sauces & Condiments'
-  | 'Other';
+  | "Proteins"
+  | "Dairy & Eggs"
+  | "Vegetables"
+  | "Fruits"
+  | "Grains & Starches"
+  | "Spices & Seasonings"
+  | "Oils & Fats"
+  | "Sauces & Condiments"
+  | "Other";
 
 export const FOOD_CATEGORIES: { name: FoodCategory; emoji: string }[] = [
-  { name: 'Proteins', emoji: '🥩' },
-  { name: 'Dairy & Eggs', emoji: '🥛' },
-  { name: 'Vegetables', emoji: '🥬' },
-  { name: 'Fruits', emoji: '🍎' },
-  { name: 'Grains & Starches', emoji: '🌾' },
-  { name: 'Spices & Seasonings', emoji: '🧂' },
-  { name: 'Oils & Fats', emoji: '🫒' },
-  { name: 'Sauces & Condiments', emoji: '🫙' },
-  { name: 'Other', emoji: '📦' },
+  { name: "Proteins", emoji: "🥩" },
+  { name: "Dairy & Eggs", emoji: "🥛" },
+  { name: "Vegetables", emoji: "🥬" },
+  { name: "Fruits", emoji: "🍎" },
+  { name: "Grains & Starches", emoji: "🌾" },
+  { name: "Spices & Seasonings", emoji: "🧂" },
+  { name: "Oils & Fats", emoji: "🫒" },
+  { name: "Sauces & Condiments", emoji: "🫙" },
+  { name: "Other", emoji: "📦" },
 ];
 
 export type VideoExtractionStatus =
-  | 'pending'
-  | 'extracting_description'
-  | 'fetching_transcript'
-  | 'extracting_transcript'
-  | 'done'
-  | 'skipped'
-  | 'error';
+  | "pending"
+  | "extracting_description"
+  | "fetching_transcript"
+  | "extracting_transcript"
+  | "done"
+  | "skipped"
+  | "error";
 
 export interface VideoProgress {
   videoId: string;
   title: string;
   publishedAt?: string;
   status: VideoExtractionStatus;
-  tier?: 'description' | 'transcript' | 'skipped';
+  tier?: "description" | "transcript" | "skipped";
   ingredients: ExtractedIngredient[];
 }
 
@@ -360,6 +431,7 @@ git commit -m "feat(pantry): add pantry types"
 ### Task 6: Create cost tracker
 
 **Files:**
+
 - Create: `apps/web/lib/tools/channel-pantry/costTracker.ts`
 
 - [ ] **Step 1: Create the file**
@@ -368,10 +440,10 @@ Copy from `F:\code\recipe-ingredient-resolver\src\services\costTracker.ts`. The 
 
 ```ts
 // apps/web/lib/tools/channel-pantry/costTracker.ts
-import type { CostAccumulator } from './types';
+import type { CostAccumulator } from "./types";
 
 const INPUT_COST_PER_M = 0.15;
-const OUTPUT_COST_PER_M = 0.60;
+const OUTPUT_COST_PER_M = 0.6;
 
 export function createCostTracker(): {
   track: (promptTokens: number, outputTokens: number) => void;
@@ -396,7 +468,12 @@ export function createCostTracker(): {
 /** Extract token counts from a proxy response and track them */
 export function trackGeminiResponse(
   tracker: ReturnType<typeof createCostTracker>,
-  response: { usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number } }
+  response: {
+    usageMetadata?: {
+      promptTokenCount?: number;
+      candidatesTokenCount?: number;
+    };
+  },
 ) {
   const prompt = response.usageMetadata?.promptTokenCount ?? 0;
   const output = response.usageMetadata?.candidatesTokenCount ?? 0;
@@ -414,6 +491,7 @@ git commit -m "feat(pantry): add cost tracker"
 ### Task 7: Create YouTube service (proxy-based)
 
 **Files:**
+
 - Create: `apps/web/lib/tools/channel-pantry/youtubeService.ts`
 
 - [ ] **Step 1: Create the file**
@@ -422,41 +500,47 @@ Rewritten from `F:\code\recipe-ingredient-resolver\src\services\youtubeService.t
 
 ```ts
 // apps/web/lib/tools/channel-pantry/youtubeService.ts
-import type { VideoInfo } from './types';
+import type { VideoInfo } from "./types";
 
 /** Parse input into either { type: 'channel', value } or { type: 'video', videoId } */
-export function parseChannelInput(input: string): { type: 'channel'; value: string } | { type: 'video'; videoId: string } {
+export function parseChannelInput(
+  input: string,
+): { type: "channel"; value: string } | { type: "video"; videoId: string } {
   const trimmed = input.trim();
-  if (trimmed.startsWith('@')) return { type: 'channel', value: trimmed };
+  if (trimmed.startsWith("@")) return { type: "channel", value: trimmed };
   try {
     const url = new URL(trimmed);
     const path = url.pathname;
-    const vParam = url.searchParams.get('v');
-    if (vParam) return { type: 'video', videoId: vParam };
+    const vParam = url.searchParams.get("v");
+    if (vParam) return { type: "video", videoId: vParam };
     const shortsMatch = path.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
-    if (shortsMatch) return { type: 'video', videoId: shortsMatch[1] };
-    if (url.hostname === 'youtu.be') {
-      const id = path.slice(1).split('/')[0];
-      if (id.length === 11) return { type: 'video', videoId: id };
+    if (shortsMatch) return { type: "video", videoId: shortsMatch[1] };
+    if (url.hostname === "youtu.be") {
+      const id = path.slice(1).split("/")[0];
+      if (id.length === 11) return { type: "video", videoId: id };
     }
     const handleMatch = path.match(/\/@([^/]+)/);
-    if (handleMatch) return { type: 'channel', value: '@' + handleMatch[1] };
+    if (handleMatch) return { type: "channel", value: "@" + handleMatch[1] };
     const channelMatch = path.match(/\/channel\/([^/]+)/);
-    if (channelMatch) return { type: 'channel', value: channelMatch[1] };
+    if (channelMatch) return { type: "channel", value: channelMatch[1] };
     const cMatch = path.match(/\/c\/([^/]+)/);
-    if (cMatch) return { type: 'channel', value: '@' + cMatch[1] };
+    if (cMatch) return { type: "channel", value: "@" + cMatch[1] };
   } catch {}
-  if (/^UC[a-zA-Z0-9_-]{22}$/.test(trimmed)) return { type: 'channel', value: trimmed };
-  if (/^[a-zA-Z0-9_.-]+$/.test(trimmed)) return { type: 'channel', value: '@' + trimmed };
-  throw new Error('Could not parse channel or video from input: ' + trimmed);
+  if (/^UC[a-zA-Z0-9_-]{22}$/.test(trimmed))
+    return { type: "channel", value: trimmed };
+  if (/^[a-zA-Z0-9_.-]+$/.test(trimmed))
+    return { type: "channel", value: "@" + trimmed };
+  throw new Error("Could not parse channel or video from input: " + trimmed);
 }
 
 /** Look up the channel that owns a video */
 export async function getChannelFromVideo(videoId: string): Promise<string> {
-  const res = await fetch(`/api/pantry/youtube?action=channelFromVideo&videoId=${encodeURIComponent(videoId)}`);
+  const res = await fetch(
+    `/api/pantry/youtube?action=channelFromVideo&videoId=${encodeURIComponent(videoId)}`,
+  );
   const data = await res.json();
   if (data.error) throw new Error(data.error);
-  if (!data.items?.length) throw new Error('Video not found');
+  if (!data.items?.length) throw new Error("Video not found");
   return data.items[0].snippet.channelId;
 }
 
@@ -466,10 +550,12 @@ export async function getChannelInfo(handleOrId: string): Promise<{
   channelTitle: string;
   uploadsPlaylistId: string;
 }> {
-  const res = await fetch(`/api/pantry/youtube?action=channelInfo&handle=${encodeURIComponent(handleOrId)}`);
+  const res = await fetch(
+    `/api/pantry/youtube?action=channelInfo&handle=${encodeURIComponent(handleOrId)}`,
+  );
   const data = await res.json();
   if (data.error) throw new Error(data.error);
-  if (!data.items?.length) throw new Error('Channel not found');
+  if (!data.items?.length) throw new Error("Channel not found");
 
   const ch = data.items[0];
   return {
@@ -482,18 +568,18 @@ export async function getChannelInfo(handleOrId: string): Promise<{
 /** Fetch recent videos from an uploads playlist */
 export async function getRecentVideos(
   uploadsPlaylistId: string,
-  maxResults: number
+  maxResults: number,
 ): Promise<VideoInfo[]> {
   const all: VideoInfo[] = [];
   let pageToken: string | undefined;
 
   while (all.length < maxResults) {
     const params = new URLSearchParams({
-      action: 'videos',
+      action: "videos",
       playlistId: uploadsPlaylistId,
       maxResults: String(Math.min(50, maxResults - all.length)),
     });
-    if (pageToken) params.set('pageToken', pageToken);
+    if (pageToken) params.set("pageToken", pageToken);
 
     const res = await fetch(`/api/pantry/youtube?${params}`);
     const data = await res.json();
@@ -519,7 +605,9 @@ export async function getRecentVideos(
 /** Fetch transcript for a video via the CF Function proxy */
 export async function getTranscript(videoId: string): Promise<string | null> {
   try {
-    const res = await fetch(`/api/pantry/transcript?videoId=${encodeURIComponent(videoId)}`);
+    const res = await fetch(
+      `/api/pantry/transcript?videoId=${encodeURIComponent(videoId)}`,
+    );
     if (!res.ok) return null;
     const data = await res.json();
     return data.text || null;
@@ -539,6 +627,7 @@ git commit -m "feat(pantry): add YouTube service with proxy calls"
 ### Task 8: Create channel analyzer service (proxy-based)
 
 **Files:**
+
 - Create: `apps/web/lib/tools/channel-pantry/channelAnalyzerService.ts`
 
 - [ ] **Step 1: Create the file**
@@ -548,11 +637,14 @@ Rewritten from `F:\code\recipe-ingredient-resolver\src\services\channelAnalyzerS
 ```ts
 // apps/web/lib/tools/channel-pantry/channelAnalyzerService.ts
 import type {
-  VideoInfo, VideoProgress, ExtractedIngredient,
-  IngredientFrequency, CostAccumulator,
-} from './types';
-import { getTranscript } from './youtubeService';
-import { createCostTracker, trackGeminiResponse } from './costTracker';
+  VideoInfo,
+  VideoProgress,
+  ExtractedIngredient,
+  IngredientFrequency,
+  CostAccumulator,
+} from "./types";
+import { getTranscript } from "./youtubeService";
+import { createCostTracker, trackGeminiResponse } from "./costTracker";
 
 const EXTRACTION_PROMPT = `You are analyzing a cooking video. Extract ALL ingredients mentioned.
 
@@ -581,16 +673,16 @@ type ProgressCallback = (progress: VideoProgress) => void;
 async function callGemini(
   contents: string,
   costTracker: ReturnType<typeof createCostTracker>,
-  responseMimeType?: string
+  responseMimeType?: string,
 ): Promise<{ text: string; usageMetadata?: any }> {
-  const res = await fetch('/api/pantry/gemini', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const res = await fetch("/api/pantry/gemini", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ contents, responseMimeType }),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Gemini proxy error' }));
-    throw new Error(err.error || 'Gemini proxy error');
+    const err = await res.json().catch(() => ({ error: "Gemini proxy error" }));
+    throw new Error(err.error || "Gemini proxy error");
   }
   const data = await res.json();
   trackGeminiResponse(costTracker, data);
@@ -601,39 +693,78 @@ async function callGemini(
 async function extractFromVideo(
   video: VideoInfo,
   costTracker: ReturnType<typeof createCostTracker>,
-  onProgress: ProgressCallback
+  onProgress: ProgressCallback,
 ): Promise<ExtractedIngredient[]> {
   // Tier 1: Try description
-  onProgress({ videoId: video.videoId, title: video.title, publishedAt: video.publishedAt, status: 'extracting_description', ingredients: [] });
+  onProgress({
+    videoId: video.videoId,
+    title: video.title,
+    publishedAt: video.publishedAt,
+    status: "extracting_description",
+    ingredients: [],
+  });
 
   const descResult = await tryExtract(video.description, costTracker);
   if (descResult.length > 0) {
-    onProgress({ videoId: video.videoId, title: video.title, publishedAt: video.publishedAt, status: 'done', tier: 'description', ingredients: descResult });
+    onProgress({
+      videoId: video.videoId,
+      title: video.title,
+      publishedAt: video.publishedAt,
+      status: "done",
+      tier: "description",
+      ingredients: descResult,
+    });
     return descResult;
   }
 
   // Tier 2: Try transcript
-  onProgress({ videoId: video.videoId, title: video.title, publishedAt: video.publishedAt, status: 'fetching_transcript', ingredients: [] });
+  onProgress({
+    videoId: video.videoId,
+    title: video.title,
+    publishedAt: video.publishedAt,
+    status: "fetching_transcript",
+    ingredients: [],
+  });
   const transcript = await getTranscript(video.videoId);
 
   if (transcript && transcript.length > 50) {
-    onProgress({ videoId: video.videoId, title: video.title, publishedAt: video.publishedAt, status: 'extracting_transcript', ingredients: [] });
+    onProgress({
+      videoId: video.videoId,
+      title: video.title,
+      publishedAt: video.publishedAt,
+      status: "extracting_transcript",
+      ingredients: [],
+    });
     const transResult = await tryExtract(transcript, costTracker);
     if (transResult.length > 0) {
-      onProgress({ videoId: video.videoId, title: video.title, publishedAt: video.publishedAt, status: 'done', tier: 'transcript', ingredients: transResult });
+      onProgress({
+        videoId: video.videoId,
+        title: video.title,
+        publishedAt: video.publishedAt,
+        status: "done",
+        tier: "transcript",
+        ingredients: transResult,
+      });
       return transResult;
     }
   }
 
   // Tier 3: Skip
-  onProgress({ videoId: video.videoId, title: video.title, publishedAt: video.publishedAt, status: 'skipped', tier: 'skipped', ingredients: [] });
+  onProgress({
+    videoId: video.videoId,
+    title: video.title,
+    publishedAt: video.publishedAt,
+    status: "skipped",
+    tier: "skipped",
+    ingredients: [],
+  });
   return [];
 }
 
 /** Send text to Gemini for ingredient extraction */
 async function tryExtract(
   text: string,
-  costTracker: ReturnType<typeof createCostTracker>
+  costTracker: ReturnType<typeof createCostTracker>,
 ): Promise<ExtractedIngredient[]> {
   if (!text || text.trim().length < 20) return [];
 
@@ -641,11 +772,11 @@ async function tryExtract(
     const data = await callGemini(
       `${EXTRACTION_PROMPT}\n\nText to analyze:\n${text.slice(0, 8000)}`,
       costTracker,
-      'application/json'
+      "application/json",
     );
     const parsed = JSON.parse(data.text);
     return (parsed.ingredients || []).filter(
-      (i: any) => i.name && typeof i.name === 'string' && i.category
+      (i: any) => i.name && typeof i.name === "string" && i.category,
     );
   } catch {
     return [];
@@ -653,7 +784,11 @@ async function tryExtract(
 }
 
 /** Batch helper */
-async function batchAsync<T>(items: T[], batchSize: number, fn: (item: T) => Promise<void>) {
+async function batchAsync<T>(
+  items: T[],
+  batchSize: number,
+  fn: (item: T) => Promise<void>,
+) {
   for (let i = 0; i < items.length; i += batchSize) {
     await Promise.all(items.slice(i, i + batchSize).map(fn));
   }
@@ -661,7 +796,7 @@ async function batchAsync<T>(items: T[], batchSize: number, fn: (item: T) => Pro
 
 /** Aggregate ingredients across videos into frequency map */
 function aggregate(
-  videoResults: Map<string, ExtractedIngredient[]>
+  videoResults: Map<string, ExtractedIngredient[]>,
 ): IngredientFrequency[] {
   const freq = new Map<string, IngredientFrequency>();
 
@@ -689,7 +824,7 @@ function aggregate(
 /** Post-aggregation dedup via Gemini */
 async function dedup(
   ingredients: IngredientFrequency[],
-  costTracker: ReturnType<typeof createCostTracker>
+  costTracker: ReturnType<typeof createCostTracker>,
 ): Promise<IngredientFrequency[]> {
   if (ingredients.length === 0) return [];
 
@@ -697,11 +832,14 @@ async function dedup(
     const data = await callGemini(
       `${DEDUP_PROMPT}\n\n${JSON.stringify(ingredients)}`,
       costTracker,
-      'application/json'
+      "application/json",
     );
     const parsed = JSON.parse(data.text);
-    return (Array.isArray(parsed) ? parsed : parsed.ingredients || ingredients)
-      .sort((a: IngredientFrequency, b: IngredientFrequency) => b.count - a.count);
+    return (
+      Array.isArray(parsed) ? parsed : parsed.ingredients || ingredients
+    ).sort(
+      (a: IngredientFrequency, b: IngredientFrequency) => b.count - a.count,
+    );
   } catch {
     return ingredients;
   }
@@ -711,13 +849,23 @@ async function dedup(
 export async function analyzeChannel(
   videos: VideoInfo[],
   onProgress: ProgressCallback,
-  onCostUpdate: (cost: CostAccumulator) => void
-): Promise<{ ingredients: IngredientFrequency[]; cost: CostAccumulator; videosWithIngredients: number }> {
+  onCostUpdate: (cost: CostAccumulator) => void,
+): Promise<{
+  ingredients: IngredientFrequency[];
+  cost: CostAccumulator;
+  videosWithIngredients: number;
+}> {
   const costTracker = createCostTracker();
   const videoResults = new Map<string, ExtractedIngredient[]>();
 
   for (const v of videos) {
-    onProgress({ videoId: v.videoId, title: v.title, publishedAt: v.publishedAt, status: 'pending', ingredients: [] });
+    onProgress({
+      videoId: v.videoId,
+      title: v.title,
+      publishedAt: v.publishedAt,
+      status: "pending",
+      ingredients: [],
+    });
   }
 
   await batchAsync(videos, 5, async (video) => {
@@ -726,12 +874,18 @@ export async function analyzeChannel(
     onCostUpdate(costTracker.get());
   });
 
-  const videosWithIngredients = Array.from(videoResults.values()).filter(v => v.length > 0).length;
+  const videosWithIngredients = Array.from(videoResults.values()).filter(
+    (v) => v.length > 0,
+  ).length;
   const aggregated = aggregate(videoResults);
   const deduped = await dedup(aggregated, costTracker);
   onCostUpdate(costTracker.get());
 
-  return { ingredients: deduped, cost: costTracker.get(), videosWithIngredients };
+  return {
+    ingredients: deduped,
+    cost: costTracker.get(),
+    videosWithIngredients,
+  };
 }
 ```
 
@@ -749,6 +903,7 @@ git commit -m "feat(pantry): add channel analyzer service with proxy calls"
 ### Task 9: Add CSS keyframes to globals.css
 
 **Files:**
+
 - Modify: `apps/web/app/styles/globals.css`
 
 - [ ] **Step 1: Add keyframes after existing `animate-move` block**
@@ -758,16 +913,32 @@ Append after line 49 of `apps/web/app/styles/globals.css`:
 ```css
 /* Channel Pantry animations */
 @keyframes fadeSlideIn {
-  0% { opacity: 0; transform: translateY(12px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes tagPop {
-  0% { opacity: 0; transform: scale(0.6); }
-  100% { opacity: 1; transform: scale(1); }
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .animate-fade-slide-in {
@@ -795,6 +966,7 @@ git commit -m "feat(pantry): add CSS animations for channel pantry"
 ### Task 10: Create UI components
 
 **Files:**
+
 - Create: `apps/web/components/tools/channel-pantry/ChannelInput.tsx`
 - Create: `apps/web/components/tools/channel-pantry/VideoCard.tsx`
 - Create: `apps/web/components/tools/channel-pantry/VideoGrid.tsx`
@@ -803,6 +975,7 @@ git commit -m "feat(pantry): add CSS animations for channel pantry"
 - [ ] **Step 1: Create ChannelInput.tsx**
 
 Copy from `F:\code\recipe-ingredient-resolver\src\components\pantry\ChannelInput.tsx`. Change import path only:
+
 - `'../../types/pantry'` → `'@/lib/tools/channel-pantry/types'`
 
 Full file:
@@ -811,8 +984,8 @@ Full file:
 // apps/web/components/tools/channel-pantry/ChannelInput.tsx
 "use client";
 
-import { useState } from 'react';
-import type { ChannelAnalysisResult } from '@/lib/tools/channel-pantry/types';
+import { useState } from "react";
+import type { ChannelAnalysisResult } from "@/lib/tools/channel-pantry/types";
 
 interface Props {
   onSubmit: (channelInput: string, videoCount: number) => void;
@@ -824,39 +997,50 @@ interface Props {
 function timeAgo(timestamp: number): string {
   const diff = Date.now() - timestamp;
   const days = Math.floor(diff / 86400000);
-  if (days === 0) return 'today';
-  if (days === 1) return 'yesterday';
+  if (days === 0) return "today";
+  if (days === 1) return "yesterday";
   return `${days} days ago`;
 }
 
-export default function ChannelInput({ onSubmit, isLoading, cachedChannels, onLoadCached }: Props) {
-  const [input, setInput] = useState('');
+export default function ChannelInput({
+  onSubmit,
+  isLoading,
+  cachedChannels,
+  onLoadCached,
+}: Props) {
+  const [input, setInput] = useState("");
   const [videoCount, setVideoCount] = useState(20);
 
   return (
     <div>
       <div className="flex gap-3 items-end">
         <div className="flex-1">
-          <label className="block text-sm font-medium text-fd-foreground mb-1">Channel or video</label>
+          <label className="block text-sm font-medium text-fd-foreground mb-1">
+            Channel or video
+          </label>
           <input
             type="text"
             value={input}
-            onChange={e => setInput(e.target.value)}
+            onChange={(e) => setInput(e.target.value)}
             placeholder="@handle, channel URL, or any video URL"
             disabled={isLoading}
             className="w-full px-4 py-2.5 border border-fd-border rounded-lg text-[15px] bg-fd-card text-fd-foreground focus:outline-none focus:ring-2 focus:ring-fd-primary focus:border-transparent disabled:opacity-50"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-fd-foreground mb-1">Videos</label>
+          <label className="block text-sm font-medium text-fd-foreground mb-1">
+            Videos
+          </label>
           <select
             value={videoCount}
-            onChange={e => setVideoCount(Number(e.target.value))}
+            onChange={(e) => setVideoCount(Number(e.target.value))}
             disabled={isLoading}
             className="px-3 py-2.5 border border-fd-border rounded-lg text-[15px] bg-fd-card text-fd-foreground focus:outline-none focus:ring-2 focus:ring-fd-primary disabled:opacity-50"
           >
-            {[10, 20, 30, 50].map(n => (
-              <option key={n} value={n}>{n}</option>
+            {[10, 20, 30, 50].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
             ))}
           </select>
         </div>
@@ -871,9 +1055,11 @@ export default function ChannelInput({ onSubmit, isLoading, cachedChannels, onLo
 
       {cachedChannels.length > 0 && (
         <div className="mt-4">
-          <p className="text-xs font-medium text-fd-muted-foreground uppercase tracking-wide mb-2">Recent</p>
+          <p className="text-xs font-medium text-fd-muted-foreground uppercase tracking-wide mb-2">
+            Recent
+          </p>
           <div className="flex flex-wrap gap-2">
-            {cachedChannels.map(c => (
+            {cachedChannels.map((c) => (
               <button
                 key={c.channelId}
                 onClick={() => onLoadCached(c)}
@@ -894,6 +1080,7 @@ export default function ChannelInput({ onSubmit, isLoading, cachedChannels, onLo
 - [ ] **Step 2: Create VideoCard.tsx**
 
 Copy from `F:\code\recipe-ingredient-resolver\src\components\pantry\VideoCard.tsx`. Changes:
+
 - Import path: `'@/lib/tools/channel-pantry/types'`
 - Add `"use client"` directive
 - Remove `React` import (not needed with Next.js JSX transform)
@@ -903,7 +1090,10 @@ Copy from `F:\code\recipe-ingredient-resolver\src\components\pantry\VideoCard.ts
 // apps/web/components/tools/channel-pantry/VideoCard.tsx
 "use client";
 
-import type { VideoProgress, FoodCategory } from '@/lib/tools/channel-pantry/types';
+import type {
+  VideoProgress,
+  FoodCategory,
+} from "@/lib/tools/channel-pantry/types";
 
 interface Props {
   video: VideoProgress;
@@ -911,34 +1101,42 @@ interface Props {
 }
 
 const CATEGORY_COLORS: Record<FoodCategory, string> = {
-  'Proteins': 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300',
-  'Dairy & Eggs': 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
-  'Vegetables': 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300',
-  'Fruits': 'bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300',
-  'Grains & Starches': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300',
-  'Spices & Seasonings': 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300',
-  'Oils & Fats': 'bg-lime-100 text-lime-700 dark:bg-lime-950 dark:text-lime-300',
-  'Sauces & Condiments': 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300',
-  'Other': 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300',
+  Proteins: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
+  "Dairy & Eggs":
+    "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
+  Vegetables:
+    "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300",
+  Fruits: "bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300",
+  "Grains & Starches":
+    "bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300",
+  "Spices & Seasonings":
+    "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300",
+  "Oils & Fats":
+    "bg-lime-100 text-lime-700 dark:bg-lime-950 dark:text-lime-300",
+  "Sauces & Condiments":
+    "bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300",
+  Other: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300",
 };
 
 function relativeDate(iso?: string): string {
-  if (!iso) return '';
+  if (!iso) return "";
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
-  if (days === 0) return 'today';
-  if (days === 1) return '1d ago';
+  if (days === 0) return "today";
+  if (days === 1) return "1d ago";
   if (days < 30) return `${days}d ago`;
   if (days < 365) return `${Math.floor(days / 30)}mo ago`;
   return `${Math.floor(days / 365)}y ago`;
 }
 
 const isProcessing = (s: string) =>
-  s === 'extracting_description' || s === 'fetching_transcript' || s === 'extracting_transcript';
+  s === "extracting_description" ||
+  s === "fetching_transcript" ||
+  s === "extracting_transcript";
 
 export default function VideoCard({ video, index }: Props) {
   const processing = isProcessing(video.status);
-  const done = video.status === 'done';
-  const skipped = video.status === 'skipped';
+  const done = video.status === "done";
+  const skipped = video.status === "skipped";
 
   return (
     <div
@@ -976,7 +1174,9 @@ export default function VideoCard({ video, index }: Props) {
           {video.title}
         </h3>
         {video.publishedAt && (
-          <p className="text-[11px] text-fd-muted-foreground mt-1">{relativeDate(video.publishedAt)}</p>
+          <p className="text-[11px] text-fd-muted-foreground mt-1">
+            {relativeDate(video.publishedAt)}
+          </p>
         )}
 
         <div className="mt-2 flex flex-wrap gap-1 min-h-[28px]">
@@ -987,17 +1187,20 @@ export default function VideoCard({ video, index }: Props) {
               <span className="shimmer-bg animate-shimmer h-5 w-16 rounded-full" />
             </>
           )}
-          {(done || skipped) && video.ingredients.map((ing, i) => (
-            <span
-              key={ing.name}
-              className={`inline-block px-2 py-0.5 text-[11px] font-medium rounded-full animate-tag-pop ${CATEGORY_COLORS[ing.category] || CATEGORY_COLORS.Other}`}
-              style={{ animationDelay: `${i * 40}ms` }}
-            >
-              {ing.name}
-            </span>
-          ))}
+          {(done || skipped) &&
+            video.ingredients.map((ing, i) => (
+              <span
+                key={ing.name}
+                className={`inline-block px-2 py-0.5 text-[11px] font-medium rounded-full animate-tag-pop ${CATEGORY_COLORS[ing.category] || CATEGORY_COLORS.Other}`}
+                style={{ animationDelay: `${i * 40}ms` }}
+              >
+                {ing.name}
+              </span>
+            ))}
           {skipped && video.ingredients.length === 0 && (
-            <span className="text-[11px] text-fd-muted-foreground italic">no ingredients found</span>
+            <span className="text-[11px] text-fd-muted-foreground italic">
+              no ingredients found
+            </span>
           )}
         </div>
       </div>
@@ -1012,8 +1215,8 @@ export default function VideoCard({ video, index }: Props) {
 // apps/web/components/tools/channel-pantry/VideoGrid.tsx
 "use client";
 
-import type { VideoProgress } from '@/lib/tools/channel-pantry/types';
-import VideoCard from './VideoCard';
+import type { VideoProgress } from "@/lib/tools/channel-pantry/types";
+import VideoCard from "./VideoCard";
 
 interface Props {
   videos: VideoProgress[];
@@ -1035,6 +1238,7 @@ export default function VideoGrid({ videos }: Props) {
 - [ ] **Step 4: Create LiveSummary.tsx**
 
 Copy from `F:\code\recipe-ingredient-resolver\src\components\pantry\LiveSummary.tsx`. Changes:
+
 - Import path: `'@/lib/tools/channel-pantry/types'`
 - Add `"use client"` directive
 - Replace color classes with fumadocs tokens + dark mode variants
@@ -1043,8 +1247,8 @@ Copy from `F:\code\recipe-ingredient-resolver\src\components\pantry\LiveSummary.
 // apps/web/components/tools/channel-pantry/LiveSummary.tsx
 "use client";
 
-import type { IngredientFrequency } from '@/lib/tools/channel-pantry/types';
-import { FOOD_CATEGORIES as CATEGORIES } from '@/lib/tools/channel-pantry/types';
+import type { IngredientFrequency } from "@/lib/tools/channel-pantry/types";
+import { FOOD_CATEGORIES as CATEGORIES } from "@/lib/tools/channel-pantry/types";
 
 interface Props {
   ingredients: IngredientFrequency[];
@@ -1054,10 +1258,16 @@ interface Props {
   onReset: () => void;
 }
 
-export default function LiveSummary({ ingredients, videosAnalyzed, isLoading, onCopyList, onReset }: Props) {
+export default function LiveSummary({
+  ingredients,
+  videosAnalyzed,
+  isLoading,
+  onCopyList,
+  onReset,
+}: Props) {
   if (ingredients.length === 0 && !isLoading) return null;
 
-  const maxCount = Math.max(...ingredients.map(i => i.count), 1);
+  const maxCount = Math.max(...ingredients.map((i) => i.count), 1);
 
   const grouped = new Map<string, IngredientFrequency[]>();
   for (const ing of ingredients) {
@@ -1070,7 +1280,9 @@ export default function LiveSummary({ ingredients, videosAnalyzed, isLoading, on
     <div>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-bold text-fd-foreground tracking-tight">Pantry</h2>
+          <h2 className="text-lg font-bold text-fd-foreground tracking-tight">
+            Pantry
+          </h2>
           {isLoading && (
             <span className="flex items-center gap-1.5 text-sm text-fd-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
@@ -1078,7 +1290,9 @@ export default function LiveSummary({ ingredients, videosAnalyzed, isLoading, on
             </span>
           )}
           {!isLoading && (
-            <span className="text-sm text-fd-muted-foreground">{ingredients.length} ingredients</span>
+            <span className="text-sm text-fd-muted-foreground">
+              {ingredients.length} ingredients
+            </span>
           )}
         </div>
         {!isLoading && ingredients.length > 0 && (
@@ -1101,21 +1315,34 @@ export default function LiveSummary({ ingredients, videosAnalyzed, isLoading, on
 
       {ingredients.length > 0 && (
         <div className="grid grid-cols-2 gap-4">
-          {CATEGORIES.filter(cat => grouped.has(cat.name)).map(cat => {
+          {CATEGORIES.filter((cat) => grouped.has(cat.name)).map((cat) => {
             const items = grouped.get(cat.name)!;
             return (
-              <div key={cat.name} className="bg-fd-card border border-fd-border rounded-xl p-4 animate-fade-slide-in">
+              <div
+                key={cat.name}
+                className="bg-fd-card border border-fd-border rounded-xl p-4 animate-fade-slide-in"
+              >
                 <div className="text-[13px] font-semibold text-fd-muted-foreground uppercase tracking-wide mb-3">
                   {cat.emoji} {cat.name}
                 </div>
                 <div className="space-y-1.5">
-                  {items.map(ing => {
+                  {items.map((ing) => {
                     const pct = (ing.count / maxCount) * 100;
                     const ratio = ing.count / Math.max(videosAnalyzed, 1);
-                    const barColor = ratio > 0.5 ? 'bg-green-500' : ratio > 0.25 ? 'bg-green-400' : 'bg-green-300';
+                    const barColor =
+                      ratio > 0.5
+                        ? "bg-green-500"
+                        : ratio > 0.25
+                          ? "bg-green-400"
+                          : "bg-green-300";
                     return (
-                      <div key={ing.name} className="flex items-center justify-between gap-2">
-                        <span className="text-[14px] text-fd-foreground">{ing.name}</span>
+                      <div
+                        key={ing.name}
+                        className="flex items-center justify-between gap-2"
+                      >
+                        <span className="text-[14px] text-fd-foreground">
+                          {ing.name}
+                        </span>
                         <div className="flex items-center gap-1.5 shrink-0">
                           <div className="w-16 h-1.5 bg-fd-muted rounded-full overflow-hidden">
                             <div
@@ -1155,11 +1382,13 @@ git commit -m "feat(pantry): add UI components (ChannelInput, VideoCard, VideoGr
 ### Task 11: Create PantryApp component
 
 **Files:**
+
 - Create: `apps/web/components/tools/channel-pantry/PantryApp.tsx`
 
 - [ ] **Step 1: Create the file**
 
 Ported from `F:\code\recipe-ingredient-resolver\src\PantryApp.tsx`. Changes:
+
 - Import paths point to `@/lib/tools/channel-pantry/*` and `@/components/tools/channel-pantry/*`
 - SSR-safe: `useState([])` + `useEffect(loadCache)` instead of `useState(loadCache)`
 - Add `"use client"` directive
@@ -1169,20 +1398,32 @@ Ported from `F:\code\recipe-ingredient-resolver\src\PantryApp.tsx`. Changes:
 // apps/web/components/tools/channel-pantry/PantryApp.tsx
 "use client";
 
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import type { ChannelAnalysisResult, VideoProgress, CostAccumulator, IngredientFrequency } from '@/lib/tools/channel-pantry/types';
-import { parseChannelInput, getChannelInfo, getRecentVideos, getChannelFromVideo } from '@/lib/tools/channel-pantry/youtubeService';
-import { analyzeChannel } from '@/lib/tools/channel-pantry/channelAnalyzerService';
-import ChannelInput from './ChannelInput';
-import VideoGrid from './VideoGrid';
-import LiveSummary from './LiveSummary';
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import type {
+  ChannelAnalysisResult,
+  VideoProgress,
+  CostAccumulator,
+  IngredientFrequency,
+} from "@/lib/tools/channel-pantry/types";
+import {
+  parseChannelInput,
+  getChannelInfo,
+  getRecentVideos,
+  getChannelFromVideo,
+} from "@/lib/tools/channel-pantry/youtubeService";
+import { analyzeChannel } from "@/lib/tools/channel-pantry/channelAnalyzerService";
+import ChannelInput from "./ChannelInput";
+import VideoGrid from "./VideoGrid";
+import LiveSummary from "./LiveSummary";
 
-const CACHE_KEY = 'pantry_cache';
+const CACHE_KEY = "pantry_cache";
 
 function loadCache(): ChannelAnalysisResult[] {
   try {
-    return JSON.parse(localStorage.getItem(CACHE_KEY) || '[]');
-  } catch { return []; }
+    return JSON.parse(localStorage.getItem(CACHE_KEY) || "[]");
+  } catch {
+    return [];
+  }
 }
 
 function saveCache(results: ChannelAnalysisResult[]) {
@@ -1196,14 +1437,22 @@ export default function PantryApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [videoProgress, setVideoProgress] = useState<VideoProgress[]>([]);
-  const [cost, setCost] = useState<CostAccumulator>({ promptTokens: 0, outputTokens: 0, totalCost: 0 });
-  const [cachedChannels, setCachedChannels] = useState<ChannelAnalysisResult[]>([]);
+  const [cost, setCost] = useState<CostAccumulator>({
+    promptTokens: 0,
+    outputTokens: 0,
+    totalCost: 0,
+  });
+  const [cachedChannels, setCachedChannels] = useState<ChannelAnalysisResult[]>(
+    [],
+  );
   const startTimeRef = useRef(0);
   const [elapsedMs, setElapsedMs] = useState(0);
   const timerRef = useRef<number>();
 
   // SSR-safe: load cache after mount
-  useEffect(() => { setCachedChannels(loadCache()); }, []);
+  useEffect(() => {
+    setCachedChannels(loadCache());
+  }, []);
 
   useEffect(() => {
     if (isLoading) {
@@ -1214,7 +1463,9 @@ export default function PantryApp() {
     } else {
       if (timerRef.current) clearInterval(timerRef.current);
     }
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, [isLoading]);
 
   const liveIngredients = useMemo((): IngredientFrequency[] => {
@@ -1243,69 +1494,89 @@ export default function PantryApp() {
 
   const displayIngredients = result ? result.ingredients : liveIngredients;
   const videosAnalyzed = result ? result.videosAnalyzed : videoProgress.length;
-  const doneCount = videoProgress.filter(v => v.status === 'done' || v.status === 'skipped').length;
-  const progressPct = videoProgress.length > 0 ? Math.round((doneCount / videoProgress.length) * 100) : 0;
+  const doneCount = videoProgress.filter(
+    (v) => v.status === "done" || v.status === "skipped",
+  ).length;
+  const progressPct =
+    videoProgress.length > 0
+      ? Math.round((doneCount / videoProgress.length) * 100)
+      : 0;
 
-  const handleSubmit = useCallback(async (channelInput: string, videoCount: number) => {
-    setResult(null);
-    setError(null);
-    setVideoProgress([]);
-    setCost({ promptTokens: 0, outputTokens: 0, totalCost: 0 });
-    setIsLoading(true);
-    setElapsedMs(0);
+  const handleSubmit = useCallback(
+    async (channelInput: string, videoCount: number) => {
+      setResult(null);
+      setError(null);
+      setVideoProgress([]);
+      setCost({ promptTokens: 0, outputTokens: 0, totalCost: 0 });
+      setIsLoading(true);
+      setElapsedMs(0);
 
-    try {
-      const parsed = parseChannelInput(channelInput);
-      const channelHandle = parsed.type === 'channel' ? parsed.value : await getChannelFromVideo(parsed.videoId);
-      const { channelId, channelTitle, uploadsPlaylistId } = await getChannelInfo(channelHandle);
-      const videos = await getRecentVideos(uploadsPlaylistId, videoCount);
+      try {
+        const parsed = parseChannelInput(channelInput);
+        const channelHandle =
+          parsed.type === "channel"
+            ? parsed.value
+            : await getChannelFromVideo(parsed.videoId);
+        const { channelId, channelTitle, uploadsPlaylistId } =
+          await getChannelInfo(channelHandle);
+        const videos = await getRecentVideos(uploadsPlaylistId, videoCount);
 
-      if (videos.length === 0) throw new Error('No videos found on this channel');
+        if (videos.length === 0)
+          throw new Error("No videos found on this channel");
 
-      const onProgress = (progress: VideoProgress) => {
-        setVideoProgress(prev => {
-          const idx = prev.findIndex(p => p.videoId === progress.videoId);
-          if (idx >= 0) {
-            const next = [...prev];
-            next[idx] = progress;
-            return next;
-          }
-          return [...prev, progress];
+        const onProgress = (progress: VideoProgress) => {
+          setVideoProgress((prev) => {
+            const idx = prev.findIndex((p) => p.videoId === progress.videoId);
+            if (idx >= 0) {
+              const next = [...prev];
+              next[idx] = progress;
+              return next;
+            }
+            return [...prev, progress];
+          });
+        };
+
+        const {
+          ingredients,
+          cost: finalCost,
+          videosWithIngredients,
+        } = await analyzeChannel(videos, onProgress, (c) => setCost(c));
+
+        if (ingredients.length === 0 || videosWithIngredients < 3) {
+          throw new Error(
+            "This doesn't look like a cooking channel - fewer than 3 videos had ingredients.",
+          );
+        }
+
+        const analysisResult: ChannelAnalysisResult = {
+          channelId,
+          channelTitle,
+          videoCount: videos.length,
+          videosAnalyzed: videos.length,
+          videosWithIngredients,
+          ingredients,
+          totalCost: finalCost.totalCost,
+          elapsedMs: Date.now() - startTimeRef.current,
+          timestamp: Date.now(),
+        };
+
+        setResult(analysisResult);
+        setCachedChannels((prev) => {
+          const updated = [
+            analysisResult,
+            ...prev.filter((c) => c.channelId !== channelId),
+          ];
+          saveCache(updated);
+          return updated;
         });
-      };
-
-      const { ingredients, cost: finalCost, videosWithIngredients } = await analyzeChannel(
-        videos, onProgress, (c) => setCost(c)
-      );
-
-      if (ingredients.length === 0 || videosWithIngredients < 3) {
-        throw new Error("This doesn't look like a cooking channel - fewer than 3 videos had ingredients.");
+      } catch (e: any) {
+        setError(e.message || "Unknown error");
+      } finally {
+        setIsLoading(false);
       }
-
-      const analysisResult: ChannelAnalysisResult = {
-        channelId,
-        channelTitle,
-        videoCount: videos.length,
-        videosAnalyzed: videos.length,
-        videosWithIngredients,
-        ingredients,
-        totalCost: finalCost.totalCost,
-        elapsedMs: Date.now() - startTimeRef.current,
-        timestamp: Date.now(),
-      };
-
-      setResult(analysisResult);
-      setCachedChannels(prev => {
-        const updated = [analysisResult, ...prev.filter(c => c.channelId !== channelId)];
-        saveCache(updated);
-        return updated;
-      });
-    } catch (e: any) {
-      setError(e.message || 'Unknown error');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    },
+    [],
+  );
 
   const handleLoadCached = useCallback((cached: ChannelAnalysisResult) => {
     setResult(cached);
@@ -1323,7 +1594,7 @@ export default function PantryApp() {
   const handleCopyList = useCallback(() => {
     const ings = result ? result.ingredients : liveIngredients;
     const count = result ? result.videosAnalyzed : videoProgress.length;
-    const text = ings.map(i => `${i.name} (${i.count}/${count})`).join('\n');
+    const text = ings.map((i) => `${i.name} (${i.count}/${count})`).join("\n");
     navigator.clipboard.writeText(text);
   }, [result, liveIngredients, videoProgress.length]);
 
@@ -1341,14 +1612,18 @@ export default function PantryApp() {
       {error && (
         <div className="mt-6 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-300 text-sm">
           {error}
-          <button onClick={handleReset} className="ml-3 underline">Try again</button>
+          <button onClick={handleReset} className="ml-3 underline">
+            Try again
+          </button>
         </div>
       )}
 
       {isLoading && videoProgress.length > 0 && (
         <div className="mt-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-fd-foreground">{doneCount}/{videoProgress.length} videos</span>
+            <span className="text-sm text-fd-foreground">
+              {doneCount}/{videoProgress.length} videos
+            </span>
             <span className="text-sm text-fd-muted-foreground">
               ${cost.totalCost.toFixed(4)} · {Math.round(elapsedMs / 1000)}s
             </span>
@@ -1394,6 +1669,7 @@ git commit -m "feat(pantry): add PantryApp main component"
 ### Task 12: Create the tool page
 
 **Files:**
+
 - Create: `apps/web/app/(home)/tools/channel-pantry/page.tsx`
 
 - [ ] **Step 1: Create the page**
@@ -1450,11 +1726,10 @@ export default function ChannelPantryPage() {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <DocsTitle className="dark:text-white">
-            Channel Pantry
-          </DocsTitle>
+          <DocsTitle className="dark:text-white">Channel Pantry</DocsTitle>
           <DocsDescription className="mt-3 dark:text-gray-300 mb-0">
-            Analyze a YouTube cooking channel to see what ingredients they use most.
+            Analyze a YouTube cooking channel to see what ingredients they use
+            most.
           </DocsDescription>
         </div>
       </section>
@@ -1477,6 +1752,7 @@ git commit -m "feat(pantry): add channel-pantry tool page"
 ### Task 13: Add tool to the tools index
 
 **Files:**
+
 - Modify: `apps/web/app/(home)/tools/page.tsx`
 
 - [ ] **Step 1: Add entry to the `tools` array**
@@ -1542,6 +1818,7 @@ Expected: file exists.
 - [ ] **Step 4: Fix any issues found**
 
 If type errors or build failures, fix them and re-run. Common issues:
+
 - Missing fumadocs token names (check `fd-*` class names exist)
 - Import path resolution (ensure `@/` alias resolves correctly)
 
@@ -1566,6 +1843,7 @@ npx wrangler pages dev apps/web/out --compatibility-date=2024-01-01 --binding GE
 - [ ] **Step 2: Verify end-to-end (manual)**
 
 Paste a cooking channel (e.g. `@JoshuaWeissman`), click Analyze. Verify:
+
 - Video cards appear with thumbnails
 - Ingredient tags pop in with animations
 - Summary builds live
@@ -1576,6 +1854,7 @@ Paste a cooking channel (e.g. `@JoshuaWeissman`), click Analyze. Verify:
 - [ ] **Step 1: Set Cloudflare environment secrets**
 
 In Cloudflare Pages dashboard for `testy-cool`:
+
 - Settings > Environment variables > Production
 - Add `GEMINI_API_KEY` (encrypted)
 - Add `YOUTUBE_API_KEY` (encrypted)

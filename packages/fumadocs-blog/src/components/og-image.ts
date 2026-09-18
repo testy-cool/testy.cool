@@ -14,7 +14,7 @@ export interface OGImageMetadata {
    * Title for the OG image
    */
   title: string;
-  
+
   /**
    * Optional description for the OG image
    */
@@ -61,7 +61,7 @@ export function processImageParams(params: { slug?: string[] }) {
  */
 export function generateOGImageMetadata(
   params: { slug?: string[] },
-  config: OGImageGeneratorConfig
+  config: OGImageGeneratorConfig,
 ): OGImageMetadata {
   const processedParams = processImageParams(params);
   const { blogConstants, getCategoryBySlug, getSeriesBySlug, blogSource } =
@@ -70,7 +70,7 @@ export function generateOGImageMetadata(
   // Blog root page
   if (isBlogRootPage(processedParams)) {
     return {
-      title: blogConstants.blogTitle
+      title: blogConstants.blogTitle,
     };
   }
 
@@ -82,7 +82,7 @@ export function generateOGImageMetadata(
       if (series) {
         return {
           title: series.label,
-          description: series.description
+          description: series.description,
         };
       }
     }
@@ -96,7 +96,7 @@ export function generateOGImageMetadata(
       if (categoryInfo) {
         return {
           title: categoryInfo.label,
-          description: categoryInfo.description
+          description: categoryInfo.description,
         };
       }
     }
@@ -106,7 +106,7 @@ export function generateOGImageMetadata(
   if (isPaginatedBlogPage(processedParams)) {
     const pageNumber = getPageNumber(processedParams);
     return {
-      title: blogConstants.paginationTitle(pageNumber)
+      title: blogConstants.paginationTitle(pageNumber),
     };
   }
 
@@ -119,7 +119,7 @@ export function generateOGImageMetadata(
     if (categoryInfo) {
       return {
         title: blogConstants.categoryPaginationTitle(categorySlug, pageNumber),
-        description: categoryInfo.description
+        description: categoryInfo.description,
       };
     }
   }
@@ -130,14 +130,13 @@ export function generateOGImageMetadata(
     if (post && post.data && post.data.title) {
       return {
         title: post.data.title,
-        description: post.data.description
+        description: post.data.description,
       };
     }
   }
 
   // Default fallback
   return {
-    title: blogConstants.blogTitle
+    title: blogConstants.blogTitle,
   };
 }
-

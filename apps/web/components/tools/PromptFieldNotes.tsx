@@ -32,7 +32,7 @@ const notes: FieldNote[] = [
     id: "non-obvious-value-add",
     when: "Having an LLM generate descriptions for content that only has a title",
     rule: "Tell it to surface non-obvious information. The title already says what happened - the description's job is to add something the headline doesn't.",
-    why: "When you need the LLM to describe a news item that only has a title, the default is title expansion - rephrasing it longer. Zero value. Dropping \"non-obvious\" into the prompt pushes it past restatement into why it matters, what shifted, what's counterintuitive. Every time I've added it the output went from \"yeah, I knew that\" to \"oh, interesting.\"",
+    why: 'When you need the LLM to describe a news item that only has a title, the default is title expansion - rephrasing it longer. Zero value. Dropping "non-obvious" into the prompt pushes it past restatement into why it matters, what shifted, what\'s counterintuitive. Every time I\'ve added it the output went from "yeah, I knew that" to "oh, interesting."',
   },
 ];
 

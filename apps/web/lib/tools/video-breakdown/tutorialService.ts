@@ -11,7 +11,8 @@ async function parseResponse(res: Response) {
   const text = await res.text();
   try {
     const data = JSON.parse(text);
-    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+    if (!res.ok)
+      throw new Error(data.error || `Request failed (${res.status})`);
     return data;
   } catch (e) {
     if (e instanceof SyntaxError) {
@@ -47,7 +48,9 @@ export async function generateTutorial(
   const body: Record<string, unknown> = { videoId };
   if (customNote) body.customNote = customNote;
   if (analysisMode && analysisMode !== "auto") body.analysisMode = analysisMode;
-  const url = force ? "/api/tutorial/generate?intent=refresh" : "/api/tutorial/generate";
+  const url = force
+    ? "/api/tutorial/generate?intent=refresh"
+    : "/api/tutorial/generate";
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -58,7 +61,9 @@ export async function generateTutorial(
   throw new Error("Unexpected response from server");
 }
 
-export async function getTutorialState(videoId: string): Promise<TutorialState> {
+export async function getTutorialState(
+  videoId: string,
+): Promise<TutorialState> {
   const res = await fetch(`/api/tutorial/generate?videoId=${videoId}`);
   return parseResponse(res);
 }
@@ -75,20 +80,29 @@ export async function getRecentTutorials(): Promise<TutorialSummary[]> {
 
 export async function getVersions(videoId: string): Promise<TutorialVersion[]> {
   try {
-    const res = await fetch(`/api/tutorial/generate?action=versions&videoId=${videoId}`);
+    const res = await fetch(
+      `/api/tutorial/generate?action=versions&videoId=${videoId}`,
+    );
     const data = await res.json();
-    return (data.versions || []).map((v: { version: number; generatedAt: number }) => ({
-      version: v.version,
-      timestamp: v.generatedAt,
-      stepCount: 0,
-    }));
+    return (data.versions || []).map(
+      (v: { version: number; generatedAt: number }) => ({
+        version: v.version,
+        timestamp: v.generatedAt,
+        stepCount: 0,
+      }),
+    );
   } catch {
     return [];
   }
 }
 
-export async function getVersion(videoId: string, version: number): Promise<Tutorial> {
-  const res = await fetch(`/api/tutorial/generate?action=version&videoId=${videoId}&v=${version}`);
+export async function getVersion(
+  videoId: string,
+  version: number,
+): Promise<Tutorial> {
+  const res = await fetch(
+    `/api/tutorial/generate?action=version&videoId=${videoId}&v=${version}`,
+  );
   const data = await parseResponse(res);
   return data.tutorial;
 }
@@ -106,7 +120,12 @@ export async function chatWithTutorial(
   convId?: string,
   parentId?: string,
 ): Promise<{ reply: string; convId: string }> {
-  const body: Record<string, unknown> = { action: "chat", videoId, message, history };
+  const body: Record<string, unknown> = {
+    action: "chat",
+    videoId,
+    message,
+    history,
+  };
   if (convId) body.convId = convId;
   if (parentId) body.parentId = parentId;
   const res = await fetch("/api/tutorial/generate", {
@@ -134,9 +153,13 @@ export interface Conversation {
   createdAt: number;
 }
 
-export async function getConversations(videoId: string): Promise<ConversationSummary[]> {
+export async function getConversations(
+  videoId: string,
+): Promise<ConversationSummary[]> {
   try {
-    const res = await fetch(`/api/tutorial/generate?action=conversations&videoId=${videoId}`);
+    const res = await fetch(
+      `/api/tutorial/generate?action=conversations&videoId=${videoId}`,
+    );
     const data = await res.json();
     return data.conversations || [];
   } catch {
@@ -144,9 +167,14 @@ export async function getConversations(videoId: string): Promise<ConversationSum
   }
 }
 
-export async function getConversation(videoId: string, id: string): Promise<Conversation | null> {
+export async function getConversation(
+  videoId: string,
+  id: string,
+): Promise<Conversation | null> {
   try {
-    const res = await fetch(`/api/tutorial/generate?action=conversation&videoId=${videoId}&id=${id}`);
+    const res = await fetch(
+      `/api/tutorial/generate?action=conversation&videoId=${videoId}&id=${id}`,
+    );
     const data = await res.json();
     return data.conversation || null;
   } catch {
@@ -154,7 +182,10 @@ export async function getConversation(videoId: string, id: string): Promise<Conv
   }
 }
 
-export async function updatePrompt(prompt: string, password: string): Promise<void> {
+export async function updatePrompt(
+  prompt: string,
+  password: string,
+): Promise<void> {
   const res = await fetch("/api/tutorial/generate", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },

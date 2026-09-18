@@ -38,21 +38,223 @@ export async function generateBlogMetadata(props: {
     getCategoryBySlug,
     getSeriesBySlug,
   } = props;
-  
+
   // Create URL utilities instance
   const urlUtils = createUrlUtils({
     blogBase: blogConstants.blogBase,
-    blogOgImageBase: blogConstants.blogOgImageBase
+    blogOgImageBase: blogConstants.blogOgImageBase,
   });
 
   // Default for root blog page or when slug is undefined
   if (isBlogRootPage(params)) {
     const imageMetaData = getImageMetadata(
       urlUtils.getBlogOgImageUrl(),
-      blogConstants
+      blogConstants,
     );
 
-    return createBlogMetadata({
+    return createBlogMetadata(
+      {
+        title: blogConstants.blogTitle,
+        description: blogConstants.blogDescription,
+        openGraph: {
+          url: urlUtils.getBlogUrl(),
+          images: imageMetaData,
+        },
+        twitter: {
+          images: imageMetaData,
+        },
+        alternates: {
+          canonical: urlUtils.getBlogUrl(),
+        },
+      },
+      blogConstants,
+    );
+  }
+
+  // Handle blog post page
+  if (isSinglePostPage(params)) {
+    const page = blogSource.getPage(params.slug);
+    if (!page) notFound();
+
+    const imageMetaData = getImageMetadata(
+      urlUtils.getBlogPostOgImageUrl(params.slug || []),
+      blogConstants,
+    );
+
+    return createBlogMetadata(
+      {
+        title: page.data.title,
+        description: page.data.description,
+        openGraph: {
+          url: page.url,
+          images: imageMetaData,
+          type: "article",
+          publishedTime: page.data.date.toISOString(),
+          authors: [page.data.author || blogConstants.defaultAuthorName],
+          tags: page.data.tags,
+        },
+        twitter: {
+          images: imageMetaData,
+        },
+        alternates: {
+          canonical: page.url,
+        },
+      },
+      blogConstants,
+    );
+  }
+
+  // Handle series page
+  if (isSeriesPage(params)) {
+    const seriesSlug = getSeriesSlug(params)!;
+    const series = getSeriesBySlug(seriesSlug);
+
+    const canonicalUrl = urlUtils.getSeriesUrl(seriesSlug);
+
+    const imageMetaData = getImageMetadata(
+      urlUtils.getSeriesOgImageUrl(seriesSlug),
+      blogConstants,
+    );
+
+    const metadata = createBlogMetadata(
+      {
+        title: `${series.label}`,
+        description: series.description,
+        openGraph: {
+          url: canonicalUrl,
+          images: imageMetaData,
+        },
+        twitter: {
+          images: imageMetaData,
+        },
+        alternates: {
+          canonical: canonicalUrl,
+        },
+      },
+      blogConstants,
+    );
+
+    return metadata;
+  }
+
+  // Handle category page
+  if (isCategoryPage(params)) {
+    const category = getCategorySlug(params);
+    if (!category) {
+      return createBlogMetadata(
+        {
+          title: blogConstants.blogTitle,
+          description: blogConstants.blogDescription,
+          openGraph: {
+            url: blogConstants.urls.blogBase,
+          },
+          alternates: {
+            canonical: blogConstants.urls.blogBase,
+          },
+        },
+        blogConstants,
+      );
+    }
+
+    const canonicalUrl = urlUtils.getCategoryUrl(category);
+    const categoryInfo = getCategoryBySlug(category);
+
+    const imageMetaData = getImageMetadata(
+      urlUtils.getCategoryOgImageUrl(category),
+      blogConstants,
+    );
+
+    const metadata = createBlogMetadata(
+      {
+        title: `${categoryInfo.label}`,
+        description: categoryInfo.description,
+        openGraph: {
+          url: canonicalUrl,
+          images: imageMetaData,
+        },
+        twitter: {
+          images: imageMetaData,
+        },
+        alternates: {
+          canonical: canonicalUrl,
+        },
+      },
+      blogConstants,
+    );
+
+    return metadata;
+  }
+
+  // Handle paginated root blog page
+  if (isPaginatedBlogPage(params) && params.slug) {
+    const page = Number(params.slug[1]);
+    const canonicalUrl = urlUtils.getPaginatedBlogUrl(page);
+
+    const imageMetaData = getImageMetadata(
+      urlUtils.getBlogOgImageUrl(),
+      blogConstants,
+    );
+
+    return createBlogMetadata(
+      {
+        title: blogConstants.paginationTitle(page),
+        description: blogConstants.paginationDescription(page),
+        openGraph: {
+          url: canonicalUrl,
+          images: imageMetaData,
+        },
+        twitter: {
+          images: imageMetaData,
+        },
+        alternates: {
+          canonical: canonicalUrl,
+        },
+      },
+      blogConstants,
+    );
+  }
+
+  // Handle paginated category page
+  if (isPaginatedCategoryPage(params) && params.slug) {
+    const category = params.slug[0] || "";
+    const page = Number(params.slug[2] || "1");
+    const canonicalUrl = urlUtils.getPaginatedCategoryUrl(category, page);
+
+    const imageMetaData = getImageMetadata(
+      urlUtils.getCategoryOgImageUrl(category),
+      blogConstants,
+    );
+
+    return createBlogMetadata(
+      {
+        title: blogConstants.categoryPaginationTitle(category, page),
+        description: blogConstants.categoryPaginationDescription(
+          category,
+          page,
+        ),
+        openGraph: {
+          url: canonicalUrl,
+          images: imageMetaData,
+        },
+        twitter: {
+          images: imageMetaData,
+        },
+        alternates: {
+          canonical: canonicalUrl,
+        },
+      },
+      blogConstants,
+    );
+  }
+
+  const imageMetaData = getImageMetadata(
+    urlUtils.getBlogOgImageUrl(),
+    blogConstants,
+  );
+
+  // Default fallback
+  return createBlogMetadata(
+    {
       title: blogConstants.blogTitle,
       description: blogConstants.blogDescription,
       openGraph: {
@@ -65,182 +267,7 @@ export async function generateBlogMetadata(props: {
       alternates: {
         canonical: urlUtils.getBlogUrl(),
       },
-    }, blogConstants);
-  }
-
-  // Handle blog post page
-  if (isSinglePostPage(params)) {
-    const page = blogSource.getPage(params.slug);
-    if (!page) notFound();
-
-    const imageMetaData = getImageMetadata(
-      urlUtils.getBlogPostOgImageUrl(params.slug || []),
-      blogConstants
-    );
-
-    return createBlogMetadata({
-      title: page.data.title,
-      description: page.data.description,
-      openGraph: {
-        url: page.url,
-        images: imageMetaData,
-        type: "article",
-        publishedTime: page.data.date.toISOString(),
-        authors: [page.data.author || blogConstants.defaultAuthorName],
-        tags: page.data.tags,
-      },
-      twitter: {
-        images: imageMetaData,
-      },
-      alternates: {
-        canonical: page.url,
-      },
-    }, blogConstants);
-  }
-
-  // Handle series page
-  if (isSeriesPage(params)) {
-    const seriesSlug = getSeriesSlug(params)!;
-    const series = getSeriesBySlug(seriesSlug);
-
-    const canonicalUrl = urlUtils.getSeriesUrl(seriesSlug);
-
-    const imageMetaData = getImageMetadata(
-      urlUtils.getSeriesOgImageUrl(seriesSlug),
-      blogConstants
-    );
-
-    const metadata = createBlogMetadata({
-      title: `${series.label}`,
-      description: series.description,
-      openGraph: {
-        url: canonicalUrl,
-        images: imageMetaData,
-      },
-      twitter: {
-        images: imageMetaData,
-      },
-      alternates: {
-        canonical: canonicalUrl,
-      },
-    }, blogConstants);
-
-    return metadata;
-  }
-
-  // Handle category page
-  if (isCategoryPage(params)) {
-    const category = getCategorySlug(params);
-    if (!category) {
-      return createBlogMetadata({
-        title: blogConstants.blogTitle,
-        description: blogConstants.blogDescription,
-        openGraph: {
-          url: blogConstants.urls.blogBase,
-        },
-        alternates: {
-          canonical: blogConstants.urls.blogBase,
-        },
-      }, blogConstants);
-    }
-
-    const canonicalUrl = urlUtils.getCategoryUrl(category);
-    const categoryInfo = getCategoryBySlug(category);
-
-    const imageMetaData = getImageMetadata(
-      urlUtils.getCategoryOgImageUrl(category),
-      blogConstants
-    );
-
-    const metadata = createBlogMetadata({
-      title: `${categoryInfo.label}`,
-      description: categoryInfo.description,
-      openGraph: {
-        url: canonicalUrl,
-        images: imageMetaData,
-      },
-      twitter: {
-        images: imageMetaData,
-      },
-      alternates: {
-        canonical: canonicalUrl,
-      },
-    }, blogConstants);
-
-    return metadata;
-  }
-
-  // Handle paginated root blog page
-  if (isPaginatedBlogPage(params) && params.slug) {
-    const page = Number(params.slug[1]);
-    const canonicalUrl = urlUtils.getPaginatedBlogUrl(page);
-
-    const imageMetaData = getImageMetadata(
-      urlUtils.getBlogOgImageUrl(),
-      blogConstants
-    );
-
-    return createBlogMetadata({
-      title: blogConstants.paginationTitle(page),
-      description: blogConstants.paginationDescription(page),
-      openGraph: {
-        url: canonicalUrl,
-        images: imageMetaData,
-      },
-      twitter: {
-        images: imageMetaData,
-      },
-      alternates: {
-        canonical: canonicalUrl,
-      },
-    }, blogConstants);
-  }
-
-  // Handle paginated category page
-  if (isPaginatedCategoryPage(params) && params.slug) {
-    const category = params.slug[0] || '';
-    const page = Number(params.slug[2] || '1');
-    const canonicalUrl = urlUtils.getPaginatedCategoryUrl(category, page);
-
-    const imageMetaData = getImageMetadata(
-      urlUtils.getCategoryOgImageUrl(category),
-      blogConstants
-    );
-
-    return createBlogMetadata({
-      title: blogConstants.categoryPaginationTitle(category, page),
-      description: blogConstants.categoryPaginationDescription(category, page),
-      openGraph: {
-        url: canonicalUrl,
-        images: imageMetaData,
-      },
-      twitter: {
-        images: imageMetaData,
-      },
-      alternates: {
-        canonical: canonicalUrl,
-      },
-    }, blogConstants);
-  }
-
-  const imageMetaData = getImageMetadata(
-    urlUtils.getBlogOgImageUrl(),
-    blogConstants
+    },
+    blogConstants,
   );
-
-  // Default fallback
-  return createBlogMetadata({
-    title: blogConstants.blogTitle,
-    description: blogConstants.blogDescription,
-    openGraph: {
-      url: urlUtils.getBlogUrl(),
-      images: imageMetaData,
-    },
-    twitter: {
-      images: imageMetaData,
-    },
-    alternates: {
-      canonical: urlUtils.getBlogUrl(),
-    },
-  }, blogConstants);
 }

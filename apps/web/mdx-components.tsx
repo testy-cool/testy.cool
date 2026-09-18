@@ -16,7 +16,11 @@ import {
   CardContent,
   CardFooter,
 } from "@repo/shadverse/components/card";
-import { Alert, AlertTitle, AlertDescription } from "@repo/shadverse/components/alert";
+import {
+  Alert,
+  AlertTitle,
+  AlertDescription,
+} from "@repo/shadverse/components/alert";
 import { Badge } from "@repo/shadverse/components/badge";
 import { Separator } from "@repo/shadverse/components/separator";
 

@@ -123,7 +123,10 @@ export function ClampCalculator() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor={`${id}-mobile`} className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+                <label
+                  htmlFor={`${id}-mobile`}
+                  className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5"
+                >
                   Mobile value (px)
                 </label>
                 <input
@@ -135,7 +138,10 @@ export function ClampCalculator() {
                 />
               </div>
               <div>
-                <label htmlFor={`${id}-desktop`} className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+                <label
+                  htmlFor={`${id}-desktop`}
+                  className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5"
+                >
                   Desktop value (px)
                 </label>
                 <input
@@ -149,7 +155,10 @@ export function ClampCalculator() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor={`${id}-mobile-vp`} className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+                <label
+                  htmlFor={`${id}-mobile-vp`}
+                  className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5"
+                >
                   Mobile viewport (px)
                 </label>
                 <input
@@ -161,7 +170,10 @@ export function ClampCalculator() {
                 />
               </div>
               <div>
-                <label htmlFor={`${id}-desktop-vp`} className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+                <label
+                  htmlFor={`${id}-desktop-vp`}
+                  className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5"
+                >
                   Desktop viewport (px)
                 </label>
                 <input
@@ -180,7 +192,10 @@ export function ClampCalculator() {
         {mode === "one" && (
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor={`${id}-desktop-only`} className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+              <label
+                htmlFor={`${id}-desktop-only`}
+                className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5"
+              >
                 Desktop value (1440px)
               </label>
               <input
@@ -192,7 +207,10 @@ export function ClampCalculator() {
               />
             </div>
             <div>
-              <label htmlFor={`${id}-min-floor`} className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+              <label
+                htmlFor={`${id}-min-floor`}
+                className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5"
+              >
                 Min for mobile
               </label>
               <input
@@ -295,7 +313,10 @@ export function VwCalculator() {
     <div className="not-prose my-6 bg-fd-card border border-fd-border rounded-lg p-4">
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <label htmlFor={`${id}-target`} className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+          <label
+            htmlFor={`${id}-target`}
+            className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5"
+          >
             Target (px)
           </label>
           <input
@@ -307,7 +328,10 @@ export function VwCalculator() {
           />
         </div>
         <div>
-          <label htmlFor={`${id}-base-width`} className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+          <label
+            htmlFor={`${id}-base-width`}
+            className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5"
+          >
             Base viewport (px)
           </label>
           <input
@@ -320,7 +344,9 @@ export function VwCalculator() {
         </div>
       </div>
       <div className="bg-fd-muted rounded px-4 py-3 font-mono text-sm">
-        <span className="text-fd-muted-foreground">{target} / {baseWidth} * 100 = </span>
+        <span className="text-fd-muted-foreground">
+          {target} / {baseWidth} * 100 ={" "}
+        </span>
         <strong className="text-fd-primary">{vw.toFixed(2)}vw</strong>
       </div>
     </div>
@@ -359,7 +385,10 @@ export function ScalingPreview() {
         <span className="font-mono text-xs text-fd-muted-foreground">1440</span>
       </div>
       <div className="bg-fd-muted rounded-md h-20 flex items-center justify-center relative">
-        <span style={{ fontSize: `${size}px` }} className="transition-all duration-75">
+        <span
+          style={{ fontSize: `${size}px` }}
+          className="transition-all duration-75"
+        >
           Aa
         </span>
         <span className="absolute bottom-2 right-3 font-mono text-xs text-fd-primary">
@@ -404,8 +433,13 @@ export function BreakpointComparison() {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-fd-muted rounded-md h-20 flex flex-col items-center justify-center relative">
-          <span className="text-xs uppercase tracking-wide text-fd-muted-foreground absolute top-2">Breakpoints</span>
-          <span style={{ fontSize: `${breakpointSize}px` }} className="transition-none">
+          <span className="text-xs uppercase tracking-wide text-fd-muted-foreground absolute top-2">
+            Breakpoints
+          </span>
+          <span
+            style={{ fontSize: `${breakpointSize}px` }}
+            className="transition-none"
+          >
             Aa
           </span>
           <span className="absolute bottom-2 font-mono text-xs text-fd-muted-foreground">
@@ -413,8 +447,13 @@ export function BreakpointComparison() {
           </span>
         </div>
         <div className="bg-fd-muted rounded-md h-20 flex flex-col items-center justify-center relative">
-          <span className="text-xs uppercase tracking-wide text-fd-muted-foreground absolute top-2">Fluid clamp()</span>
-          <span style={{ fontSize: `${fluidSize}px` }} className="transition-all duration-75">
+          <span className="text-xs uppercase tracking-wide text-fd-muted-foreground absolute top-2">
+            Fluid clamp()
+          </span>
+          <span
+            style={{ fontSize: `${fluidSize}px` }}
+            className="transition-all duration-75"
+          >
             Aa
           </span>
           <span className="absolute bottom-2 font-mono text-xs text-fd-primary">
@@ -424,7 +463,10 @@ export function BreakpointComparison() {
       </div>
 
       <p className="text-xs text-fd-muted-foreground mt-3 text-center">
-        Viewport: {viewport}px {viewport === 768 && <span className="text-fd-primary">(breakpoint!)</span>}
+        Viewport: {viewport}px{" "}
+        {viewport === 768 && (
+          <span className="text-fd-primary">(breakpoint!)</span>
+        )}
       </p>
     </div>
   );
@@ -458,7 +500,10 @@ export function TwoPointCalculator() {
     <div className="not-prose my-6 bg-fd-card border border-fd-border rounded-lg p-4">
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <label htmlFor={`${id}-mobile-size`} className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+          <label
+            htmlFor={`${id}-mobile-size`}
+            className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5"
+          >
             Mobile size (px)
           </label>
           <input
@@ -470,7 +515,10 @@ export function TwoPointCalculator() {
           />
         </div>
         <div>
-          <label htmlFor={`${id}-desktop-size`} className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+          <label
+            htmlFor={`${id}-desktop-size`}
+            className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5"
+          >
             Desktop size (px)
           </label>
           <input
@@ -485,7 +533,10 @@ export function TwoPointCalculator() {
 
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <label htmlFor={`${id}-mobile-vp`} className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+          <label
+            htmlFor={`${id}-mobile-vp`}
+            className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5"
+          >
             Mobile viewport (px)
           </label>
           <input
@@ -497,7 +548,10 @@ export function TwoPointCalculator() {
           />
         </div>
         <div>
-          <label htmlFor={`${id}-desktop-vp`} className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5">
+          <label
+            htmlFor={`${id}-desktop-vp`}
+            className="block text-xs text-fd-muted-foreground uppercase tracking-wide mb-1.5"
+          >
             Desktop viewport (px)
           </label>
           <input
@@ -512,9 +566,17 @@ export function TwoPointCalculator() {
 
       <div className="bg-fd-muted rounded px-4 py-3 mb-3">
         <div className="text-xs text-fd-muted-foreground mb-2">
-          <div>slope = ({desktopSize} - {mobileSize}) / ({desktopVp} - {mobileVp}) = <strong>{slope.toFixed(4)}</strong></div>
-          <div>base = {mobileSize} - ({slope.toFixed(4)} * {mobileVp}) = <strong>{base.toFixed(2)}px</strong></div>
-          <div>vw = {slope.toFixed(4)} * 100 = <strong>{vw.toFixed(2)}vw</strong></div>
+          <div>
+            slope = ({desktopSize} - {mobileSize}) / ({desktopVp} - {mobileVp})
+            = <strong>{slope.toFixed(4)}</strong>
+          </div>
+          <div>
+            base = {mobileSize} - ({slope.toFixed(4)} * {mobileVp}) ={" "}
+            <strong>{base.toFixed(2)}px</strong>
+          </div>
+          <div>
+            vw = {slope.toFixed(4)} * 100 = <strong>{vw.toFixed(2)}vw</strong>
+          </div>
         </div>
       </div>
 

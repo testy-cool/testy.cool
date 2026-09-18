@@ -19,7 +19,8 @@ export const getCategoryBySlug = (slug: string) => {
     drafts: {
       label: "Drafts",
       icon: Pencil,
-      description: "Unfinished. Visible in dev only, never built into the site.",
+      description:
+        "Unfinished. Visible in dev only, never built into the site.",
     },
     tutorial: {
       label: "Tutorials",
@@ -56,8 +57,7 @@ export const getCategoryBySlug = (slug: string) => {
     tried: {
       label: "Tried",
       icon: TestTube,
-      description:
-        "Things I tried, shown running where they can be.",
+      description: "Things I tried, shown running where they can be.",
     },
     tech: {
       label: "Tech Notes",

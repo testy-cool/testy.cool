@@ -42,7 +42,10 @@ class ForbiddenError extends Error {
 function json(value: unknown, status = 200): Response {
   return Response.json(value, {
     status,
-    headers: { ...apiHeaders, "Content-Type": "application/json; charset=utf-8" },
+    headers: {
+      ...apiHeaders,
+      "Content-Type": "application/json; charset=utf-8",
+    },
   });
 }
 
@@ -72,7 +75,8 @@ async function readJson(request: Request): Promise<unknown> {
 
 function listOptions(url: URL): { query: string; limit: number } {
   const query = (url.searchParams.get("q") ?? "").trim();
-  if (query.length > 200) throw new InputError("Search can be at most 200 characters");
+  if (query.length > 200)
+    throw new InputError("Search can be at most 200 characters");
 
   const rawLimit = url.searchParams.get("limit");
   const limit = rawLimit === null ? 100 : Number(rawLimit);
@@ -113,13 +117,18 @@ async function route(request: Request, store: PostStore): Promise<Response> {
 
     if (method === "PATCH") {
       assertSameOrigin(request);
-      const post = await store.update(id, parseUpdatePost(await readJson(request)));
+      const post = await store.update(
+        id,
+        parseUpdatePost(await readJson(request)),
+      );
       return post ? json(post) : json({ error: "Post not found" }, 404);
     }
 
     if (method === "DELETE") {
       assertSameOrigin(request);
-      return (await store.delete(id)) ? empty(204) : json({ error: "Post not found" }, 404);
+      return (await store.delete(id))
+        ? empty(204)
+        : json({ error: "Post not found" }, 404);
     }
 
     return empty(405);
@@ -128,11 +137,15 @@ async function route(request: Request, store: PostStore): Promise<Response> {
   return json({ error: "Not found" }, 404);
 }
 
-export async function handleApiRequest(request: Request, store: PostStore): Promise<Response> {
+export async function handleApiRequest(
+  request: Request,
+  store: PostStore,
+): Promise<Response> {
   try {
     return await route(request, store);
   } catch (error) {
-    if (error instanceof ForbiddenError) return json({ error: error.message }, 403);
+    if (error instanceof ForbiddenError)
+      return json({ error: error.message }, 403);
     if (error instanceof InputError) return json({ error: error.message }, 400);
     console.error("Stream API error", error);
     return json({ error: "Something went wrong" }, 500);

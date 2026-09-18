@@ -21,21 +21,27 @@ Manages the testy.cool /stack page - a living list of tools, services, and model
 ## Operations
 
 ### Add a tool
+
 Add a new entry to the `stack` array in `lib/stack.ts`:
+
 - Required: `name`, `category`, `status`, `take` (can be empty string)
 - Optional: `url`, `replacedBy`, `history`
 - Use today's date for any history entry
 
 ### Update a take
+
 Find the tool by name in the array and update the `take` field.
 
 ### Change status
+
 Update the `status` field. If changing to "dropped" or "replaced", ask about `replacedBy`. Always append a history entry with today's date explaining the change.
 
 ### Add changelog entry
+
 Append to the tool's `history` array: `{ date: "YYYY-MM-DD", note: "what changed" }`.
 
 ### Add a category
+
 Just use a new category string on a tool - the page groups automatically.
 
 ## After Changes

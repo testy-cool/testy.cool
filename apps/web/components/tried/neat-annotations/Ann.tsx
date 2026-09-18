@@ -35,7 +35,14 @@ export interface AnnProps {
  * are ::before and ::after on this span, so they reserve no layout space.
  * Give it room with AnnStage.
  */
-export function Ann({ note, dir = "n", color, noMark, style, children }: AnnProps) {
+export function Ann({
+  note,
+  dir = "n",
+  color,
+  noMark,
+  style,
+  children,
+}: AnnProps) {
   const classes = [
     "ann",
     `ann-${dir}`,
@@ -47,7 +54,11 @@ export function Ann({ note, dir = "n", color, noMark, style, children }: AnnProp
 
   return (
     <>
-      <link rel="stylesheet" href={`${BASE}/neat-annotations.css`} precedence="tried" />
+      <link
+        rel="stylesheet"
+        href={`${BASE}/neat-annotations.css`}
+        precedence="tried"
+      />
       <link rel="stylesheet" href={`${BASE}/site.css`} precedence="tried" />
       <span className={classes} data-note={note} style={style}>
         {children}

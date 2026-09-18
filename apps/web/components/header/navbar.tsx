@@ -22,12 +22,12 @@ export const Navbar = (props: HTMLAttributes<HTMLElement>) => {
           "sticky top-[var(--fd-banner-height)] z-30 box-content w-full bg-background/80 backdrop-blur-lg transition-colors",
           "border-border/70 border-b border-dashed dark:border-border",
           // value.length > 0 ? 'shadow-lg' : 'shadow-xs',
-          props.className
+          props.className,
         )}
       >
         <div
           className={cn(
-            "relative container mx-auto flex size-full h-14 flex-row items-center"
+            "relative container mx-auto flex size-full h-14 flex-row items-center",
           )}
         >
           <GridBackground maxWidthClass="container" />
@@ -61,7 +61,7 @@ export const NavbarMenuLink = (props: LinkProps) => {
         {...props}
         className={cn(
           "flex flex-col gap-2 rounded-lg border bg-fd-card p-3 transition-colors hover:bg-fd-accent/80 hover:text-fd-accent-foreground",
-          props.className
+          props.className,
         )}
       >
         {props.children}

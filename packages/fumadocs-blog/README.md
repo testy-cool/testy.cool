@@ -30,25 +30,25 @@ app/
 
 ```tsx
 // app/blog/[[...slug]]/page.tsx
-import { notFound } from 'next/navigation';
-import { BlogPost } from '@repo/fumadocs-blog/components';
-import { isBlogRootPage } from '@repo/fumadocs-blog';
-import { BlogProvider } from '@repo/fumadocs-blog';
+import { notFound } from "next/navigation";
+import { BlogPost } from "@repo/fumadocs-blog/components";
+import { isBlogRootPage } from "@repo/fumadocs-blog";
+import { BlogProvider } from "@repo/fumadocs-blog";
 
 // Import your data fetching functions
-import { getBlogPost, getSortedByDatePosts } from '@/lib/source';
-import { getCategoryBySlug } from '@/lib/categories';
-import { getSeriesInfo } from '@/lib/series';
-import { getMDXComponents } from '@/mdx-components';
+import { getBlogPost, getSortedByDatePosts } from "@/lib/source";
+import { getCategoryBySlug } from "@/lib/categories";
+import { getSeriesInfo } from "@/lib/series";
+import { getMDXComponents } from "@/mdx-components";
 
 export default function BlogPage({ params }: { params: { slug?: string[] } }) {
   // Set up dependencies for this route
   const dependencies = {
     getMDXComponents,
     getCategoryBySlug,
-    getSeriesInfo
+    getSeriesInfo,
   };
-  
+
   // Handle blog index page
   if (isBlogRootPage(params)) {
     const posts = getSortedByDatePosts();
@@ -58,9 +58,9 @@ export default function BlogPage({ params }: { params: { slug?: string[] } }) {
       </BlogProvider>
     );
   }
-  
+
   // Handle category pages
-  if (params.slug?.[0] === 'category' && params.slug?.[1]) {
+  if (params.slug?.[0] === "category" && params.slug?.[1]) {
     // Category page logic
     return (
       <BlogProvider {...dependencies}>
@@ -68,9 +68,9 @@ export default function BlogPage({ params }: { params: { slug?: string[] } }) {
       </BlogProvider>
     );
   }
-  
+
   // Handle series pages
-  if (params.slug?.[0] === 'series' && params.slug?.[1]) {
+  if (params.slug?.[0] === "series" && params.slug?.[1]) {
     // Series page logic
     return (
       <BlogProvider {...dependencies}>
@@ -78,17 +78,17 @@ export default function BlogPage({ params }: { params: { slug?: string[] } }) {
       </BlogProvider>
     );
   }
-  
+
   // Handle individual blog posts
   const post = getBlogPost(params.slug);
-  
+
   if (!post || post.data.draft) {
     return notFound();
   }
-  
+
   return (
     <BlogProvider {...dependencies}>
-      <BlogPost 
+      <BlogPost
         page={post}
         category={post.data.category}
         lastUpdate={post.data.date}
@@ -103,13 +103,13 @@ export default function BlogPage({ params }: { params: { slug?: string[] } }) {
 
 ```tsx
 // lib/source.ts
-import { blog } from '@/.source'; // Your content source
-import { loader } from 'fumadocs-core/source';
-import { createMDXSource } from 'fumadocs-mdx';
+import { blog } from "@/.source"; // Your content source
+import { loader } from "fumadocs-core/source";
+import { createMDXSource } from "fumadocs-mdx";
 
 // Create the blog source using fumadocs
 export const blogSource = loader({
-  baseUrl: '/blog',
+  baseUrl: "/blog",
   source: createMDXSource(blog),
 });
 
@@ -122,8 +122,9 @@ export const {
 
 // Add custom sorting function
 export const getSortedByDatePosts = () =>
-  [...getBlogPosts().filter(post => !post.data.draft)]
-    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  [...getBlogPosts().filter((post) => !post.data.draft)].sort(
+    (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+  );
 ```
 
 #### 4. Why Use BlogProvider in the Catch-All Route
@@ -151,7 +152,7 @@ You can override any component by passing custom implementations:
     // Your custom series implementation
   }}
 >
-  <BlogPost 
+  <BlogPost
     // You can also override specific components
     SeriesComponent={CustomSeriesComponent}
     CategoryComponent={CustomCategoryComponent}
@@ -166,20 +167,17 @@ If you're already using fumadocs for documentation, you can share components and
 
 ```tsx
 // Share MDX components between docs and blog
-import { getMDXComponents } from '@/mdx-components';
+import { getMDXComponents } from "@/mdx-components";
 
 // Share theme configuration
-import { DocsThemeConfig } from 'fumadocs-ui/provider';
+import { DocsThemeConfig } from "fumadocs-ui/provider";
 
 const themeConfig: DocsThemeConfig = {
   // Your theme configuration
 };
 
 // In your blog route
-<BlogProvider 
-  getMDXComponents={getMDXComponents}
-  themeConfig={themeConfig}
->
+<BlogProvider getMDXComponents={getMDXComponents} themeConfig={themeConfig}>
   {/* ... */}
-</BlogProvider>
+</BlogProvider>;
 ```

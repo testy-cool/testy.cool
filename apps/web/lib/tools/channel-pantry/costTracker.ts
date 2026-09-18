@@ -1,7 +1,7 @@
-import type { CostAccumulator } from './types';
+import type { CostAccumulator } from "./types";
 
 const INPUT_COST_PER_M = 0.15;
-const OUTPUT_COST_PER_M = 0.60;
+const OUTPUT_COST_PER_M = 0.6;
 
 export function createCostTracker(): {
   track: (promptTokens: number, outputTokens: number) => void;
@@ -29,7 +29,12 @@ export function createCostTracker(): {
 
 export function trackGeminiResponse(
   tracker: ReturnType<typeof createCostTracker>,
-  response: { usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number } }
+  response: {
+    usageMetadata?: {
+      promptTokenCount?: number;
+      candidatesTokenCount?: number;
+    };
+  },
 ) {
   const prompt = response.usageMetadata?.promptTokenCount ?? 0;
   const output = response.usageMetadata?.candidatesTokenCount ?? 0;

@@ -6,6 +6,8 @@
 /notes/add-mcp-servers-to-claude-code-on-windows-with-git-bash/ /blog/tutorial/claude-code-ssh-setup 301
 
 # Tools (old paths)
+/tools/sitegeist /tools/sitegeist-fork 301
+/tools/sitegeist/ /tools/sitegeist-fork 301
 /tools/obsidian-smart-composer-is-fucking-awesome/ /tools 301
 /chrome-extension-icon-generator/ /tools 301
 

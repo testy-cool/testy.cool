@@ -140,16 +140,16 @@ export const allTools: Tool[] = [
     badge: "Manifest V3",
   },
   {
-    slug: "sitegeist",
-    title: "Sitegeist",
+    slug: "sitegeist-fork",
+    title: "Sitegeist (Fork)",
     description:
-      "AI assistant extension living in your browser sidebar. Automate repetitive web tasks, extract data, and execute workflows with human-in-the-loop control.",
+      "Maintained fork of Mario Zechner's (badlogic) AI browser sidebar. Automate repetitive tasks, extract data, and execute workflows with modern pi-agent-core.",
     screenshot: "/images/tools/sitegeist.webp",
-    tags: ["Chrome", "AI", "Browser Automation", "Extension"],
+    tags: ["Fork", "Chrome", "AI", "Browser Automation", "Extension"],
     type: "Extension",
     category: "extensions",
     categoryLabel: "Browser Extensions",
-    badge: "Manifest V3",
+    badge: "Fork",
   },
   {
     slug: "chatgpt-conversation-exporter",

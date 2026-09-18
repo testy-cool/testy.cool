@@ -28,9 +28,9 @@ export const changelogEntries: ChangelogEntry[] = [
     date: "2026-09-17",
     displayDate: "September 17, 2026",
     shortDate: "Sep 17",
-    title: "Added RepoAura and Sitegeist to Tools",
+    title: "Added RepoAura and Sitegeist (Fork) to Tools",
     description:
-      "Created dedicated tool pages for RepoAura (GitHub repository health overlays) and Sitegeist (browser extension for automation, UI artifacts, and research).",
+      "Created dedicated tool pages for RepoAura (GitHub repository health overlays) and Sitegeist Fork (maintained fork of Mario Zechner's browser automation sidebar).",
     type: "tool",
     href: "/tools",
   },

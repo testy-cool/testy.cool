@@ -1,0 +1,243 @@
+---
+title: "Scry: juicy internet data your agent can query"
+description: A hosted SQL database of public internet data, from Reddit and Common Crawl to 1.7 million live job postings, that also plugs into coding agents.
+date: 2026-09-21
+author: testy.cool
+id: scry
+status: published
+tags: [data, sql, mcp, agents, lead-generation]
+image: /images/blog/scry/scry-home.png
+---
+[Scry](https://scry.io) is a hosted database of public internet data that you
+query with SQL. 
+
+You don't need to know SQL, though. Just grab the MCP URL, give it to your coding agent, sign in once and you're good to go.
+
+At the time of writing it holds Reddit, Hacker News, the Twitter archive, YouTube, Common Crawl, live
+job postings and about 170 other datasets, all in one place. 
+Everything below is real output from 21 September 2026.
+
+![The Scry home page, listing its sources by row count](/images/blog/scry/scry-home.png)
+
+## Connect Scry to your agent
+
+MCP (Model Context Protocol) is the standard way a coding agent connects to an
+outside tool. Your agent reaches Scry at one address, `https://mcp.scry.io`. In
+Claude Code:
+
+```bash
+claude mcp add --transport http scry https://mcp.scry.io
+```
+
+Then run `/mcp` inside a Claude Code session and approve the sign-in. In
+Claude.ai, Claude Desktop, ChatGPT in developer mode, or Cursor, add a custom
+connector with the same address.
+
+## See what Scry holds
+
+First, ask Scry what it holds. Scry lists its datasets in a table:
+
+```sql
+SELECT relation, total_rows, purpose
+FROM scry.relations
+ORDER BY total_rows DESC LIMIT 20
+```
+
+Or tell your agent to list the tables. These are the largest, by row count:
+
+```text
+58 billion    twitter.tweets_latest
+45 billion    commoncrawl.index
+43 billion    tiktok.videos
+27 billion    reddit.comments
+25 billion    commoncrawl.pages
+ 4.6 billion  youtube.videos
+ 3.7 billion  reddit.posts
+ 1.8 billion  youtube.transcripts
+ 1.0 billion  crawl.pages
+```
+
+## Search 27 billion Reddit comments
+
+Scry indexes every word in its text columns, so it finds a rare word fast.
+This query counts the subreddits that mention Firecrawl, a scraping tool.
+`hasToken` matches whole words only, so `firecrawl` misses `firecrawls`.
+
+```sql
+SELECT subreddit, count() AS n
+FROM reddit.comments
+WHERE hasToken(search_text_lc, 'firecrawl')
+GROUP BY subreddit ORDER BY n DESC LIMIT 5
+```
+
+```text
+LocalLLaMA    286
+hermesagent   238
+n8n           202
+ClaudeAI      183
+AI_Agents     145
+```
+
+Scry read 14,079,081 rows and answered in 367 milliseconds. Every answer also
+reports the rows read, the age of the data and the cost.
+
+## Find clients in 1.7 million live job postings
+
+Every day Scry copies the public job boards that companies run on 15 hiring
+platforms, such as Greenhouse, Ashby, Lever and Workday, into a table called
+`jobs.postings`. Yesterday's copy held 1,705,242 postings.
+
+This is very useful because Scry already does the hard part of scraping and keeping the data fresh. We can just swoop in and analyze it.
+
+Eight of the platforms include the full job description, and Ashby includes
+pay when the company shows it.
+
+Because the description is there, you can count what employers ask for (hehe).
+
+### Which AI tools employers name
+
+Of yesterday's postings, 461,416 came with a full description. Here is how
+many of them name each AI tool or term:
+
+```text
+20,385   agentic
+19,233   LLM
+12,628   Claude or Anthropic     3,678 companies
+ 8,694   OpenAI or ChatGPT       2,302 companies
+ 4,641   Claude Code
+ 3,979   Cursor
+ 3,685   Copilot                 1,500 companies
+ 3,429   MCP
+ 3,211   prompt engineering
+ 2,575   Gemini
+ 1,729   LangChain
+ 1,506   n8n
+   314   vibe coding               195 companies
+```
+
+More live job postings name Claude than name OpenAI or ChatGPT. Claude Code is
+in more of them than Copilot. "Vibe coding" is written into 314 real job
+descriptions at 195 companies.
+
+The Claude and OpenAI rows leave out Anthropic's and OpenAI's own job boards.
+"Cursor" is an ordinary word too, so I only counted it when the posting also
+names Copilot, Claude or Windsurf. This is a plain text match on one day, and these eight platforms lean toward tech
+startups, so read it as a snapshot of that crowd. The whole count ran in 16
+seconds and cost $0.00002.
+
+### Which companies have your problem
+
+A job posting tells the public which problem a company has, and that the
+company will pay to solve it. So say you sell a web scraping service. I asked
+for yesterday's postings, on the eight platforms with descriptions, whose text
+contains "web scraping", "web scraper", "web crawler" or "data scraping", and
+then for a few related words:
+
+```text
+201   mention web scraping, from 120 companies
+ 67   mention captchas, anti-bot systems or proxy rotation
+ 51   mention Scrapy or Zyte
+ 35   mention Firecrawl
+ 15   mention Apify
+```
+
+The lines point to three kinds of possible customer. The 120 companies are
+about to pay for a full-time scraping engineer, and a posting often names the
+sites and the tools. The 67 describe, in their own words, a fight with
+captchas, anti-bot systems or proxies. The postings that name Zyte, Firecrawl
+or Apify come from companies that already pay for a scraping product, so they
+know the category.
+
+The counts are rough. I matched words and did not read the postings, and some
+of the 120 are scraping vendors hiring for themselves. The same query works
+for any product. Swap the words and you get the companies hiring for your
+problem.
+
+## Rank any website for free
+
+Common Crawl is a free copy of a large part of the web. From it, a table
+called `commoncrawl.domains` ranks 358 million sites by how well the rest of
+the web links to them. The rank works as a free stand-in for domain authority,
+the score paid SEO tools use to say how much search engines trust a site.
+
+```sql
+SELECT name_rev, harmonic_rank, pagerank_rank
+FROM commoncrawl.domains
+WHERE level = 'domain'
+  AND name_rev IN ('com.apify', 'com.scrapingbee', 'com.zenrows')
+ORDER BY name_rev, graph DESC LIMIT 1 BY name_rev LIMIT 10
+```
+
+```text
+site               harmonic_rank   pagerank_rank
+com.apify                  3,868          21,078
+com.scrapingbee          508,353          77,251
+com.zenrows            1,219,343          95,943
+```
+
+The two columns are two ways of scoring a site from its links, and lower is
+better in both. `LIMIT 1 BY name_rev` keeps one row per site, the newest. The
+table stores site names reversed, so `apify.com` is `com.apify`. It leaves out
+search volumes, keyword positions and lists of who links to whom.
+
+After so many years doing SEO and scraping, I'm embarrassed I had no idea about this. I often heard about Common Crawl, but simply assumed it was something more 'sterile' and didn't have all this juicy info.
+
+## Check what it costs
+
+It's currently in Open Alpha, and you currently get $5.00 of credit for free.
+
+I'm not sure how it may change with time.
+
+Scry charges for the data that comes back. Counts and lookups cost almost
+nothing, and bulk downloads add up:
+
+```text
+$0.00002   count AI tools across 461,416 job descriptions
+$0.077     one page of 10,000 postings, a few fields each
+$0.45      4,565 postings with full descriptions, 74.5 MB
+```
+
+Scry's own notes say queries are free while the system has spare capacity. My
+bulk downloads were charged anyway, so count and filter inside Scry and
+download only the rows you need.
+
+One statement returns at most 10,000 rows, so a large download will iterate through multiple pages, and you will see each charge in the dashboard.
+
+## Trace where the data comes from
+
+All of Scry's data is public, and each dataset says where it comes from.
+
+- Reddit is the Arctic Shift mirror, a public archive of Reddit.
+- GitHub is the Software Heritage export, an archive of public source code.
+- LinkedIn pages are rebuilt from Internet Archive copies, so LinkedIn itself
+  is never asked.
+- Scry fetches job postings, Hacker News and the live web crawl itself.
+
+The job boards publish open feeds. Each posting in Scry stores the address it
+was read from, and those addresses need no key and no login. With `curl`, a
+command line tool that fetches a web address, one request returned all 576
+jobs for one company, descriptions included:
+
+```text
+https://boards-api.greenhouse.io/v1/boards/<company>/jobs?content=true
+https://api.ashbyhq.com/posting-api/job-board/<company>?includeCompensation=true
+https://api.lever.co/v0/postings/<company>?mode=json
+```
+
+Anyone can download Common Crawl in bulk. Career pages live at addresses like
+`boards.greenhouse.io/<company>`, so a crawl of the web contains thousands of
+company names. I counted 7,035 Greenhouse boards and 10,116 Workable boards in
+it. Pulling those names out is one way to build the list of boards to read.
+
+## Follow three rules when you write the SQL
+
+Scry's SQL is the ClickHouse dialect. ClickHouse is a database built for fast
+counts over huge tables. Your agent handles most of this, but it helps to know:
+
+- A statement needs a literal `LIMIT`, unless it is a plain count.
+- Each query carries a time limit. The default is 15 seconds and the maximum
+  is 2,000 seconds.
+- A wrong column name returns the table's real column list, so the next try
+  works.
+
+This is amazing. And thank you to the creator [@XyraSinclair](https://x.com/XyraSinclair).

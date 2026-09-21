@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Build and deploy exactly what is committed, nothing else.
+#
+#   bin/deploy-clean                       # deploy HEAD
+#   bin/deploy-clean /blog/lab-notes/scry  # then wait for that path to answer 200
+#
+# Why this exists. Cloudflare's own git build fails for this project, so a push
+# alone never puts anything live. The site goes live only through a local build
+# plus `wrangler pages deploy`. A build in the working folder also ships
+# whatever is uncommitted there, such as a half-built tool, and it breaks a
+# running `pnpm web:dev` because the two share `.next`. So this builds a clean
+# copy of HEAD in a temporary git worktree and deploys that.
+#
+# The account id comes from wrangler's cache in the main checkout. Outside that
+# folder wrangler sees two accounts and refuses to pick one.
+set -euo pipefail
+
+ROOT=$(git rev-parse --show-toplevel)
+HASH=$(git -C "$ROOT" rev-parse --short HEAD)
+WORK=$(mktemp -d "${TMPDIR:-/tmp}/testycool-deploy.XXXXXX")
+trap 'git -C "$ROOT" worktree remove --force "$WORK" >/dev/null 2>&1 || true' EXIT
+
+if [ -n "$(git -C "$ROOT" log origin/main..HEAD --oneline 2>/dev/null)" ]; then
+  echo "note: HEAD has commits that are not pushed yet" >&2
+fi
+
+ACCOUNT=${CLOUDFLARE_ACCOUNT_ID:-$(python3 -c "import json;print(json.load(open('$ROOT/node_modules/.cache/wrangler/wrangler-account.json'))['account']['id'])")}
+
+git -C "$ROOT" worktree add --force --detach "$WORK" HEAD >/dev/null
+cd "$WORK"
+pnpm install --frozen-lockfile --prefer-offline >/dev/null
+START=$(date +%s)
+pnpm web:build >"$WORK/build.log" 2>&1 || { tail -30 "$WORK/build.log"; exit 1; }
+echo "built $HASH in $(( $(date +%s) - START ))s"
+
+CLOUDFLARE_ACCOUNT_ID=$ACCOUNT wrangler pages deploy apps/web/out \
+  --project-name=testy-cool --branch=main --commit-hash="$HASH" --commit-dirty=false \
+  2>&1 | grep -E "Success|Deployment complete|ERROR" || true
+
+for path in "$@"; do
+  for _ in $(seq 1 12); do
+    code=$(curl -s -m 20 -o /dev/null -w "%{http_code}" "https://testy.cool$path")
+    [ "$code" = 200 ] && break
+    python3 -c "import time; time.sleep(5)"
+  done
+  echo "https://testy.cool$path -> $code"
+done

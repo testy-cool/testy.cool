@@ -146,7 +146,8 @@ Cloudflare Pages with static export:
 - Node version: 20 (via `.nvmrc`)
 - Config: `wrangler.toml`
 - Cloudflare project name: `testy-cool` (not `testycool`)
-- **Always deploy after code changes**: commit, push, then `wrangler pages deploy apps/web/out --project-name=testy-cool`. Use `wrangler` bare, not `npx wrangler`: `npx` is a shell function on this machine and the call fails inside a script.
+- **Deploy with `bin/deploy-clean [/path/to/check]`.** It builds a clean copy of HEAD in a temporary git worktree, deploys it with wrangler, and waits for the path to answer 200. About 80 seconds in total. Measured 2026-09-21: Cloudflare's own git build fails for this project, on that day's commit and on the one before it, so a push alone never puts anything live. A build in the working folder also ships whatever is uncommitted there, and breaks a running `pnpm web:dev`. Outside the main checkout wrangler sees two Cloudflare accounts and refuses to choose; the script reads the account id from `node_modules/.cache/wrangler/wrangler-account.json`.
+- The manual form, from the main checkout only: commit, push, then `wrangler pages deploy apps/web/out --project-name=testy-cool`. Use `wrangler` bare, not `npx wrangler`: `npx` is a shell function on this machine and the call fails inside a script.
 - Git push also triggers a Cloudflare build automatically, but Wrangler deploy is faster and more reliable
 - Cloudflare uses `--frozen-lockfile` — if `pnpm-lock.yaml` is out of sync, deploy fails silently. Fix with `pnpm install --no-frozen-lockfile` (do NOT delete and regenerate lockfile — version changes can break the build). Always check Cloudflare build logs when deploy appears to fail.
 

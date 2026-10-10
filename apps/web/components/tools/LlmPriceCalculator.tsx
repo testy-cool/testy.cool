@@ -154,7 +154,6 @@ const presets = [
   { label: "Batch", in: 8000, out: 500, calls: 10000, cache: 80 },
   { label: "RAG", in: 4000, out: 2000, calls: 500, cache: 60 },
   { label: "Code", in: 3000, out: 4000, calls: 50, cache: 0 },
-  { label: "Chain", in: 2000, out: 500, calls: 10, cache: 0, turn: 500 },
 ];
 
 const DEFAULTS = {
@@ -398,10 +397,6 @@ export function LlmPriceCalculator() {
     setOutputTokens(preset.out);
     setApiCalls(preset.calls);
     setCachePercent(preset.cache);
-    if ("turn" in preset && typeof preset.turn === "number") {
-      setTurnTokens(preset.turn);
-      setMode("chain");
-    }
   }, []);
 
   // Serialize Set to stable string for useCallback deps

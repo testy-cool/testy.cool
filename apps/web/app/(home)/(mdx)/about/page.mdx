@@ -1,5 +1,6 @@
 import VanillaMdx from "@/components/vanilla-mdx";
 import { createMetadata } from "@/lib/metadata";
+import { personSchema } from "@/lib/jsonld";
 
 export const metadata = createMetadata({
   title: "About",
@@ -13,6 +14,13 @@ export const metadata = createMetadata({
   description="I build LLM automations, research agents, and web dev agents. This site is where I write notes about all of it."
   toc={toc}
 >
+
+<script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema()) }}
+/>
+
+testy.cool is written by [Vlad Eduard Radulescu](https://www.linkedin.com/in/vladeduard/).
 
 ## What I work on
 

@@ -1,3 +1,21 @@
+const PERSON_ID = "https://testy.cool/about#me";
+
+export function personSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": PERSON_ID,
+    name: "Vlad Eduard Radulescu",
+    url: "https://testy.cool/about",
+    sameAs: [
+      "https://www.linkedin.com/in/vladeduard/",
+      "https://github.com/testy-cool",
+      "https://x.com/testy_cool",
+      "https://bsky.app/profile/testycool.bsky.social",
+    ],
+  };
+}
+
 export function organizationSchema() {
   return {
     "@context": "https://schema.org",
@@ -5,11 +23,10 @@ export function organizationSchema() {
     name: "testy.cool",
     url: "https://testy.cool",
     logo: "https://testy.cool/avatar.webp",
+    founder: { "@id": PERSON_ID },
     sameAs: [
       "https://x.com/testy_cool",
       "https://github.com/testy-cool",
-      "https://github.com/TestyCool",
-      "https://www.linkedin.com/in/vladeduard/",
       "https://bsky.app/profile/testycool.bsky.social",
       "https://chromewebstore.google.com/detail/hacker-news-enhancement-s/ebmjdaaabekgefdnfkcoejejhkodkepg",
     ],
@@ -62,11 +79,15 @@ export function blogPostingSchema({
     headline: title,
     description: description,
     datePublished: date.toISOString(),
-    author: {
-      "@type": "Person",
-      name: author,
-      url: "https://testy.cool",
-    },
+    author:
+      author === "testy.cool"
+        ? {
+            "@type": "Person",
+            "@id": PERSON_ID,
+            name: "Vlad Eduard Radulescu",
+            url: "https://testy.cool/about",
+          }
+        : { "@type": "Person", name: author, url: "https://testy.cool" },
     publisher: {
       "@type": "Organization",
       name: "testy.cool",

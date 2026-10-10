@@ -30,6 +30,7 @@ export interface Model {
   maxOutput: number; // max output tokens
   modalities: Modality[];
   reasoning?: number; // $ per 1M reasoning/thinking tokens
+  mediaOutput?: ("image" | "audio")[]; // generates images or audio, not just text
   created?: number;
 }
 
@@ -237,6 +238,10 @@ export function normalizeOpenRouterModels(
     }
     if (modalities.length === 0) modalities.push("text");
 
+    const mediaOutput = (raw.architecture?.output_modalities || []).filter(
+      (m): m is "image" | "audio" => m === "image" || m === "audio",
+    );
+
     const name = cleanModelName(raw.name || slug, id);
 
     result.push({
@@ -250,6 +255,7 @@ export function normalizeOpenRouterModels(
       maxOutput,
       modalities,
       reasoning,
+      ...(mediaOutput.length > 0 ? { mediaOutput } : {}),
       created: raw.created,
     });
   }
@@ -257,7 +263,7 @@ export function normalizeOpenRouterModels(
   return result;
 }
 
-const STORAGE_KEY = "testycool_openrouter_models_v2";
+const STORAGE_KEY = "testycool_openrouter_models_v3";
 const CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 export interface LiveModelsState {

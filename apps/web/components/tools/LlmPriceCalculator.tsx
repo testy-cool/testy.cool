@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import {
+  type Model,
   type Provider,
   type Modality,
   type CalcMode,
@@ -587,17 +588,25 @@ export function LlmPriceCalculator() {
       );
     }
 
+    // Image and audio models are priced for different work, so they sort after text models
+    const mediaLast = (a: Model, b: Model) =>
+      Number(!!a.mediaOutput) - Number(!!b.mediaOutput);
+
     if (isBudgetMode) {
-      return [...filtered].sort((a, b) => b.maxCalls - a.maxCalls);
+      return [...filtered].sort(
+        (a, b) => mediaLast(a, b) || b.maxCalls - a.maxCalls,
+      );
     }
 
     if (isChainMode) {
-      return [...filtered].sort((a, b) => a.chainTotal - b.chainTotal);
+      return [...filtered].sort(
+        (a, b) => mediaLast(a, b) || a.chainTotal - b.chainTotal,
+      );
     }
 
     if (sortBy === "price") {
       const key = showCache ? "cachedTotal" : "total";
-      return [...filtered].sort((a, b) => a[key] - b[key]);
+      return [...filtered].sort((a, b) => mediaLast(a, b) || a[key] - b[key]);
     }
     // Group by provider; the stable sort keeps newest-first inside each group
     return [...filtered].sort(
@@ -654,7 +663,8 @@ export function LlmPriceCalculator() {
 
   // Compute rank for each visible model by cost (or value in budget mode)
   const rankedModels = useMemo(() => {
-    const sorted = [...visibleModels];
+    // Only text models are ranked; image and audio models are not comparable
+    const sorted = visibleModels.filter((m) => !m.mediaOutput);
     if (isBudgetMode) {
       sorted.sort((a, b) => b.maxCalls - a.maxCalls);
     } else if (isChainMode) {
@@ -1397,9 +1407,9 @@ export function LlmPriceCalculator() {
             </thead>
             <tbody>
               {visibleModels.map((model, index) => {
-                const rank = rankedModels.get(model.name) ?? 999;
+                const rank = rankedModels.get(model.name);
                 const isTop1 = rank === 1;
-                const isTop3 = rank <= 3;
+                const isTop3 = rank !== undefined && rank <= 3;
                 const isPinned = pinnedModels.has(model.name);
                 const barWidth = getCostBarWidth(model);
                 const isSelected = selectedModels.has(model.name);
@@ -1452,7 +1462,7 @@ export function LlmPriceCalculator() {
                                 : "text-fd-muted-foreground"
                           }`}
                         >
-                          {rank}
+                          {rank ?? "-"}
                         </span>
                       </td>
                       <td className="px-4 py-3.5 text-[15px] font-medium text-fd-foreground/72">
@@ -1474,6 +1484,11 @@ export function LlmPriceCalculator() {
                           {model.reasoning && (
                             <span className="rounded-full bg-fd-primary/10 px-1.5 py-0.5 text-xs font-medium leading-none text-fd-primary">
                               thinking
+                            </span>
+                          )}
+                          {model.mediaOutput && (
+                            <span className="rounded-full bg-fd-muted px-1.5 py-0.5 text-xs font-medium leading-none text-fd-foreground/80">
+                              makes {model.mediaOutput.join(" and ")}
                             </span>
                           )}
                           {model.modalities.length > 1 && (
@@ -1702,9 +1717,9 @@ export function LlmPriceCalculator() {
         {/* Mobile card view */}
         <div className="flex flex-col gap-2 p-2 md:hidden">
           {visibleModels.map((model) => {
-            const rank = rankedModels.get(model.name) ?? 999;
+            const rank = rankedModels.get(model.name);
             const isTop1 = rank === 1;
-            const isTop3 = rank <= 3;
+            const isTop3 = rank !== undefined && rank <= 3;
             const isPinned = pinnedModels.has(model.name);
             const barWidth = getCostBarWidth(model);
             return (
@@ -1727,8 +1742,12 @@ export function LlmPriceCalculator() {
                       <span
                         title={
                           isBudgetMode
-                            ? `Rank ${rank}: 1 = most calls for your budget`
-                            : `Rank ${rank}: 1 = cheapest for this workload`
+                            ? rank
+                              ? `Rank ${rank}: 1 = most calls for your budget`
+                              : "Not ranked: makes images or audio"
+                            : rank
+                              ? `Rank ${rank}: 1 = cheapest for this workload`
+                              : "Not ranked: makes images or audio"
                         }
                         className={`flex h-5 w-5 items-center justify-center rounded text-xs font-bold tabular-nums ${
                           isTop1
@@ -1738,7 +1757,7 @@ export function LlmPriceCalculator() {
                               : "text-fd-muted-foreground"
                         }`}
                       >
-                        {rank}
+                        {rank ?? "-"}
                       </span>
                       <button
                         onClick={() => togglePin(model.name)}
@@ -1754,6 +1773,11 @@ export function LlmPriceCalculator() {
                       {model.reasoning && (
                         <span className="rounded-full bg-fd-primary/10 px-1.5 py-0.5 text-xs font-medium leading-none text-fd-primary">
                           thinking
+                        </span>
+                      )}
+                      {model.mediaOutput && (
+                        <span className="rounded-full bg-fd-muted px-1.5 py-0.5 text-xs font-medium leading-none text-fd-foreground/80">
+                          makes {model.mediaOutput.join(" and ")}
                         </span>
                       )}
                       {model.modalities.length > 1 && (

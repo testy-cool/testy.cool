@@ -124,6 +124,10 @@ async function syncModels() {
     }
     if (modalities.length === 0) modalities.push("text");
 
+    const mediaOutput = (raw.architecture?.output_modalities || []).filter(
+      (m) => m === "image" || m === "audio"
+    );
+
     const name = cleanModelName(raw.name || slug, id);
 
     result.push({
@@ -137,6 +141,7 @@ async function syncModels() {
       maxOutput,
       modalities,
       ...(reasoning !== undefined ? { reasoning } : {}),
+      ...(mediaOutput.length > 0 ? { mediaOutput } : {}),
       created: raw.created,
     });
   }

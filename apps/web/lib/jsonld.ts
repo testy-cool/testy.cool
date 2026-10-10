@@ -5,7 +5,7 @@ export function personSchema() {
     "@context": "https://schema.org",
     "@type": "Person",
     "@id": PERSON_ID,
-    name: "Vlad Eduard Radulescu",
+    name: "Vlad Eduard Rădulescu",
     url: "https://testy.cool/about",
     sameAs: [
       "https://www.linkedin.com/in/vladeduard/",
@@ -84,7 +84,7 @@ export function blogPostingSchema({
         ? {
             "@type": "Person",
             "@id": PERSON_ID,
-            name: "Vlad Eduard Radulescu",
+            name: "Vlad Eduard Rădulescu",
             url: "https://testy.cool/about",
           }
         : { "@type": "Person", name: author, url: "https://testy.cool" },

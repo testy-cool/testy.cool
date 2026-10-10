@@ -825,100 +825,113 @@ export function LlmPriceCalculator() {
         </div>
 
         {isChainMode ? (
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-4 xl:grid-cols-5 xl:gap-5">
-            <div>
-              <label htmlFor="chain-base-tokens" className={controlLabelClass}>
-                Base tokens
-                <InfoTip text="System prompt + first user message. This is the input for call 1 and gets cached in subsequent calls." />
-              </label>
-              <input
-                id="chain-base-tokens"
-                type="number"
-                value={inputTokens}
-                onChange={(e) => setInputTokens(Number(e.target.value))}
-                min={0}
-                inputMode="numeric"
-                autoComplete="off"
-                className={inputClass}
-              />
+          <>
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-4 xl:grid-cols-5 xl:gap-5">
+              <div>
+                <label
+                  htmlFor="chain-base-tokens"
+                  className={controlLabelClass}
+                >
+                  Base tokens
+                  <InfoTip text="System prompt + first user message. This is the input for call 1 and gets cached in subsequent calls." />
+                </label>
+                <input
+                  id="chain-base-tokens"
+                  type="number"
+                  value={inputTokens}
+                  onChange={(e) => setInputTokens(Number(e.target.value))}
+                  min={0}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="chain-turn-tokens"
+                  className={controlLabelClass}
+                >
+                  Tokens per turn
+                  <InfoTip text="New tokens added each turn - your follow-up message plus the model's previous response. Previous context gets cached." />
+                </label>
+                <input
+                  id="chain-turn-tokens"
+                  type="number"
+                  value={turnTokens}
+                  onChange={(e) =>
+                    setTurnTokens(Math.max(0, Number(e.target.value)))
+                  }
+                  min={0}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="chain-output-tokens"
+                  className={controlLabelClass}
+                >
+                  Output tokens
+                  <InfoTip text="Tokens the model generates per response. Usually costs several times more than input tokens." />
+                </label>
+                <input
+                  id="chain-output-tokens"
+                  type="number"
+                  value={outputTokens}
+                  onChange={(e) => setOutputTokens(Number(e.target.value))}
+                  min={0}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label htmlFor="chain-calls" className={controlLabelClass}>
+                  Calls in chain
+                  <InfoTip text="Number of sequential calls in the conversation. Each call includes all previous context (cached) plus new tokens." />
+                </label>
+                <input
+                  id="chain-calls"
+                  type="number"
+                  value={apiCalls}
+                  onChange={(e) =>
+                    setApiCalls(Math.max(1, Number(e.target.value)))
+                  }
+                  min={1}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="chain-reasoning-tokens"
+                  className={controlLabelClass}
+                >
+                  Reasoning tokens
+                  <InfoTip text="Internal thinking tokens used by reasoning models per call. Billed at the output token rate." />
+                </label>
+                <input
+                  id="chain-reasoning-tokens"
+                  type="number"
+                  value={reasoningTokens}
+                  onChange={(e) =>
+                    setReasoningTokens(Math.max(0, Number(e.target.value)))
+                  }
+                  min={0}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  className={inputClass}
+                />
+              </div>
             </div>
-            <div>
-              <label htmlFor="chain-turn-tokens" className={controlLabelClass}>
-                Tokens per turn
-                <InfoTip text="New tokens added each turn - your follow-up message plus the model's previous response. Previous context gets cached." />
-              </label>
-              <input
-                id="chain-turn-tokens"
-                type="number"
-                value={turnTokens}
-                onChange={(e) =>
-                  setTurnTokens(Math.max(0, Number(e.target.value)))
-                }
-                min={0}
-                inputMode="numeric"
-                autoComplete="off"
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="chain-output-tokens"
-                className={controlLabelClass}
-              >
-                Output tokens
-                <InfoTip text="Tokens the model generates per response. Usually costs several times more than input tokens." />
-              </label>
-              <input
-                id="chain-output-tokens"
-                type="number"
-                value={outputTokens}
-                onChange={(e) => setOutputTokens(Number(e.target.value))}
-                min={0}
-                inputMode="numeric"
-                autoComplete="off"
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label htmlFor="chain-calls" className={controlLabelClass}>
-                Calls in chain
-                <InfoTip text="Number of sequential calls in the conversation. Each call includes all previous context (cached) plus new tokens." />
-              </label>
-              <input
-                id="chain-calls"
-                type="number"
-                value={apiCalls}
-                onChange={(e) =>
-                  setApiCalls(Math.max(1, Number(e.target.value)))
-                }
-                min={1}
-                inputMode="numeric"
-                autoComplete="off"
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="chain-reasoning-tokens"
-                className={controlLabelClass}
-              >
-                Reasoning tokens
-                <InfoTip text="Internal thinking tokens used by reasoning models per call. Billed at the output token rate." />
-              </label>
-              <input
-                id="chain-reasoning-tokens"
-                type="number"
-                value={reasoningTokens}
-                onChange={(e) =>
-                  setReasoningTokens(Math.max(0, Number(e.target.value)))
-                }
-                min={0}
-                inputMode="numeric"
-                autoComplete="off"
-                className={inputClass}
-              />
-            </div>
-          </div>
+            <p className="mt-3 text-sm text-fd-muted-foreground">
+              Chain mode assumes every earlier turn is read from the cache at
+              each model&apos;s cached rate, so the cache hit rate setting does
+              not apply here.
+            </p>
+          </>
         ) : isBudgetMode ? (
           <div className="grid grid-cols-2 gap-2.5 sm:gap-4 xl:grid-cols-4 xl:gap-5">
             <div>

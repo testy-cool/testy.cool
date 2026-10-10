@@ -2,36 +2,33 @@
 
 import { useState, useMemo } from "react";
 
-const SAMPLE_MODELS = [
-  {
-    name: "GPT-5-mini",
-    input: 0.15,
-    output: 0.6,
-    cached: 0.075,
-    color: "bg-emerald-500",
-  },
-  {
-    name: "Claude Haiku 4.5",
-    input: 1,
-    output: 5,
-    cached: 0.1,
-    color: "bg-sky-500",
-  },
-  {
-    name: "Claude Sonnet 4.6",
-    input: 3,
-    output: 15,
-    cached: 0.3,
-    color: "bg-violet-500",
-  },
-  {
-    name: "Claude Opus 4.6",
-    input: 5,
-    output: 25,
-    cached: 0.5,
-    color: "bg-amber-500",
-  },
+import { modelsSnapshot } from "@/data/models-snapshot";
+
+// Prices come from the OpenRouter snapshot the calculator ships with
+const SAMPLE_PICKS = [
+  { id: "openai/gpt-6-sol", color: "bg-emerald-500" },
+  { id: "anthropic/claude-haiku-5.5", color: "bg-sky-500" },
+  { id: "anthropic/claude-sonnet-5.5", color: "bg-violet-500" },
+  { id: "anthropic/claude-opus-5.5", color: "bg-amber-500" },
 ];
+
+const SAMPLE_MODELS = SAMPLE_PICKS.flatMap(({ id, color }) => {
+  const m = modelsSnapshot.find((model) => model.id === id);
+  return m
+    ? [
+        {
+          name: m.name,
+          input: m.input,
+          output: m.output,
+          cached: m.cachedInput,
+          color,
+        },
+      ]
+    : [];
+});
+
+const CHAIN_MODEL = SAMPLE_MODELS.find((m) => m.name.includes("Sonnet")) ??
+  SAMPLE_MODELS[0] ?? { name: "Claude Sonnet", input: 0, output: 0 };
 
 function fmt(n: number): string {
   if (n === 0) return "$0";
@@ -259,7 +256,7 @@ export function CachingImpact() {
 export function ChainCostPreview() {
   const [turns, setTurns] = useState(5);
 
-  const model = { name: "Claude Sonnet 4.6", input: 3, output: 15 };
+  const model = CHAIN_MODEL;
   const avgOutputPerTurn = 500;
   const systemPrompt = 1000;
 

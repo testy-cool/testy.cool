@@ -9,7 +9,7 @@ import {
 import { createMetadata } from "@/lib/metadata";
 
 const description =
-  "Compare LLM API pricing across Claude, GPT, Gemini, and GLM. Calculate per-call costs, set budgets, and estimate multi-turn chain costs with prompt caching.";
+  "Compare live LLM API prices from Anthropic, OpenAI, Google, DeepSeek, xAI and more. Calculate per-call costs, set budgets, and estimate multi-turn chain costs with prompt caching.";
 
 export const metadata = createMetadata({
   title: "LLM Price Calculator",
@@ -57,11 +57,11 @@ export default function LlmPriceCalculatorPage() {
             What this calculator does
           </h2>
           <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
-            This calculator compares live API pricing across 200+ large language
-            models from Anthropic, OpenAI, Google, DeepSeek, xAI, Mistral, Meta,
-            Qwen, and Zhipu AI. It covers input tokens, output tokens, prompt
-            caching discounts, and reasoning token costs - all the variables
-            that affect your actual bill.
+            This calculator compares live API pricing for every large language
+            model OpenRouter lists from Anthropic, OpenAI, Google, DeepSeek,
+            xAI, Mistral, Meta, Qwen and other providers. It covers input
+            tokens, output tokens, prompt caching discounts, and reasoning token
+            costs - all the variables that affect your actual bill.
           </p>
           <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
             There are three modes. <strong>Calculate cost</strong> shows
@@ -86,9 +86,9 @@ export default function LlmPriceCalculatorPage() {
             Input vs. output cost
           </h2>
           <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
-            Input and output tokens are priced separately. Output typically
-            costs 3-5x more - a task generating long responses is significantly
-            more expensive than one processing long inputs.
+            Input and output tokens are priced separately. Output usually costs
+            several times more - a task generating long responses is
+            significantly more expensive than one processing long inputs.
           </p>
           <InputOutputCompare />
 
@@ -97,8 +97,11 @@ export default function LlmPriceCalculatorPage() {
           </h2>
           <p className="text-base leading-relaxed text-fd-muted-foreground mb-4">
             If your application sends the same prefix on every call (system
-            prompts, few-shot examples), caching lets you reuse it at 75-90%
-            off. It&apos;s the single biggest cost lever for most applications.
+            prompts, few-shot examples), caching lets you reuse it for a
+            fraction of the normal input price. It&apos;s the single biggest
+            cost lever for most applications. Some providers charge extra the
+            first time a prefix is written to the cache; this calculator does
+            not include that charge.
           </p>
           <CachingImpact />
 
@@ -113,11 +116,9 @@ export default function LlmPriceCalculatorPage() {
           <ChainCostPreview />
 
           <p className="text-base leading-relaxed text-fd-muted-foreground mt-10">
-            Pricing is pulled live from OpenRouter across 200+ models from
-            Anthropic, OpenAI, Google, DeepSeek, xAI, Mistral, Meta, Qwen, and
-            Zhipu AI, with automatic background revalidation. All calculator
-            settings save to the URL - bookmark a comparison or share it with
-            your team.
+            Pricing is pulled live from OpenRouter, refreshed at most every two
+            hours, with a built-in copy as a fallback. All calculator settings
+            save to the URL - bookmark a comparison or share it with your team.
           </p>
         </div>
       </section>

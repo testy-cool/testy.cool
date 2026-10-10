@@ -850,7 +850,7 @@ export function LlmPriceCalculator() {
                 className={controlLabelClass}
               >
                 Output tokens
-                <InfoTip text="Tokens the model generates per response. Usually costs 3-5x more than input tokens." />
+                <InfoTip text="Tokens the model generates per response. Usually costs several times more than input tokens." />
               </label>
               <input
                 id="chain-output-tokens"
@@ -947,7 +947,7 @@ export function LlmPriceCalculator() {
                 className={controlLabelClass}
               >
                 Output Tokens / call
-                <InfoTip text="Tokens the model generates in its response. Usually costs 3-5x more than input tokens." />
+                <InfoTip text="Tokens the model generates in its response. Usually costs several times more than input tokens." />
               </label>
               <input
                 id="budget-output-tokens"
@@ -966,7 +966,7 @@ export function LlmPriceCalculator() {
                 className={controlLabelClass}
               >
                 Reasoning Tokens
-                <InfoTip text="Internal thinking tokens used by reasoning models (o3, o4-mini, Claude with extended thinking). Billed at the output token rate. Set to 0 for non-reasoning models." />
+                <InfoTip text="Internal thinking tokens used by reasoning models (marked thinking in the table). Billed at the output token rate unless the provider lists a separate rate. Set to 0 for non-reasoning models." />
               </label>
               <input
                 id="budget-reasoning-tokens"
@@ -1004,7 +1004,7 @@ export function LlmPriceCalculator() {
             <div>
               <label htmlFor="output-tokens" className={controlLabelClass}>
                 Output Tokens
-                <InfoTip text="Tokens the model generates in its response. Usually costs 3-5x more than input tokens." />
+                <InfoTip text="Tokens the model generates in its response. Usually costs several times more than input tokens." />
               </label>
               <input
                 id="output-tokens"
@@ -1021,7 +1021,7 @@ export function LlmPriceCalculator() {
             <div>
               <label htmlFor="reasoning-tokens" className={controlLabelClass}>
                 Reasoning Tokens
-                <InfoTip text="Internal thinking tokens used by reasoning models (o3, o4-mini, Claude with extended thinking). Billed at the output token rate. Set to 0 for non-reasoning models." />
+                <InfoTip text="Internal thinking tokens used by reasoning models (marked thinking in the table). Billed at the output token rate unless the provider lists a separate rate. Set to 0 for non-reasoning models." />
               </label>
               <input
                 id="reasoning-tokens"
@@ -1059,7 +1059,7 @@ export function LlmPriceCalculator() {
             <div>
               <label htmlFor="cache-hit-rate" className={controlLabelClass}>
                 Cache Hit Rate
-                <InfoTip text="How often the model reuses cached input tokens instead of reprocessing them. Cached tokens cost 5-10x less. The first call is never cached." />
+                <InfoTip text="How often the model reuses cached input tokens instead of reprocessing them. Cached tokens cost a fraction of the normal input price; each model's cached rate is in its row breakdown. The first call is never cached. Some providers also charge extra to write the cache, which is not included." />
               </label>
               <div className="mt-1 flex items-center gap-3 rounded-lg border border-fd-border bg-fd-background px-3.5 py-2.5 shadow-sm transition-[border-color,box-shadow] focus-within:border-fd-primary focus-within:ring-2 focus-within:ring-fd-primary/20">
                 <input
@@ -1867,12 +1867,14 @@ export function LlmPriceCalculator() {
         </div>
 
         <div className="border-t border-fd-border px-5 py-3 text-xs leading-5 text-fd-foreground/60">
-          Prices per million tokens. Last updated March 2026.
+          {`Prices per million tokens, from OpenRouter${lastSynced ? `, synced ${lastSynced.toLocaleDateString()}` : ""}.`}
           {isChainMode &&
             " Chain mode assumes previous context is cached and each turn adds new tokens at full price."}
           {showCache &&
             !isChainMode &&
             ` Totals reflect cache hits at the selected cache rate. Click a row to see per-call breakdown.`}
+          {(showCache || isChainMode) &&
+            " Extra charges some providers add for writing the cache are not included."}
         </div>
       </div>
     </div>

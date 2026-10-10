@@ -156,6 +156,9 @@ const presets = [
   { label: "Code", in: 3000, out: 4000, calls: 50, cache: 0 },
 ];
 
+// A conversation is a few turns, not the 1,000 calls of the cost default
+const CHAIN_DEFAULT_CALLS = 10;
+
 const DEFAULTS = {
   in: 1000,
   out: 500,
@@ -228,7 +231,11 @@ function readParams(): {
   return {
     inputTokens: Number(p.get("in")) || DEFAULTS.in,
     outputTokens: Number(p.get("out")) || DEFAULTS.out,
-    apiCalls: Math.max(1, Number(p.get("calls")) || DEFAULTS.calls),
+    apiCalls: Math.max(
+      1,
+      Number(p.get("calls")) ||
+        (mode === "chain" ? CHAIN_DEFAULT_CALLS : DEFAULTS.calls),
+    ),
     cachePercent: Math.min(
       100,
       Math.max(0, Number(p.get("cache")) || DEFAULTS.cache),
@@ -399,6 +406,14 @@ export function LlmPriceCalculator() {
     setCachePercent(preset.cache);
   }, []);
 
+  // Swap in the default call count that fits the mode, unless the reader changed it
+  const switchMode = (next: CalcMode) => {
+    const fromDefault = mode === "chain" ? CHAIN_DEFAULT_CALLS : DEFAULTS.calls;
+    const toDefault = next === "chain" ? CHAIN_DEFAULT_CALLS : DEFAULTS.calls;
+    if (apiCalls === fromDefault) setApiCalls(toDefault);
+    setMode(next);
+  };
+
   // Serialize Set to stable string for useCallback deps
   const providerKey = [...providerFilter].sort().join(",");
   const modalityKey = [...modalityFilter].sort().join(",");
@@ -407,7 +422,9 @@ export function LlmPriceCalculator() {
     const params = new URLSearchParams();
     if (inputTokens !== DEFAULTS.in) params.set("in", String(inputTokens));
     if (outputTokens !== DEFAULTS.out) params.set("out", String(outputTokens));
-    if (apiCalls !== DEFAULTS.calls) params.set("calls", String(apiCalls));
+    const defaultCalls =
+      mode === "chain" ? CHAIN_DEFAULT_CALLS : DEFAULTS.calls;
+    if (apiCalls !== defaultCalls) params.set("calls", String(apiCalls));
     if (cachePercent !== DEFAULTS.cache)
       params.set("cache", String(cachePercent));
     if (!allSelected) params.set("provider", providerKey);
@@ -700,7 +717,7 @@ export function LlmPriceCalculator() {
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <div className="inline-flex rounded-lg border border-fd-border bg-fd-background/80 p-1">
               <button
-                onClick={() => setMode("cost")}
+                onClick={() => switchMode("cost")}
                 className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
                   mode === "cost"
                     ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
@@ -710,7 +727,7 @@ export function LlmPriceCalculator() {
                 Calculate cost
               </button>
               <button
-                onClick={() => setMode("budget")}
+                onClick={() => switchMode("budget")}
                 className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
                   mode === "budget"
                     ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"
@@ -720,7 +737,7 @@ export function LlmPriceCalculator() {
                 Set budget
               </button>
               <button
-                onClick={() => setMode("chain")}
+                onClick={() => switchMode("chain")}
                 className={`${sortButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/20 ${
                   mode === "chain"
                     ? "bg-fd-card text-fd-foreground shadow-sm ring-1 ring-fd-border"

@@ -1301,8 +1301,15 @@ export function LlmPriceCalculator() {
           >
             <thead>
               <tr className="border-b border-fd-border bg-fd-muted/15">
-                <th className="w-10 px-2 py-3 text-center text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
-                  #
+                <th
+                  className="w-16 px-2 py-3 text-center text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/62"
+                  title={
+                    isBudgetMode
+                      ? "1 = most calls for your budget"
+                      : "1 = cheapest for this workload"
+                  }
+                >
+                  Rank
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-[0.12em] text-fd-foreground/62">
                   Provider
@@ -1693,6 +1700,11 @@ export function LlmPriceCalculator() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <span
+                        title={
+                          isBudgetMode
+                            ? `Rank ${rank}: 1 = most calls for your budget`
+                            : `Rank ${rank}: 1 = cheapest for this workload`
+                        }
                         className={`flex h-5 w-5 items-center justify-center rounded text-xs font-bold tabular-nums ${
                           isTop1
                             ? "text-green-800 dark:text-green-400"

@@ -172,7 +172,8 @@ const DEFAULTS = {
   turn: 500,
 };
 
-function readParams(): {
+// Defaults unless fromUrl, so the first browser render matches the static HTML
+function readParams(fromUrl = false): {
   inputTokens: number;
   outputTokens: number;
   apiCalls: number;
@@ -185,7 +186,7 @@ function readParams(): {
   reasoningTokens: number;
   turnTokens: number;
 } {
-  if (typeof window === "undefined") {
+  if (!fromUrl || typeof window === "undefined") {
     return {
       inputTokens: DEFAULTS.in,
       outputTokens: DEFAULTS.out,
@@ -456,9 +457,29 @@ export function LlmPriceCalculator() {
     turnTokens,
   ]);
 
+  // Apply URL settings after hydration; reading them during render made the
+  // browser's first render differ from the static HTML (React error #418)
+  const [paramsLoaded, setParamsLoaded] = useState(false);
   useEffect(() => {
-    syncUrl();
-  }, [syncUrl]);
+    const p = readParams(true);
+    setInputTokens(p.inputTokens);
+    setOutputTokens(p.outputTokens);
+    setApiCalls(p.apiCalls);
+    setCachePercent(p.cachePercent);
+    setProviderFilter(p.providerFilter);
+    setModalityFilter(p.modalityFilter);
+    setSortBy(p.sortBy);
+    setMode(p.mode);
+    setBudget(p.budget);
+    setReasoningTokens(p.reasoningTokens);
+    setTurnTokens(p.turnTokens);
+    setParamsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    // Writing the URL before the settings are read would erase them
+    if (paramsLoaded) syncUrl();
+  }, [syncUrl, paramsLoaded]);
 
   const cacheRatio = cachePercent / 100;
   const showBulk = apiCalls > 1;

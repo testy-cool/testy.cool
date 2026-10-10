@@ -1,0 +1,119 @@
+---
+title: "Minions: AI agents that each live in their own folder"
+description: "Small AI agents on Pi or Claude Code, one folder each, with their own memory, skills and chats. They started from Alejandro AO's video on open-source Dots."
+date: 2026-10-11
+author: testy.cool
+id: minions-agents-in-their-own-folder
+status: published
+draft: false
+tags: [agents, pi, claude-code, herdr]
+---
+Minions are small AI agents that each live in their own folder. Each one has its own instructions, memory, skills, tools and chat history, so the chef never sees the scraper's tools. You start one with a single command in the terminal, on [Pi](https://github.com/earendil-works/pi), the open-source coding agent, or on Claude Code.
+
+![The chef minion answering a question, with its portrait, model and token use below the reply](/images/blog/minions/chef-chat.webp)
+
+## What a minion is
+
+One folder per minion. Inside it:
+
+- `AGENTS.md`: who it is and what it does.
+- `memory/`: what it remembers about you and its job.
+- `skills/`: its own skills, linked from the skills already on the machine.
+- `mcp.json`: its own MCP servers.
+- `sessions/`: every chat it has had, with a list it can search.
+
+Minions share only the login and the model list.
+
+Here is the start of the researcher's `AGENTS.md`:
+
+```md
+# researcher
+
+You research by scraping and analysing: you collect pages and data from the
+web, read them closely, compare sources, and report what holds up, with every
+claim tied to its source.
+```
+
+## One command runs everything
+
+Everything goes through one script, `minion`:
+
+```
+minion init                  create an agent, asking questions
+minion new <name> "<role>"   create an agent without questions
+minion new <name> "<role>" --claude
+                             the same, running on Claude Code instead of Pi
+minion ls                    list agents
+minion model <name>          pick the agent's model and thinking level
+minion skills <name>         pick the agent's skills (tab to toggle)
+minion mcp <name>            pick the agent's MCP servers (tab to toggle)
+minion face <name> [photo]   draw the agent's portrait
+minion <name>                start a new chat
+minion <name> -p "<msg>"     one message in a new chat, print the reply
+minion <name> -c             continue the last chat
+minion <name> @N             continue chat number N
+```
+
+New minions start as a copy of a `default` minion, so changing the default changes every minion made after it.
+
+## The twelve minions I run
+
+<video src="/images/blog/minions/faces.mp4" poster="/images/blog/minions/faces.webp" autoPlay loop muted playsInline aria-label="Animated portraits of 12 minions: azure-dragon, chef, cipher, hamel, jacky, jamal, modthew, pete, polya, researcher, scraper and teresa" className="w-full rounded-lg" />
+
+- **azure-dragon:** Azure cloud and AI Foundry. Named after the [Azure Dragon](https://heroes.thelazy.net/index.php/Azure_Dragon) from Heroes of Might and Magic III.
+- **chef:** "Helps me plan weekly meals and grocery lists."
+- **cipher:** finds, reads and compares sources, and says what holds up.
+- **hamel:** evals for AI products, the way [Hamel Husain](https://hamel.dev) teaches them.
+- **jacky:** SEO and online business. It knows every video and live stream from Indexsy, an SEO channel, as transcripts (817 videos, 100 streams).
+- **jamal:** advice on dev workflows and GitHub.
+- **modthew:** Claude Code mods. This one runs on Claude Code.
+- **pete:** founder-led sales, the way Pete Kazanjy teaches it in *Founding Sales*.
+- **polya:** coaches me to think out loud and break a problem into smaller ones.
+- **researcher:** research by scraping and analysing, with every claim tied to its source.
+- **scraper:** pulls pages and data from sites, and picks the right scraping tool for each.
+- **teresa:** product management.
+
+Two more are drawn from photos of people I know, so I left them out.
+
+## Where it started
+
+It started from that video from Alejandro.
+
+The video is [Build Your Own Open-Source Dots with Pi and Telegram](https://www.youtube.com/watch?v=HU03WDFB_tQ) by Alejandro AO, on the Hugging Face channel. He builds always-on assistants in the style of OpenAI's Dots, where each assistant gets its own computer to work in. Each assistant is a folder on a server, with its own prompt and its own skills, and he talks to it from Telegram.
+
+The idea that stuck is one line from the video: "my agents are essentially just directories."
+
+Thank you, Alejandro.
+
+The minions keep that idea and drop the server and Telegram. They run on this machine, from the terminal.
+
+## Pi minions and Claude Code minions
+
+Most minions run on Pi. `minion new <name> "<role>" --claude` makes one that runs on Claude Code instead, for jobs where Claude's models and Claude Code's own tools do better. modthew is one.
+
+Both kinds keep the same folder. The minion's `AGENTS.md` goes into the system prompt, its skills come from `skills/`, and what it remembers is in `memory/`. For a Claude Code minion, that last part is a link to the memory Claude Code keeps for the folder, so it stays in the same visible place.
+
+What differs:
+
+- **Models.** A Pi minion can use any model Pi supports, DeepSeek included. A Claude Code minion picks Opus, Sonnet, Fable or Haiku, and an effort level.
+- **MCP servers.** A Pi minion has its own, in `mcp.json`. A Claude Code minion uses the MCP servers already set up in Claude Code.
+- **Past chats.** A Pi minion lists them with `minion <name> chats` and opens one with `@N`. A Claude Code minion uses Claude Code's own list, with `-r`.
+- **The face.** Pi shows it with the pi-emote extension. Claude Code shows it with a mod I wrote, minion-avatar. It plays the same portrait above the prompt and reacts to thinking, talking, tool calls and errors. Beside the face it shows the current step in plain words and how long it has run. That part is ported from [What's Agent Doing](https://github.com/tzafrir/whats-agent-doing) by Tzafrir Rehan.
+
+## What I added in the week after
+
+The first version was folders and the command. In the week after, I added:
+
+- **Skills and MCP servers per minion.** Each one picks from what is installed, with a tab-to-toggle list. The researcher has scraping and browser skills. The chef, which plans meals and grocery lists, has none of those.
+- **Memory and past chats.** A minion saves what it learns, and can look up an earlier chat by number or by searching.
+- **A face.** `minion face` draws a portrait from the name and role, or from a photo, and animates it in the chat screen. That part is public: [pi-agent-portrait](https://github.com/testy-cool/pi-agent-portrait).
+- **Helper agents, on Pi.** A minion can send out helpers for searches. The helpers run on DeepSeek V4.1 Flash, which is fast and cheap.
+- **A side pane, in Claude Code.** When I ask, it lists the agent's doubts. It also holds my private notes, which never reach the agent.
+- **Diagrams.** Mermaid diagrams drawn in a side pane, where a box opens into the level inside it. That moved to its own repo: [mermaid-c4-zoom](https://github.com/testy-cool/mermaid-c4-zoom).
+- **Traces, on Pi.** Each minion files its traces under its own project, so one minion's runs don't mix with another's.
+
+Picking the researcher's skills with `minion skills researcher`. A `>` marks a skill it has; tab ticks or unticks one.
+
+![The skills picker filtered to scraping and browser skills, with five of them ticked](/images/blog/minions/skills-picker.webp)
+
+The `minion` command and both Claude Code mods are public: [testy-cool/minions](https://github.com/testy-cool/minions).

@@ -587,7 +587,11 @@ export function LlmPriceCalculator() {
       const key = showCache ? "cachedTotal" : "total";
       return [...filtered].sort((a, b) => a[key] - b[key]);
     }
-    return filtered;
+    // Group by provider; the stable sort keeps newest-first inside each group
+    return [...filtered].sort(
+      (a, b) =>
+        providerOrder.indexOf(a.provider) - providerOrder.indexOf(b.provider),
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     calculated,

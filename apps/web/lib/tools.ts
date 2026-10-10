@@ -3,7 +3,8 @@ export type ToolCategory =
   | "ai-prompting"
   | "text-nlp"
   | "extensions"
-  | "tutorials";
+  | "tutorials"
+  | "directories";
 
 export interface Tool {
   slug: string;
@@ -50,6 +51,12 @@ export const TOOL_CATEGORIES: {
     label: "Interactive Tutorials",
     description:
       "Deep-dive technical guides paired with custom interactive calculators built from zero.",
+  },
+  {
+    id: "directories",
+    label: "Directories",
+    description:
+      "Searchable lists kept up to date from official sources, every day.",
   },
 ];
 
@@ -188,6 +195,27 @@ export const allTools: Tool[] = [
     category: "tutorials",
     categoryLabel: "Interactive Tutorials",
     badge: "Fluid Typography",
+  },
+  {
+    slug: "upcoming-domain-extensions",
+    title: "Upcoming Domain Extensions",
+    description:
+      "Every new domain extension applied for in ICANN's 2026 round, plus every live and removed one. Search by name or company, see who applied, and get an alert when one changes.",
+    screenshot: "/images/tools/upcoming-domain-extensions.webp",
+    tags: ["Domains", "ICANN", "TLD", "Directory"],
+    // Built and hosted from its own repo (testy-cool/upcoming-domain-extensions);
+    // a Cloudflare Worker serves it at this path.
+    blogPath: "/upcoming-domain-extensions/",
+    type: "Tool",
+    category: "directories",
+    categoryLabel: "Directories",
+    badge: "Updated daily",
+    highlights: [
+      "Every 2026 application, with applicant, country and backup choice",
+      "Every live and removed ending, from IANA's root zone database",
+      "A go-live estimate from the 2012 round's measured pace",
+      "Free alerts for one extension or all of them",
+    ],
   },
 ];
 

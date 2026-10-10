@@ -469,9 +469,9 @@ export function LlmPriceCalculator() {
     return models.map((model) => {
       const inputCost = (inputTokens / 1_000_000) * model.input;
       const outputCost = (outputTokens / 1_000_000) * model.output;
-      const reasoningCost = model.reasoning
-        ? (reasoningTokens / 1_000_000) * model.reasoning
-        : 0;
+      // Reasoning tokens bill at the output rate unless OpenRouter lists a separate rate
+      const reasoningRate = model.reasoning ?? model.output;
+      const reasoningCost = (reasoningTokens / 1_000_000) * reasoningRate;
       const perCall = inputCost + outputCost + reasoningCost;
 
       const cachedInputPerCall =
@@ -497,9 +497,7 @@ export function LlmPriceCalculator() {
       const chainInputRate = model.input / 1_000_000;
       const chainCachedRate = model.cachedInput / 1_000_000;
       const chainOutputCost = (outputTokens / 1_000_000) * model.output;
-      const chainReasoningCost = model.reasoning
-        ? (reasoningTokens / 1_000_000) * model.reasoning
-        : 0;
+      const chainReasoningCost = reasoningCost;
       const chainParams = {
         base: inputTokens,
         turnSize: chainTurnSize,
@@ -1538,7 +1536,7 @@ export function LlmPriceCalculator() {
                           {showAdvanced && showCache && (
                             <td
                               className="border-l border-fd-border/40 px-4 py-3.5 text-right text-[15px] font-medium tabular-nums text-fd-foreground/78"
-                              title={`Per-call breakdown (${cachePercent}% cached):\n  Input: ${formatCost(model.cachedInputCost)} (${cachePercent}% at ${formatRate(model.cachedInput)}/M, ${100 - cachePercent}% at ${formatRate(model.input)}/M)\n  Output: ${formatCost(model.outputCost)} (${formatTokenCount(outputTokens)} × ${formatRate(model.output)}/M)${model.reasoning && reasoningTokens > 0 ? `\n  Reasoning: ${formatCost(model.reasoningCost)}` : ""}`}
+                              title={`Per-call breakdown (${cachePercent}% cached):\n  Input: ${formatCost(model.cachedInputCost)} (${cachePercent}% at ${formatRate(model.cachedInput)}/M, ${100 - cachePercent}% at ${formatRate(model.input)}/M)\n  Output: ${formatCost(model.outputCost)} (${formatTokenCount(outputTokens)} × ${formatRate(model.output)}/M)${reasoningTokens > 0 ? `\n  Reasoning: ${formatCost(model.reasoningCost)}` : ""}`}
                             >
                               <span className="cursor-help border-b border-dashed border-fd-foreground/25">
                                 {formatCost(model.cachedPerCall)}

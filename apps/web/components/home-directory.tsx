@@ -3,12 +3,10 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, ExternalLink } from "lucide-react";
-import { Badge } from "@repo/shadverse/components/badge";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@repo/shadverse/components/button";
 import { Input } from "@repo/shadverse/components/input";
 import { Label } from "@repo/shadverse/components/label";
-import { Card, CardContent, CardHeader } from "@repo/shadverse/components/card";
 import { cn } from "@repo/shadverse/lib/utils";
 import {
   Item,
@@ -88,27 +86,19 @@ function DirectorySection({
       className="min-w-0 scroll-mt-24"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <h2
-            id={`${id}-heading`}
-            className="text-xl font-semibold tracking-tight lg:text-2xl"
-          >
-            {title}
-          </h2>
-          <Badge
-            variant="secondary"
-            aria-label={`${countEntries(groups)} entries`}
-          >
-            {countEntries(groups)}
-          </Badge>
-        </div>
+        <h2
+          id={`${id}-heading`}
+          className="text-2xl font-semibold tracking-tight"
+        >
+          {title}
+        </h2>
         <Button asChild variant="link" size="sm">
           <Link href={href}>
             {linkLabel} <ArrowRight data-icon="inline-end" aria-hidden="true" />
           </Link>
         </Button>
       </div>
-      <div className="mt-5 flex flex-col gap-5">
+      <div className="mt-6 flex flex-col gap-8">
         {groups.map((group) => (
           <section
             key={group.id}
@@ -116,68 +106,64 @@ function DirectorySection({
             aria-labelledby={`${group.id}-heading`}
             className="scroll-mt-24"
           >
-            <Card className="gap-2 border-fd-border bg-fd-card py-4 shadow-none">
-              <CardHeader className="flex flex-row items-center gap-2 px-4">
-                <h3
-                  id={`${group.id}-heading`}
-                  className="text-lg font-semibold text-fd-foreground"
-                >
-                  {group.href ? (
-                    <Link
-                      href={group.href}
-                      className="rounded-sm underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary"
-                    >
-                      {group.title}
+            <div className="mb-2 flex items-center gap-2">
+              <h3
+                id={`${group.id}-heading`}
+                className="text-sm font-medium uppercase tracking-wide text-fd-muted-foreground"
+              >
+                {group.href ? (
+                  <Link
+                    href={group.href}
+                    className="rounded-sm underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary"
+                  >
+                    {group.title}
+                  </Link>
+                ) : (
+                  group.title
+                )}
+              </h3>
+              <span className="text-xs tabular-nums text-fd-muted-foreground">
+                {group.entries.length}
+              </span>
+            </div>
+            <ItemGroup className="-mx-2 gap-1" aria-label={group.title}>
+              {group.entries.map((entry) => (
+                <div role="listitem" key={entry.href}>
+                  <Item
+                    asChild
+                    size="sm"
+                    className="min-w-0 flex-nowrap items-start gap-3 p-2 hover:bg-fd-muted focus-visible:ring-fd-primary"
+                  >
+                    <Link href={entry.href}>
+                      {entry.preview ? (
+                        <ItemMedia
+                          variant="image"
+                          className="h-[45px] w-[72px] rounded-md border border-fd-border bg-fd-muted sm:h-[70px] sm:w-28"
+                        >
+                          <Image
+                            src={entry.preview}
+                            alt=""
+                            width={256}
+                            height={160}
+                            className="object-cover object-top"
+                          />
+                        </ItemMedia>
+                      ) : null}
+                      <ItemContent className="min-w-0">
+                        <ItemTitle className="text-base font-semibold text-fd-foreground">
+                          {entry.title}
+                        </ItemTitle>
+                        {entry.description ? (
+                          <ItemDescription className="text-fd-muted-foreground">
+                            {entry.description}
+                          </ItemDescription>
+                        ) : null}
+                      </ItemContent>
                     </Link>
-                  ) : (
-                    group.title
-                  )}
-                </h3>
-                <span className="text-sm text-fd-muted-foreground">
-                  {group.entries.length}
-                </span>
-              </CardHeader>
-              <CardContent className="px-2">
-                <ItemGroup aria-label={group.title}>
-                  {group.entries.map((entry) => (
-                    <div role="listitem" key={entry.href}>
-                      <Item
-                        asChild
-                        size="sm"
-                        className="min-w-0 flex-nowrap items-start gap-3 p-2 hover:bg-fd-muted focus-visible:ring-fd-primary"
-                      >
-                        <Link href={entry.href}>
-                          {entry.preview ? (
-                            <ItemMedia
-                              variant="image"
-                              className="h-16 w-24 rounded-md bg-fd-muted lg:h-20 lg:w-32"
-                            >
-                              <Image
-                                src={entry.preview}
-                                alt=""
-                                width={256}
-                                height={160}
-                                className="object-cover object-top"
-                              />
-                            </ItemMedia>
-                          ) : null}
-                          <ItemContent className="min-w-0">
-                            <ItemTitle className="text-base font-semibold text-fd-foreground">
-                              {entry.title}
-                            </ItemTitle>
-                            {entry.description ? (
-                              <ItemDescription className="text-fd-muted-foreground">
-                                {entry.description}
-                              </ItemDescription>
-                            ) : null}
-                          </ItemContent>
-                        </Link>
-                      </Item>
-                    </div>
-                  ))}
-                </ItemGroup>
-              </CardContent>
-            </Card>
+                  </Item>
+                </div>
+              ))}
+            </ItemGroup>
           </section>
         ))}
       </div>
@@ -193,6 +179,8 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
   const posts = filterGroups(postGroups, terms);
   const toolCount = countEntries(tools);
   const postCount = countEntries(posts);
+  const totalTools = countEntries(toolGroups);
+  const totalPosts = countEntries(postGroups);
 
   function clearSearch() {
     setQuery("");
@@ -205,9 +193,9 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <Label htmlFor="home-search" className="sr-only">
               Find a tool or post
@@ -231,51 +219,41 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
               </Button>
             ) : null}
           </div>
-          <p
-            role="status"
-            aria-live="polite"
-            aria-atomic="true"
-            className="text-sm text-fd-muted-foreground"
+          <nav
+            aria-label="Explore the site"
+            className="flex shrink-0 flex-wrap gap-2"
           >
-            {toolCount}{" "}
-            {toolCount === 1 ? "tool or extension" : "tools and extensions"} ·{" "}
-            {postCount} {postCount === 1 ? "post" : "posts"}
-          </p>
+            <Button asChild variant="outline" size="sm">
+              <a href="#tools" onClick={() => jumpTo("tools")}>
+                Tools & extensions
+                <span className="tabular-nums text-fd-muted-foreground">
+                  {totalTools}
+                </span>
+              </a>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <a href="#writing" onClick={() => jumpTo("writing")}>
+                Writing
+                <span className="tabular-nums text-fd-muted-foreground">
+                  {totalPosts}
+                </span>
+              </a>
+            </Button>
+          </nav>
         </div>
-        <nav
-          aria-label="Explore the site"
-          className="-mx-3 flex flex-wrap gap-1"
+        <p
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className={cn(
+            "text-sm text-fd-muted-foreground",
+            !query && "sr-only",
+          )}
         >
-          <Button asChild variant="ghost" size="sm">
-            <a href="#tools" onClick={() => jumpTo("tools")}>
-              Tools & extensions
-            </a>
-          </Button>
-          <Button asChild variant="ghost" size="sm">
-            <a href="#writing" onClick={() => jumpTo("writing")}>
-              Writing
-            </a>
-          </Button>
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/stack">Stack</Link>
-          </Button>
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/about">About</Link>
-          </Button>
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/changelog">Changelog</Link>
-          </Button>
-          <Button asChild variant="ghost" size="sm">
-            <a
-              href="https://ailookup.dev"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              AI tools directory{" "}
-              <ExternalLink data-icon="inline-end" aria-hidden="true" />
-            </a>
-          </Button>
-        </nav>
+          {query
+            ? `${toolCount + postCount} of ${totalTools + totalPosts} entries match`
+            : ""}
+        </p>
       </div>
       {toolCount + postCount === 0 ? (
         <Empty>
@@ -292,8 +270,8 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
       ) : (
         <div
           className={cn(
-            "grid items-start gap-10 lg:gap-16",
-            toolCount > 0 && postCount > 0 && "md:grid-cols-2",
+            "grid items-start gap-10 lg:gap-12",
+            toolCount > 0 && postCount > 0 && "lg:grid-cols-2",
           )}
         >
           {toolCount > 0 ? (

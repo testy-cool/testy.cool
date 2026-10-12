@@ -75,7 +75,7 @@ export default function HomePage() {
           __html: JSON.stringify([organizationSchema(), websiteSchema()]),
         }}
       />
-      <header className="flex flex-col gap-2 py-8 lg:py-10">
+      <header className="flex flex-col gap-2 py-4 lg:py-6">
         <h1 className="text-3xl font-semibold tracking-tight text-fd-foreground md:text-4xl">
           Mostly LLMs, mostly.
         </h1>

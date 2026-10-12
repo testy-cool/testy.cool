@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { cn } from "@repo/shadverse/lib/utils";
+import { categoryPillVariants } from "@/components/site/category-pill";
 import { getVisiblePosts } from "@/lib/source";
 import { getCategoryBySlug } from "@/lib/categories";
 
@@ -31,12 +31,7 @@ export function BlogCategoryNav({ active }: { active?: string }) {
             key={item.href}
             href={item.href}
             aria-current={isActive ? "page" : undefined}
-            className={cn(
-              "inline-flex items-center rounded-full border px-3 py-1 text-[13px] font-medium transition-colors",
-              isActive
-                ? "border-fd-primary/30 bg-fd-primary/10 text-fd-primary"
-                : "border-fd-border bg-fd-background/85 text-fd-foreground/72 hover:border-fd-primary/40 hover:text-fd-foreground",
-            )}
+            className={categoryPillVariants({ active: isActive })}
           >
             {item.label}
           </Link>

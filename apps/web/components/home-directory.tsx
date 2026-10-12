@@ -4,6 +4,9 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Search } from "lucide-react";
+import { cn } from "@repo/shadverse/lib/utils";
+import { categoryPillVariants } from "@/components/site/category-pill";
+import { Badge } from "@repo/shadverse/components/badge";
 import { Button } from "@repo/shadverse/components/button";
 import { Input } from "@repo/shadverse/components/input";
 import { Label } from "@repo/shadverse/components/label";
@@ -41,6 +44,7 @@ interface DirectoryEntry {
   href: string;
   preview?: string;
   keywords: string[];
+  date?: number;
 }
 
 interface DirectoryGroup {
@@ -87,6 +91,32 @@ function countEntries(groups: DirectoryGroup[]) {
   return groups.reduce((total, group) => total + group.entries.length, 0);
 }
 
+const PREVIEW_COUNT = 4;
+
+function sectionEntries(groups: DirectoryGroup[], section: string) {
+  if (section === "writing") {
+    return groups
+      .flatMap((group) =>
+        group.entries.map((entry) => ({ ...entry, category: group.title })),
+      )
+      .sort((left, right) => (right.date ?? 0) - (left.date ?? 0));
+  }
+
+  // Introduce a range of work before showing more entries from each category.
+  const entries: (DirectoryEntry & { category: string })[] = [];
+  const largestGroup = Math.max(
+    0,
+    ...groups.map((group) => group.entries.length),
+  );
+  for (let index = 0; index < largestGroup; index++) {
+    for (const group of groups) {
+      const entry = group.entries[index];
+      if (entry) entries.push({ ...entry, category: group.title });
+    }
+  }
+  return entries;
+}
+
 function DirectorySection({
   id,
   title,
@@ -100,6 +130,21 @@ function DirectorySection({
   linkLabel: string;
   groups: DirectoryGroup[];
 }) {
+  const [visibleCount, setVisibleCount] = useState(PREVIEW_COUNT);
+  const entries = sectionEntries(groups, id);
+  const visibleEntries = entries.slice(0, visibleCount);
+  const noun = id === "tools" ? "tools" : "posts";
+
+  function showMore() {
+    const firstNewIndex = visibleEntries.length;
+    setVisibleCount((count) => count + PREVIEW_COUNT);
+    requestAnimationFrame(() => {
+      document
+        .getElementById(`${id}-entry-${firstNewIndex}`)
+        ?.focus({ preventScroll: true });
+    });
+  }
+
   return (
     <section
       id={id}
@@ -119,77 +164,69 @@ function DirectorySection({
           </Link>
         </Button>
       </div>
-      <div className="mt-6 flex flex-col gap-8">
-        {groups.map((group) => (
-          <section
-            key={group.id}
-            id={group.id}
-            aria-labelledby={`${group.id}-heading`}
-            className="scroll-mt-24"
-          >
-            <div className="mb-2 flex items-center gap-2">
-              <h3
-                id={`${group.id}-heading`}
-                className="text-sm font-medium uppercase tracking-wide text-fd-muted-foreground"
-              >
-                {group.href ? (
-                  <Link
-                    href={group.href}
-                    className="rounded-sm underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary"
-                  >
-                    {group.title}
-                  </Link>
-                ) : (
-                  group.title
-                )}
-              </h3>
-              <span className="text-sm tabular-nums text-fd-muted-foreground">
-                {group.entries.length}
-              </span>
-            </div>
-            <ItemGroup
-              className="grid grid-cols-1 items-start gap-x-8 gap-y-8 lg:grid-cols-2"
-              aria-label={group.title}
+      <ItemGroup
+        id={`${id}-entries`}
+        className="mt-6 grid grid-cols-1 items-start gap-x-8 gap-y-8 lg:grid-cols-2"
+        aria-label={title}
+      >
+        {visibleEntries.map((entry, index) => (
+          <div role="listitem" key={entry.href} className="min-w-0">
+            <Item
+              asChild
+              size="sm"
+              className="group/home-entry min-w-0 flex-col flex-nowrap items-start gap-4 border-0 p-0 hover:bg-transparent focus-visible:ring-fd-primary focus-visible:ring-offset-4 focus-visible:ring-offset-fd-background [a]:hover:bg-transparent"
             >
-              {group.entries.map((entry) => (
-                <div role="listitem" key={entry.href} className="min-w-0">
-                  <Item
-                    asChild
-                    size="sm"
-                    className="min-w-0 flex-col flex-nowrap items-start gap-4 border-0 p-0 pb-2 hover:bg-fd-muted focus-visible:ring-fd-primary"
+              <Link id={`${id}-entry-${index}`} href={entry.href}>
+                {entry.preview ? (
+                  <ItemMedia
+                    variant="image"
+                    className="aspect-[8/5] h-auto w-full rounded-2xl border border-fd-border bg-fd-muted transition-colors group-hover/home-entry:border-fd-primary/40"
                   >
-                    <Link href={entry.href}>
-                      {entry.preview ? (
-                        <ItemMedia
-                          variant="image"
-                          className="aspect-[8/5] h-auto w-full rounded-md border border-fd-border bg-fd-muted"
-                        >
-                          <Image
-                            src={entry.preview}
-                            alt=""
-                            width={800}
-                            height={500}
-                            className="object-cover object-top"
-                          />
-                        </ItemMedia>
-                      ) : null}
-                      <ItemContent className="w-full min-w-0">
-                        <ItemTitle className="w-full text-xl font-semibold leading-7 text-fd-foreground">
-                          {entry.title}
-                        </ItemTitle>
-                        {entry.description ? (
-                          <ItemDescription className="line-clamp-3 text-wrap text-base leading-6 text-fd-muted-foreground">
-                            {entry.description}
-                          </ItemDescription>
-                        ) : null}
-                      </ItemContent>
-                    </Link>
-                  </Item>
-                </div>
-              ))}
-            </ItemGroup>
-          </section>
+                    <Image
+                      src={entry.preview}
+                      alt=""
+                      width={800}
+                      height={500}
+                      className="object-cover object-top"
+                    />
+                  </ItemMedia>
+                ) : null}
+                <ItemContent className="w-full min-w-0 gap-2">
+                  <Badge
+                    variant="outline"
+                    className="rounded-full border-fd-primary/15 bg-fd-primary/8 px-2.5 py-1 text-[13px] font-medium text-fd-primary"
+                  >
+                    {entry.category}
+                  </Badge>
+                  <ItemTitle className="w-full text-xl font-semibold leading-7 text-fd-foreground transition-colors group-hover/home-entry:text-fd-primary">
+                    {entry.title}
+                  </ItemTitle>
+                  {entry.description ? (
+                    <ItemDescription className="line-clamp-3 text-wrap text-base leading-6 text-fd-muted-foreground">
+                      {entry.description}
+                    </ItemDescription>
+                  ) : null}
+                </ItemContent>
+              </Link>
+            </Item>
+          </div>
         ))}
+      </ItemGroup>
+      <div className="mt-6 flex min-h-11 flex-wrap items-center justify-between gap-3">
+        <p aria-live="polite" className="text-sm text-fd-muted-foreground">
+          Showing {visibleEntries.length} of {entries.length} {noun}
+        </p>
+        {visibleEntries.length < entries.length ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 rounded-full border-fd-border bg-fd-background/85 text-fd-foreground hover:border-fd-primary/40 hover:bg-fd-primary/5"
+            aria-controls={`${id}-entries`}
+            onClick={showMore}
+          >
+            Show more {noun}
+          </Button>
+        ) : null}
       </div>
     </section>
   );
@@ -242,7 +279,7 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
             onValueChange={(value) => setSelection(value || scope)}
             aria-label="Filter by content type"
             aria-controls="home-results"
-            className="w-full gap-1 rounded-lg bg-fd-muted/60 p-1 sm:w-fit"
+            className="w-full gap-2 sm:w-fit"
           >
             {[
               { value: "all", label: "All work" },
@@ -252,7 +289,10 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
               <ToggleGroupItem
                 key={value}
                 value={value}
-                className="h-11 flex-1 rounded-md px-4 text-fd-muted-foreground data-[state=on]:bg-fd-background data-[state=on]:text-fd-foreground data-[state=on]:shadow-sm sm:flex-none"
+                className={cn(
+                  categoryPillVariants({ active: scope === value }),
+                  "h-11 flex-1 px-4 first:rounded-full last:rounded-full sm:flex-none",
+                )}
               >
                 {label}
               </ToggleGroupItem>
@@ -277,14 +317,14 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
               onKeyDown={(event) => {
                 if (event.key === "Escape") setQuery("");
               }}
-              className="h-12 min-w-0 border-fd-border bg-fd-card ps-10 pe-20 text-base"
+              className="h-11 min-w-0 rounded-full border-fd-border bg-fd-background/85 ps-10 pe-20 text-base"
             />
             {query ? (
               <Button
                 type="button"
                 variant="ghost"
                 onClick={clearSearch}
-                className="absolute end-1 top-1/2 h-11 -translate-y-1/2"
+                className="absolute end-1 top-1/2 h-11 -translate-y-1/2 rounded-full"
               >
                 Clear
               </Button>
@@ -300,11 +340,11 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
           >
             <SelectTrigger
               aria-label="Filter by category"
-              className="h-11 w-full border-fd-border bg-fd-card text-base data-[size=default]:h-11"
+              className="h-11 w-full rounded-full border-fd-border bg-fd-background/85 text-base data-[size=default]:h-11"
             >
               <SelectValue placeholder="All categories" />
             </SelectTrigger>
-            <SelectContent className="border-fd-border bg-fd-popover text-fd-popover-foreground">
+            <SelectContent className="rounded-2xl border-fd-border bg-fd-popover text-fd-popover-foreground">
               <SelectItem value="all" className="min-h-11 text-base">
                 All categories
               </SelectItem>
@@ -349,7 +389,10 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
                   <ToggleGroupItem
                     key={group.id}
                     value={group.id}
-                    className="h-11 flex-none rounded-md border border-fd-border bg-fd-card px-3 text-fd-muted-foreground data-[state=on]:border-fd-foreground data-[state=on]:bg-fd-foreground data-[state=on]:text-fd-background"
+                    className={cn(
+                      categoryPillVariants({ active: selection === group.id }),
+                      "h-11 flex-none first:rounded-full last:rounded-full",
+                    )}
                   >
                     {group.title}
                   </ToggleGroupItem>
@@ -374,7 +417,7 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
               type="button"
               variant="ghost"
               onClick={showEverything}
-              className="h-11"
+              className="h-11 rounded-full"
             >
               Reset filters
             </Button>
@@ -398,6 +441,7 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
           <div className="flex min-w-0 flex-col gap-10">
             {toolCount > 0 ? (
               <DirectorySection
+                key={`tools-${selection}-${query}`}
                 id="tools"
                 title="Tools & extensions"
                 href="/tools"
@@ -407,6 +451,7 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
             ) : null}
             {postCount > 0 ? (
               <DirectorySection
+                key={`writing-${selection}-${query}`}
                 id="writing"
                 title="Writing"
                 href="/blog"

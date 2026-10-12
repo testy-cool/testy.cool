@@ -59,6 +59,7 @@ export default function HomePage() {
       .filter((post) => post.slugs[0] === slug)
       .map((post) => ({
         title: post.data.title,
+        date: post.data.date.getTime(),
         description: getPostExcerpt(post) ?? post.data.description,
         preview: postPreviewSlugs.has(post.slugs[post.slugs.length - 1] ?? "")
           ? `/images/blog/previews/${post.slugs[post.slugs.length - 1]}.webp`

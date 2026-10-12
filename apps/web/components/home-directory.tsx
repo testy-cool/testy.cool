@@ -2,18 +2,20 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { Badge } from "@repo/shadverse/components/badge";
 import { Button } from "@repo/shadverse/components/button";
 import { Input } from "@repo/shadverse/components/input";
 import { Label } from "@repo/shadverse/components/label";
-import { Separator } from "@repo/shadverse/components/separator";
+import { Card, CardContent, CardHeader } from "@repo/shadverse/components/card";
 import { cn } from "@repo/shadverse/lib/utils";
 import {
   Item,
   ItemContent,
   ItemDescription,
   ItemGroup,
+  ItemMedia,
   ItemTitle,
 } from "@repo/shadverse/components/item";
 import {
@@ -27,6 +29,7 @@ interface DirectoryEntry {
   title: string;
   description?: string;
   href: string;
+  preview?: string;
   keywords: string[];
 }
 
@@ -88,7 +91,7 @@ function DirectorySection({
         <div className="flex items-center gap-3">
           <h2
             id={`${id}-heading`}
-            className="text-xl font-semibold tracking-tight"
+            className="text-xl font-semibold tracking-tight lg:text-2xl"
           >
             {title}
           </h2>
@@ -105,8 +108,7 @@ function DirectorySection({
           </Link>
         </Button>
       </div>
-      <Separator className="my-5" />
-      <div className="flex flex-col gap-6">
+      <div className="mt-5 flex flex-col gap-5">
         {groups.map((group) => (
           <section
             key={group.id}
@@ -114,50 +116,68 @@ function DirectorySection({
             aria-labelledby={`${group.id}-heading`}
             className="scroll-mt-24"
           >
-            <div className="mb-2 flex items-center gap-2">
-              <h3
-                id={`${group.id}-heading`}
-                className="text-base font-semibold text-fd-foreground"
-              >
-                {group.href ? (
-                  <Link
-                    href={group.href}
-                    className="rounded-sm underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary"
-                  >
-                    {group.title}
-                  </Link>
-                ) : (
-                  group.title
-                )}
-              </h3>
-              <span className="text-sm text-fd-muted-foreground">
-                {group.entries.length}
-              </span>
-            </div>
-            <ItemGroup className="-mx-4" aria-label={group.title}>
-              {group.entries.map((entry) => (
-                <div role="listitem" key={entry.href}>
-                  <Item
-                    asChild
-                    size="sm"
-                    className="min-w-0 hover:bg-fd-muted focus-visible:ring-fd-primary"
-                  >
-                    <Link href={entry.href}>
-                      <ItemContent className="min-w-0">
-                        <ItemTitle className="text-base text-fd-foreground">
-                          {entry.title}
-                        </ItemTitle>
-                        {entry.description ? (
-                          <ItemDescription className="text-fd-muted-foreground">
-                            {entry.description}
-                          </ItemDescription>
-                        ) : null}
-                      </ItemContent>
+            <Card className="gap-2 border-fd-border bg-fd-card py-4 shadow-none">
+              <CardHeader className="flex flex-row items-center gap-2 px-4">
+                <h3
+                  id={`${group.id}-heading`}
+                  className="text-lg font-semibold text-fd-foreground"
+                >
+                  {group.href ? (
+                    <Link
+                      href={group.href}
+                      className="rounded-sm underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary"
+                    >
+                      {group.title}
                     </Link>
-                  </Item>
-                </div>
-              ))}
-            </ItemGroup>
+                  ) : (
+                    group.title
+                  )}
+                </h3>
+                <span className="text-sm text-fd-muted-foreground">
+                  {group.entries.length}
+                </span>
+              </CardHeader>
+              <CardContent className="px-2">
+                <ItemGroup aria-label={group.title}>
+                  {group.entries.map((entry) => (
+                    <div role="listitem" key={entry.href}>
+                      <Item
+                        asChild
+                        size="sm"
+                        className="min-w-0 flex-nowrap items-start gap-3 p-2 hover:bg-fd-muted focus-visible:ring-fd-primary"
+                      >
+                        <Link href={entry.href}>
+                          {entry.preview ? (
+                            <ItemMedia
+                              variant="image"
+                              className="h-16 w-24 rounded-md bg-fd-muted lg:h-20 lg:w-32"
+                            >
+                              <Image
+                                src={entry.preview}
+                                alt=""
+                                width={256}
+                                height={160}
+                                className="object-cover object-top"
+                              />
+                            </ItemMedia>
+                          ) : null}
+                          <ItemContent className="min-w-0">
+                            <ItemTitle className="text-base font-semibold text-fd-foreground">
+                              {entry.title}
+                            </ItemTitle>
+                            {entry.description ? (
+                              <ItemDescription className="text-fd-muted-foreground">
+                                {entry.description}
+                              </ItemDescription>
+                            ) : null}
+                          </ItemContent>
+                        </Link>
+                      </Item>
+                    </div>
+                  ))}
+                </ItemGroup>
+              </CardContent>
+            </Card>
           </section>
         ))}
       </div>

@@ -7,6 +7,23 @@ import { getCategoryBySlug } from "@/lib/categories";
 
 export const metadata = createMetadata({ path: "https://testy.cool" });
 
+// Real screenshots and rendered examples, sized for directory thumbnails.
+const postPreviewSlugs = new Set([
+  "refined-linkedin",
+  "minions-agents-in-their-own-folder",
+  "scry",
+  "screenshot-to-html-bounding-boxes",
+  "mdtask",
+  "neat-annotations",
+  "flex-inference",
+  "universal-commerce-protocol-ucp",
+  "claude-code-ssh-setup",
+  "css-clamp-fluid-responsive-design",
+  "fumadocs-blog-setup",
+  "cloudflare-pages-redirect-custom-domain",
+  "windows-nul-file",
+]);
+
 export default function HomePage() {
   const posts = getVisiblePosts().sort(
     (left, right) => right.data.date.getTime() - left.data.date.getTime(),
@@ -23,6 +40,7 @@ export default function HomePage() {
       .map((tool) => ({
         title: tool.title,
         description: tool.description,
+        preview: tool.screenshot,
         // This directory runs in a separate Worker, outside the static export.
         href:
           tool.slug === "upcoming-domain-extensions"
@@ -41,6 +59,9 @@ export default function HomePage() {
       .map((post) => ({
         title: post.data.title,
         description: post.data.description,
+        preview: postPreviewSlugs.has(post.slugs[post.slugs.length - 1] ?? "")
+          ? `/images/blog/previews/${post.slugs[post.slugs.length - 1]}.webp`
+          : post.data.image,
         href: post.url,
         keywords: [...post.slugs, ...(post.data.tags ?? [])],
       })),

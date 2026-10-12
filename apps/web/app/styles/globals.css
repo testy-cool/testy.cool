@@ -4,12 +4,25 @@
 
 /* Accent color override — teal */
 :root {
+  --site-content-gutter: 1rem;
   --color-fd-primary: hsl(192, 45%, 30%);
   --color-fd-primary-foreground: hsl(0, 0%, 98%);
   /* fumadocs ships 45.1%, which lands at 4.2 to 4.35:1 on our backgrounds.
      42% clears the 4.5:1 minimum for small text everywhere on the site. */
   --color-fd-muted-foreground: hsl(0, 0%, 42%);
 }
+@media (min-width: 64rem) {
+  :root {
+    --site-content-gutter: 1.5rem;
+  }
+}
+
+/* Keep the homepage, navigation and footer on the same content edges. */
+@utility site-content {
+  @apply container w-full;
+  padding-inline: var(--site-content-gutter);
+}
+
 .dark {
   --color-fd-primary: hsl(192, 40%, 72%);
   --color-fd-primary-foreground: hsl(0, 0%, 9%);

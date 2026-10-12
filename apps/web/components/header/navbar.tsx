@@ -27,7 +27,7 @@ export const Navbar = (props: HTMLAttributes<HTMLElement>) => {
       >
         <div
           className={cn(
-            "relative container mx-auto flex size-full h-14 flex-row items-center",
+            "site-content relative flex h-14 flex-row items-center",
           )}
         >
           <GridBackground maxWidthClass="container" />
@@ -44,7 +44,7 @@ export const Navbar = (props: HTMLAttributes<HTMLElement>) => {
                 "linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)",
             }}
           ></div>
-          <div className="flex flex-row size-full items-center gap-1.5 px-4 lg:px-6">
+          <div className="flex flex-row size-full items-center gap-1.5">
             {props.children}
           </div>
         </div>

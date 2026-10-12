@@ -69,7 +69,7 @@ export default function HomePage() {
   }));
 
   return (
-    <div className="container w-full px-4 pb-12 lg:px-6 lg:pb-16">
+    <div className="site-content pb-12 lg:pb-16">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

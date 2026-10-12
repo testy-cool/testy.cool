@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Search } from "lucide-react";
 import { Button } from "@repo/shadverse/components/button";
 import { Input } from "@repo/shadverse/components/input";
 import { Label } from "@repo/shadverse/components/label";
@@ -11,6 +11,15 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@repo/shadverse/components/toggle-group";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/shadverse/components/select";
 import {
   Item,
   ItemContent,
@@ -139,7 +148,7 @@ function DirectorySection({
               </span>
             </div>
             <ItemGroup
-              className="-mx-2 grid grid-cols-1 items-start gap-x-6 gap-y-8 lg:grid-cols-2"
+              className="grid grid-cols-1 items-start gap-x-8 gap-y-8 lg:grid-cols-2"
               aria-label={group.title}
             >
               {group.entries.map((entry) => (
@@ -147,7 +156,7 @@ function DirectorySection({
                   <Item
                     asChild
                     size="sm"
-                    className="min-w-0 flex-col flex-nowrap items-start gap-4 p-2 hover:bg-fd-muted focus-visible:ring-fd-primary"
+                    className="min-w-0 flex-col flex-nowrap items-start gap-4 border-0 p-0 pb-2 hover:bg-fd-muted focus-visible:ring-fd-primary"
                   >
                     <Link href={entry.href}>
                       {entry.preview ? (
@@ -204,6 +213,12 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
           toolGroups.some((group) => group.id === selection)
         ? "tools"
         : "writing";
+  const categoryGroups = [
+    { id: "tools", title: "Tools", groups: toolGroups },
+    { id: "writing", title: "Writing", groups: postGroups },
+  ].filter(({ id }) => scope === "all" || scope === id);
+  const categorySelection =
+    selection === "all" || selection === scope ? "all" : selection;
 
   function clearSearch() {
     setQuery("");
@@ -219,11 +234,38 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-3">
-          <div className="flex min-w-0 max-w-xl flex-1 items-center gap-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <ToggleGroup
+            type="single"
+            size="sm"
+            value={scope}
+            onValueChange={(value) => setSelection(value || scope)}
+            aria-label="Filter by content type"
+            aria-controls="home-results"
+            className="w-full gap-1 rounded-lg bg-fd-muted/60 p-1 sm:w-fit"
+          >
+            {[
+              { value: "all", label: "All work" },
+              { value: "tools", label: "Tools" },
+              { value: "writing", label: "Writing" },
+            ].map(({ value, label }) => (
+              <ToggleGroupItem
+                key={value}
+                value={value}
+                className="h-11 flex-1 rounded-md px-4 text-fd-muted-foreground data-[state=on]:bg-fd-background data-[state=on]:text-fd-foreground data-[state=on]:shadow-sm sm:flex-none"
+              >
+                {label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+          <div className="relative w-full min-w-0 sm:max-w-xl sm:flex-1">
             <Label htmlFor="home-search" className="sr-only">
               Find a tool or post
             </Label>
+            <Search
+              className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-fd-muted-foreground"
+              aria-hidden="true"
+            />
             <Input
               id="home-search"
               ref={inputRef}
@@ -235,83 +277,108 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
               onKeyDown={(event) => {
                 if (event.key === "Escape") setQuery("");
               }}
-              className="h-10 min-w-0 max-w-xl"
+              className="h-12 min-w-0 border-fd-border bg-fd-card ps-10 pe-20 text-base"
             />
             {query ? (
-              <Button type="button" variant="ghost" onClick={clearSearch}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={clearSearch}
+                className="absolute end-1 top-1/2 h-11 -translate-y-1/2"
+              >
                 Clear
               </Button>
             ) : null}
           </div>
+        </div>
+        <div className="md:hidden">
+          <Select
+            value={categorySelection}
+            onValueChange={(value) =>
+              setSelection(value === "all" ? scope : value)
+            }
+          >
+            <SelectTrigger
+              aria-label="Filter by category"
+              className="h-11 w-full border-fd-border bg-fd-card text-base data-[size=default]:h-11"
+            >
+              <SelectValue placeholder="All categories" />
+            </SelectTrigger>
+            <SelectContent className="border-fd-border bg-fd-popover text-fd-popover-foreground">
+              <SelectItem value="all" className="min-h-11 text-base">
+                All categories
+              </SelectItem>
+              {categoryGroups.map(({ id, title, groups }) => (
+                <SelectGroup key={id}>
+                  <SelectLabel className="text-sm text-fd-muted-foreground">
+                    {title}
+                  </SelectLabel>
+                  {groups.map((group) => (
+                    <SelectItem
+                      key={group.id}
+                      value={group.id}
+                      className="min-h-11 text-base"
+                    >
+                      {group.title}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="hidden min-w-0 flex-col gap-2 md:flex">
+          {categoryGroups.map(({ id, title, groups }) => (
+            <div key={id} className="flex min-w-0 items-start gap-3">
+              <span
+                id={`${id}-filter-label`}
+                className="flex h-11 w-16 shrink-0 items-center text-sm font-medium text-fd-muted-foreground"
+              >
+                {title}
+              </span>
+              <ToggleGroup
+                type="single"
+                size="sm"
+                value={selection}
+                onValueChange={(value) => setSelection(value || id)}
+                aria-labelledby={`${id}-filter-label`}
+                aria-controls="home-results"
+                className="min-w-0 flex-1 flex-wrap justify-start gap-2"
+              >
+                {groups.map((group) => (
+                  <ToggleGroupItem
+                    key={group.id}
+                    value={group.id}
+                    className="h-11 flex-none rounded-md border border-fd-border bg-fd-card px-3 text-fd-muted-foreground data-[state=on]:border-fd-foreground data-[state=on]:bg-fd-foreground data-[state=on]:text-fd-background"
+                  >
+                    {group.title}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </div>
+          ))}
+        </div>
+        <div className="flex min-h-6 items-center justify-between gap-3">
           <p
             role="status"
             aria-live="polite"
             aria-atomic="true"
-            className="shrink-0 text-sm text-fd-muted-foreground"
+            className="text-sm text-fd-muted-foreground"
           >
             {query || selection !== "all"
               ? `${toolCount + postCount} of ${totalTools + totalPosts} entries`
               : `${totalTools + totalPosts} entries`}
           </p>
-        </div>
-        <ToggleGroup
-          type="single"
-          size="sm"
-          value={scope}
-          onValueChange={(value) => setSelection(value || "all")}
-          aria-label="Filter by content type"
-          aria-controls="home-results"
-          className="gap-1"
-        >
-          {[
-            { value: "all", label: "All work" },
-            { value: "tools", label: "Tools" },
-            { value: "writing", label: "Writing" },
-          ].map(({ value, label }) => (
-            <ToggleGroupItem
-              key={value}
-              value={value}
-              className="flex-none rounded-md px-3 data-[state=on]:bg-fd-muted data-[state=on]:text-fd-foreground"
+          {query || selection !== "all" ? (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={showEverything}
+              className="h-11"
             >
-              {label}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-        <div className="flex min-w-0 flex-col gap-1">
-          {[
-            { id: "tools", title: "Tools", groups: toolGroups },
-            { id: "writing", title: "Writing", groups: postGroups },
-          ]
-            .filter(({ id }) => scope === "all" || scope === id)
-            .map(({ id, title, groups }) => (
-              <div key={id} className="flex min-w-0 items-start gap-1">
-                <span
-                  id={`${id}-filter-label`}
-                  className="flex h-10 w-20 shrink-0 items-center text-sm font-medium text-fd-muted-foreground"
-                >
-                  {title}
-                </span>
-                <ToggleGroup
-                  type="single"
-                  size="sm"
-                  value={selection}
-                  onValueChange={(value) => setSelection(value || id)}
-                  aria-labelledby={`${id}-filter-label`}
-                  aria-controls="home-results"
-                  className="min-w-0 flex-1 justify-start gap-1 overflow-x-auto p-1"
-                >
-                  {groups.map((group) => (
-                    <ToggleGroupItem
-                      key={group.id}
-                      value={group.id}
-                      className="flex-none rounded-md px-3 text-fd-muted-foreground data-[state=on]:bg-fd-muted data-[state=on]:text-fd-foreground"
-                    >
-                      {group.title}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
-              </div>
-            ))}
+              Reset filters
+            </Button>
+          ) : null}
         </div>
       </div>
       <div id="home-results">

@@ -14,7 +14,7 @@ export default function SimpleFooter({
 }) {
   return (
     <footer>
-      <div className="relative isolate mx-auto container px-4 py-12 md:flex md:items-center md:justify-between lg:px-6">
+      <div className="site-content relative isolate py-12 md:flex md:items-center md:justify-between">
         <GridBackground maxWidthClass="container" />
 
         <div className="flex justify-center gap-x-6 md:order-2">

@@ -3,11 +3,10 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import { Button } from "@repo/shadverse/components/button";
 import { Input } from "@repo/shadverse/components/input";
 import { Label } from "@repo/shadverse/components/label";
-import { cn } from "@repo/shadverse/lib/utils";
 import {
   Item,
   ItemContent,
@@ -98,7 +97,7 @@ function DirectorySection({
           </Link>
         </Button>
       </div>
-      <div className="mt-6 flex flex-col gap-8">
+      <div className="mt-6 flex flex-col gap-4">
         {groups.map((group) => (
           <section
             key={group.id}
@@ -122,7 +121,7 @@ function DirectorySection({
                   group.title
                 )}
               </h3>
-              <span className="text-xs tabular-nums text-fd-muted-foreground">
+              <span className="text-sm tabular-nums text-fd-muted-foreground">
                 {group.entries.length}
               </span>
             </div>
@@ -132,29 +131,29 @@ function DirectorySection({
                   <Item
                     asChild
                     size="sm"
-                    className="min-w-0 flex-nowrap items-start gap-3 p-2 hover:bg-fd-muted focus-visible:ring-fd-primary"
+                    className="min-w-0 flex-col flex-nowrap items-start gap-4 p-2 hover:bg-fd-muted focus-visible:ring-fd-primary sm:flex-row sm:items-center"
                   >
                     <Link href={entry.href}>
                       {entry.preview ? (
                         <ItemMedia
                           variant="image"
-                          className="h-[45px] w-[72px] rounded-md border border-fd-border bg-fd-muted sm:h-[70px] sm:w-28"
+                          className="aspect-[8/5] h-auto w-full rounded-md border border-fd-border bg-fd-muted sm:h-[120px] sm:w-48"
                         >
                           <Image
                             src={entry.preview}
                             alt=""
-                            width={256}
-                            height={160}
+                            width={400}
+                            height={250}
                             className="object-cover object-top"
                           />
                         </ItemMedia>
                       ) : null}
-                      <ItemContent className="min-w-0">
-                        <ItemTitle className="text-base font-semibold text-fd-foreground">
+                      <ItemContent className="w-full min-w-0">
+                        <ItemTitle className="w-full text-base font-semibold text-fd-foreground sm:block sm:truncate">
                           {entry.title}
                         </ItemTitle>
                         {entry.description ? (
-                          <ItemDescription className="text-fd-muted-foreground">
+                          <ItemDescription className="line-clamp-1 text-wrap text-fd-muted-foreground">
                             {entry.description}
                           </ItemDescription>
                         ) : null}
@@ -195,8 +194,8 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
+        <div className="flex items-center gap-3">
+          <div className="flex min-w-0 max-w-xl flex-1 items-center gap-2">
             <Label htmlFor="home-search" className="sr-only">
               Find a tool or post
             </Label>
@@ -211,7 +210,7 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
               onKeyDown={(event) => {
                 if (event.key === "Escape") setQuery("");
               }}
-              className="h-10 max-w-xl"
+              className="h-10 min-w-0 max-w-xl"
             />
             {query ? (
               <Button type="button" variant="ghost" onClick={clearSearch}>
@@ -219,41 +218,84 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
               </Button>
             ) : null}
           </div>
-          <nav
-            aria-label="Explore the site"
-            className="flex shrink-0 flex-wrap gap-2"
+          <p
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            className="shrink-0 text-sm text-fd-muted-foreground"
           >
-            <Button asChild variant="outline" size="sm">
-              <a href="#tools" onClick={() => jumpTo("tools")}>
-                Tools & extensions
-                <span className="tabular-nums text-fd-muted-foreground">
-                  {totalTools}
-                </span>
-              </a>
-            </Button>
-            <Button asChild variant="outline" size="sm">
-              <a href="#writing" onClick={() => jumpTo("writing")}>
-                Writing
-                <span className="tabular-nums text-fd-muted-foreground">
-                  {totalPosts}
-                </span>
-              </a>
-            </Button>
-          </nav>
+            {query
+              ? `${toolCount + postCount} of ${totalTools + totalPosts} entries`
+              : `${totalTools + totalPosts} entries`}
+          </p>
         </div>
-        <p
-          role="status"
-          aria-live="polite"
-          aria-atomic="true"
-          className={cn(
-            "text-sm text-fd-muted-foreground",
-            !query && "sr-only",
-          )}
+        <nav
+          aria-label="Explore the site"
+          className="-mx-3 flex flex-col gap-1"
         >
-          {query
-            ? `${toolCount + postCount} of ${totalTools + totalPosts} entries match`
-            : ""}
-        </p>
+          {[
+            { id: "tools", title: "Tools", groups: toolGroups },
+            { id: "writing", title: "Writing", groups: postGroups },
+          ].map(({ id, title, groups }) => (
+            <div key={id} className="flex min-w-0 items-start gap-1">
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="w-20 shrink-0 justify-start font-semibold"
+              >
+                <a href={`#${id}`} onClick={() => jumpTo(id)}>
+                  {title}
+                </a>
+              </Button>
+              <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto pb-1">
+                {groups.map((group) => (
+                  <Button
+                    asChild
+                    key={group.id}
+                    variant="ghost"
+                    size="sm"
+                    className="shrink-0 text-fd-muted-foreground"
+                  >
+                    <a href={`#${group.id}`} onClick={() => jumpTo(group.id)}>
+                      {group.title}
+                    </a>
+                  </Button>
+                ))}
+                {id === "writing" ? (
+                  <>
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="sm"
+                      className="shrink-0"
+                    >
+                      <Link href="/changelog">Changelog</Link>
+                    </Button>
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="sm"
+                      className="shrink-0"
+                    >
+                      <a
+                        href="https://ailookup.dev"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        AI tools directory
+                        <ExternalLink
+                          data-icon="inline-end"
+                          aria-hidden="true"
+                        />
+                      </a>
+                    </Button>
+                  </>
+                ) : null}
+              </div>
+            </div>
+          ))}
+        </nav>
       </div>
       {toolCount + postCount === 0 ? (
         <Empty>
@@ -268,12 +310,7 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
           </Button>
         </Empty>
       ) : (
-        <div
-          className={cn(
-            "grid items-start gap-10 lg:gap-12",
-            toolCount > 0 && postCount > 0 && "lg:grid-cols-2",
-          )}
-        >
+        <div className="flex min-w-0 flex-col gap-10">
           {toolCount > 0 ? (
             <DirectorySection
               id="tools"

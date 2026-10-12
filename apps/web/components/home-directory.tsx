@@ -3,10 +3,14 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@repo/shadverse/components/button";
 import { Input } from "@repo/shadverse/components/input";
 import { Label } from "@repo/shadverse/components/label";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@repo/shadverse/components/toggle-group";
 import {
   Item,
   ItemContent,
@@ -42,8 +46,17 @@ interface HomeDirectoryProps {
   postGroups: DirectoryGroup[];
 }
 
-function filterGroups(groups: DirectoryGroup[], terms: string[]) {
+function filterGroups(
+  groups: DirectoryGroup[],
+  terms: string[],
+  selection: string,
+  section: "tools" | "writing",
+) {
   return groups
+    .filter(
+      (group) =>
+        selection === "all" || selection === section || selection === group.id,
+    )
     .map((group) => ({
       ...group,
       entries: group.entries.filter((entry) => {
@@ -97,7 +110,7 @@ function DirectorySection({
           </Link>
         </Button>
       </div>
-      <div className="mt-6 flex flex-col gap-4">
+      <div className="mt-6 flex flex-col gap-8">
         {groups.map((group) => (
           <section
             key={group.id}
@@ -125,35 +138,38 @@ function DirectorySection({
                 {group.entries.length}
               </span>
             </div>
-            <ItemGroup className="-mx-2 gap-1" aria-label={group.title}>
+            <ItemGroup
+              className="-mx-2 grid grid-cols-1 items-start gap-x-6 gap-y-8 lg:grid-cols-2"
+              aria-label={group.title}
+            >
               {group.entries.map((entry) => (
-                <div role="listitem" key={entry.href}>
+                <div role="listitem" key={entry.href} className="min-w-0">
                   <Item
                     asChild
                     size="sm"
-                    className="min-w-0 flex-col flex-nowrap items-start gap-4 p-2 hover:bg-fd-muted focus-visible:ring-fd-primary sm:flex-row sm:items-center"
+                    className="min-w-0 flex-col flex-nowrap items-start gap-4 p-2 hover:bg-fd-muted focus-visible:ring-fd-primary"
                   >
                     <Link href={entry.href}>
                       {entry.preview ? (
                         <ItemMedia
                           variant="image"
-                          className="aspect-[8/5] h-auto w-full rounded-md border border-fd-border bg-fd-muted sm:h-[120px] sm:w-48"
+                          className="aspect-[8/5] h-auto w-full rounded-md border border-fd-border bg-fd-muted"
                         >
                           <Image
                             src={entry.preview}
                             alt=""
-                            width={400}
-                            height={250}
+                            width={800}
+                            height={500}
                             className="object-cover object-top"
                           />
                         </ItemMedia>
                       ) : null}
                       <ItemContent className="w-full min-w-0">
-                        <ItemTitle className="w-full text-base font-semibold text-fd-foreground sm:block sm:truncate">
+                        <ItemTitle className="w-full text-xl font-semibold leading-7 text-fd-foreground">
                           {entry.title}
                         </ItemTitle>
                         {entry.description ? (
-                          <ItemDescription className="line-clamp-1 text-wrap text-fd-muted-foreground">
+                          <ItemDescription className="line-clamp-3 text-wrap text-base leading-6 text-fd-muted-foreground">
                             {entry.description}
                           </ItemDescription>
                         ) : null}
@@ -172,23 +188,32 @@ function DirectorySection({
 
 export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
   const [query, setQuery] = useState("");
+  const [selection, setSelection] = useState("all");
   const inputRef = useRef<HTMLInputElement>(null);
   const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  const tools = filterGroups(toolGroups, terms);
-  const posts = filterGroups(postGroups, terms);
+  const tools = filterGroups(toolGroups, terms, selection, "tools");
+  const posts = filterGroups(postGroups, terms, selection, "writing");
   const toolCount = countEntries(tools);
   const postCount = countEntries(posts);
   const totalTools = countEntries(toolGroups);
   const totalPosts = countEntries(postGroups);
+  const scope =
+    selection === "all"
+      ? "all"
+      : selection === "tools" ||
+          toolGroups.some((group) => group.id === selection)
+        ? "tools"
+        : "writing";
 
   function clearSearch() {
     setQuery("");
     inputRef.current?.focus();
   }
 
-  function jumpTo(id: string) {
+  function showEverything() {
     setQuery("");
-    requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView());
+    setSelection("all");
+    inputRef.current?.focus();
   }
 
   return (
@@ -224,113 +249,107 @@ export function HomeDirectory({ toolGroups, postGroups }: HomeDirectoryProps) {
             aria-atomic="true"
             className="shrink-0 text-sm text-fd-muted-foreground"
           >
-            {query
+            {query || selection !== "all"
               ? `${toolCount + postCount} of ${totalTools + totalPosts} entries`
               : `${totalTools + totalPosts} entries`}
           </p>
         </div>
-        <nav
-          aria-label="Explore the site"
-          className="-mx-3 flex flex-col gap-1"
+        <ToggleGroup
+          type="single"
+          size="sm"
+          value={scope}
+          onValueChange={(value) => setSelection(value || "all")}
+          aria-label="Filter by content type"
+          aria-controls="home-results"
+          className="gap-1"
         >
+          {[
+            { value: "all", label: "All work" },
+            { value: "tools", label: "Tools" },
+            { value: "writing", label: "Writing" },
+          ].map(({ value, label }) => (
+            <ToggleGroupItem
+              key={value}
+              value={value}
+              className="flex-none rounded-md px-3 data-[state=on]:bg-fd-muted data-[state=on]:text-fd-foreground"
+            >
+              {label}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+        <div className="flex min-w-0 flex-col gap-1">
           {[
             { id: "tools", title: "Tools", groups: toolGroups },
             { id: "writing", title: "Writing", groups: postGroups },
-          ].map(({ id, title, groups }) => (
-            <div key={id} className="flex min-w-0 items-start gap-1">
-              <Button
-                asChild
-                variant="ghost"
-                size="sm"
-                className="w-20 shrink-0 justify-start font-semibold"
-              >
-                <a href={`#${id}`} onClick={() => jumpTo(id)}>
+          ]
+            .filter(({ id }) => scope === "all" || scope === id)
+            .map(({ id, title, groups }) => (
+              <div key={id} className="flex min-w-0 items-start gap-1">
+                <span
+                  id={`${id}-filter-label`}
+                  className="flex h-10 w-20 shrink-0 items-center text-sm font-medium text-fd-muted-foreground"
+                >
                   {title}
-                </a>
-              </Button>
-              <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto pb-1">
-                {groups.map((group) => (
-                  <Button
-                    asChild
-                    key={group.id}
-                    variant="ghost"
-                    size="sm"
-                    className="shrink-0 text-fd-muted-foreground"
-                  >
-                    <a href={`#${group.id}`} onClick={() => jumpTo(group.id)}>
+                </span>
+                <ToggleGroup
+                  type="single"
+                  size="sm"
+                  value={selection}
+                  onValueChange={(value) => setSelection(value || id)}
+                  aria-labelledby={`${id}-filter-label`}
+                  aria-controls="home-results"
+                  className="min-w-0 flex-1 justify-start gap-1 overflow-x-auto p-1"
+                >
+                  {groups.map((group) => (
+                    <ToggleGroupItem
+                      key={group.id}
+                      value={group.id}
+                      className="flex-none rounded-md px-3 text-fd-muted-foreground data-[state=on]:bg-fd-muted data-[state=on]:text-fd-foreground"
+                    >
                       {group.title}
-                    </a>
-                  </Button>
-                ))}
-                {id === "writing" ? (
-                  <>
-                    <Button
-                      asChild
-                      variant="ghost"
-                      size="sm"
-                      className="shrink-0"
-                    >
-                      <Link href="/changelog">Changelog</Link>
-                    </Button>
-                    <Button
-                      asChild
-                      variant="ghost"
-                      size="sm"
-                      className="shrink-0"
-                    >
-                      <a
-                        href="https://ailookup.dev"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        AI tools directory
-                        <ExternalLink
-                          data-icon="inline-end"
-                          aria-hidden="true"
-                        />
-                      </a>
-                    </Button>
-                  </>
-                ) : null}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
               </div>
-            </div>
-          ))}
-        </nav>
-      </div>
-      {toolCount + postCount === 0 ? (
-        <Empty>
-          <EmptyHeader className="min-w-0 max-w-full">
-            <EmptyTitle>No matching tools or posts</EmptyTitle>
-            <EmptyDescription>
-              Try a topic like agents, CSS or Chrome.
-            </EmptyDescription>
-          </EmptyHeader>
-          <Button type="button" variant="outline" onClick={clearSearch}>
-            Show everything
-          </Button>
-        </Empty>
-      ) : (
-        <div className="flex min-w-0 flex-col gap-10">
-          {toolCount > 0 ? (
-            <DirectorySection
-              id="tools"
-              title="Tools & extensions"
-              href="/tools"
-              linkLabel="All tools"
-              groups={tools}
-            />
-          ) : null}
-          {postCount > 0 ? (
-            <DirectorySection
-              id="writing"
-              title="Writing"
-              href="/blog"
-              linkLabel="All posts"
-              groups={posts}
-            />
-          ) : null}
+            ))}
         </div>
-      )}
+      </div>
+      <div id="home-results">
+        {toolCount + postCount === 0 ? (
+          <Empty>
+            <EmptyHeader className="min-w-0 max-w-full">
+              <EmptyTitle>No matching tools or posts</EmptyTitle>
+              <EmptyDescription>
+                Try a topic like agents, CSS or Chrome.
+              </EmptyDescription>
+            </EmptyHeader>
+            <Button type="button" variant="outline" onClick={showEverything}>
+              Show everything
+            </Button>
+          </Empty>
+        ) : (
+          <div className="flex min-w-0 flex-col gap-10">
+            {toolCount > 0 ? (
+              <DirectorySection
+                id="tools"
+                title="Tools & extensions"
+                href="/tools"
+                linkLabel="All tools"
+                groups={tools}
+              />
+            ) : null}
+            {postCount > 0 ? (
+              <DirectorySection
+                id="writing"
+                title="Writing"
+                href="/blog"
+                linkLabel="All posts"
+                groups={posts}
+              />
+            ) : null}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

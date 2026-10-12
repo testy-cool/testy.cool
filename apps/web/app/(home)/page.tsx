@@ -1,18 +1,30 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import Image from "next/image";
 import Hero from "@/components/hero";
-import { Section } from "@/components/section";
-import { GridBackground } from "@repo/ui/components/grid-background";
+import { Badge } from "@repo/shadverse/components/badge";
+import { Button } from "@repo/shadverse/components/button";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@repo/shadverse/components/card";
 import { getVisiblePosts } from "@/lib/source";
 import type { BlogPost } from "@repo/fumadocs-blog/blog";
 import { organizationSchema, websiteSchema } from "@/lib/jsonld";
 import { allTools, getToolUrl } from "@/lib/tools";
 import { createMetadata } from "@/lib/metadata";
 import { getCategoryBySlug } from "@/lib/categories";
-import { BlogPostRow, type SitePost } from "@/components/blog-post-row";
-import { MetaPill, SectionHeading } from "@/components/site";
+import type { SitePost } from "@/components/blog-post-row";
+import { SectionHeading } from "@/components/site";
 
 export const metadata = createMetadata({ path: "https://testy.cool" });
+
+const dateFormatter = new Intl.DateTimeFormat("en", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
 
 const featuredSlugs = [
   "video-breakdown",
@@ -27,6 +39,7 @@ const featuredTools = featuredSlugs
     description: tool.description,
     href: getToolUrl(tool),
     type: tool.type,
+    screenshot: tool.screenshot,
   }));
 
 function sortPosts(posts: BlogPost[]): SitePost[] {
@@ -37,51 +50,97 @@ function sortPosts(posts: BlogPost[]): SitePost[] {
     );
 }
 
-function CompactListItem({
+/** Keep the writing first; generic share images repeat the headline. */
+function PostCard({ post }: { post: SitePost }) {
+  const category = post.slugs?.[0];
+  const label = category ? getCategoryBySlug(category).label : "Note";
+  const date: Date = post.data.date;
+  return (
+    <Link
+      href={post.url}
+      className="group block min-w-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary focus-visible:ring-offset-2 focus-visible:ring-offset-fd-background"
+    >
+      <Card role="article" className="h-full">
+        <CardHeader className="gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <Badge variant="secondary">{label}</Badge>
+            <time
+              dateTime={date.toISOString()}
+              className="text-sm text-fd-muted-foreground"
+            >
+              {dateFormatter.format(date)}
+            </time>
+          </div>
+          <CardTitle>
+            <h3 className="text-lg leading-snug group-hover:underline group-hover:underline-offset-4">
+              {post.data.title}
+            </h3>
+          </CardTitle>
+          <CardDescription className="line-clamp-3 leading-6">
+            {post.data.description}
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    </Link>
+  );
+}
+
+/** Tools share the same card composition as the posts above them. */
+function ToolCard({
   title,
   description,
   href,
   type,
+  screenshot,
 }: {
   title: string;
   description: string;
   href: string;
   type: string;
+  screenshot?: string;
 }) {
   return (
-    <article className="-mx-3 min-w-0 rounded-2xl border-b border-fd-border/80 px-3 py-4 transition-colors last:border-b-0 hover:bg-fd-background/75">
-      <div className="mb-2">
-        <MetaPill>{type}</MetaPill>
-      </div>
-      <h3 className="text-base font-semibold tracking-tight text-balance md:text-lg">
-        <Link href={href} className="transition-colors hover:text-fd-primary">
-          {title}
-        </Link>
-      </h3>
-      <p className="mt-1 text-sm leading-6 text-fd-foreground/66">
-        {description}
-      </p>
-    </article>
+    <Link
+      href={href}
+      className="group block min-w-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary focus-visible:ring-offset-2 focus-visible:ring-offset-fd-background"
+    >
+      <Card role="article" className="h-full gap-4 overflow-hidden pt-0">
+        {screenshot ? (
+          <Image
+            src={screenshot}
+            alt=""
+            width={800}
+            height={450}
+            className="aspect-video w-full object-cover"
+          />
+        ) : null}
+        <CardHeader className="gap-3">
+          <Badge variant="outline">{type}</Badge>
+          <CardTitle>
+            <h3 className="text-lg leading-snug group-hover:underline group-hover:underline-offset-4">
+              {title}
+            </h3>
+          </CardTitle>
+          <CardDescription className="line-clamp-3 leading-6">
+            {description}
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    </Link>
   );
 }
 
-function BrowseListItem({ title, href }: { title: string; href: string }) {
+function BrowseChip({ title, href }: { title: string; href: string }) {
   return (
-    <li className="border-b border-fd-border/80 last:border-b-0">
-      <Link
-        href={href}
-        className="-mx-3 flex items-center justify-between gap-4 rounded-xl px-3 py-3 text-sm font-medium text-fd-foreground transition-colors hover:bg-fd-background/85 hover:text-fd-primary"
-      >
-        {title}
-        <ArrowRight className="size-4 text-fd-foreground/55" />
-      </Link>
-    </li>
+    <Button asChild variant="outline">
+      <Link href={href}>{title}</Link>
+    </Button>
   );
 }
 
 export default function HomePage() {
   const posts = sortPosts(getVisiblePosts());
-  const recentPosts = posts.slice(0, 4);
+  const recentPosts = posts.slice(0, 6);
   const categorySlugs = [
     ...new Set(
       posts
@@ -89,89 +148,61 @@ export default function HomePage() {
         .filter((slug): slug is string => Boolean(slug)),
     ),
   ].sort();
-  const browseItems = [
-    { title: "All posts", href: "/blog" },
-    ...categorySlugs.map((slug) => ({
-      title: getCategoryBySlug(slug).label,
-      href: `/blog/${slug}`,
-    })),
-  ];
+  const browseItems = categorySlugs.map((slug) => ({
+    title: getCategoryBySlug(slug).label,
+    href: `/blog/${slug}`,
+  }));
 
   return (
-    <div className="flex flex-1 flex-col justify-center">
+    <div className="container flex w-full flex-col px-4 pb-12 lg:px-6 lg:pb-16">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify([organizationSchema(), websiteSchema()]),
         }}
       />
-      <div className="relative flex w-full flex-col items-center overflow-x-hidden text-center">
-        <GridBackground maxWidthClass="container" />
+      <Hero />
 
-        <div className="relative flex items-center justify-center w-full mx-auto container">
-          <div className="space-y-8">
-            <Hero />
+      <div className="flex flex-col gap-12 lg:gap-16">
+        <section aria-label="Latest posts">
+          <SectionHeading
+            title="Latest Posts"
+            href="/blog"
+            hrefLabel="All posts"
+          />
+          <nav
+            aria-label="Browse blog categories"
+            className="mt-5 flex flex-wrap gap-2"
+          >
+            {browseItems.map((item) => (
+              <BrowseChip key={item.href} {...item} />
+            ))}
+          </nav>
+          {recentPosts.length > 0 ? (
+            <div className="mt-6 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {recentPosts.map((post) => (
+                <PostCard key={post.url} post={post} />
+              ))}
+            </div>
+          ) : (
+            <p className="mt-6 text-sm text-muted-foreground">No posts yet.</p>
+          )}
+        </section>
+
+        <section aria-label="Featured tools">
+          <SectionHeading
+            title="Tools"
+            description="Things I built and use."
+            href="/tools"
+            hrefLabel="All Tools"
+          />
+          <div className="mt-6 grid gap-6 md:grid-cols-3">
+            {featuredTools.map((tool) => (
+              <ToolCard key={tool.title} {...tool} />
+            ))}
           </div>
-        </div>
+        </section>
       </div>
-
-      <Section className="relative px-4 pb-8 lg:px-6 lg:pb-12">
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,0.9fr)]">
-          <div className="rounded-3xl border border-fd-border bg-fd-card p-6 shadow-sm">
-            <SectionHeading
-              eyebrow="Blog"
-              title="Latest Posts"
-              description="Newest first."
-              href="/blog"
-              hrefLabel="Browse Blog"
-              eyebrowClassName="text-fd-primary"
-            />
-            {recentPosts.length > 0 ? (
-              <div className="mt-6">
-                {recentPosts.map((post) => (
-                  <BlogPostRow key={post.url} post={post} />
-                ))}
-              </div>
-            ) : (
-              <p className="mt-6 text-sm text-muted-foreground">
-                No posts yet.
-              </p>
-            )}
-          </div>
-
-          <div className="grid gap-6">
-            <div className="rounded-3xl border border-fd-border bg-fd-muted/45 p-6">
-              <SectionHeading
-                eyebrow="Start Here"
-                title="Browse"
-                description="By category."
-                eyebrowClassName="text-fd-foreground/62"
-              />
-              <ul className="mt-6">
-                {browseItems.map((item) => (
-                  <BrowseListItem key={item.href} {...item} />
-                ))}
-              </ul>
-            </div>
-
-            <div className="rounded-3xl border border-fd-border bg-fd-muted/45 p-6">
-              <SectionHeading
-                eyebrow="Tools"
-                title="A Few Tools"
-                description="Things I built and use."
-                href="/tools"
-                hrefLabel="All Tools"
-                eyebrowClassName="text-fd-foreground/62"
-              />
-              <div className="mt-6">
-                {featuredTools.map((tool) => (
-                  <CompactListItem key={tool.title} {...tool} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </Section>
     </div>
   );
 }

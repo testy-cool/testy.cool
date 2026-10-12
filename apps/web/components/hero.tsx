@@ -7,6 +7,10 @@ import { MoveRight } from "lucide-react";
 
 const topics = ["LLMs", "agents", "automation", "tools"];
 const firstTopic = topics[0] ?? "LLMs";
+// The rotating word sits in a fixed slot so the tagline never reflows. The
+// slot fits the longest topic plus its trailing comma, with slack so a wide
+// proportional glyph cannot overflow the box.
+const slotChars = Math.max(...topics.map((topic) => topic.length)) + 2;
 const chars =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
 const SCRAMBLE_SPEED = 30;
@@ -14,7 +18,6 @@ const SETTLE_DELAY = 3;
 
 export default function Hero() {
   const [display, setDisplay] = useState(firstTopic);
-  const [targetLen, setTargetLen] = useState(firstTopic.length);
   const [settled, setSettled] = useState(true);
   const indexRef = useRef(0);
   const timerRef = useRef<number | null>(null);
@@ -24,7 +27,6 @@ export default function Hero() {
     if (timerRef.current) clearTimeout(timerRef.current);
     if (settleTimerRef.current) clearTimeout(settleTimerRef.current);
 
-    setTargetLen(target.length);
     setSettled(false);
     let tick = 0;
 
@@ -95,41 +97,51 @@ export default function Hero() {
       <style jsx global>{`
         @keyframes settle-glow {
           0% {
-            opacity: 0.7;
+            text-shadow: 0 0 24px
+              color-mix(in srgb, currentColor 45%, transparent);
           }
           50% {
-            opacity: 1;
+            text-shadow: 0 0 40px
+              color-mix(in srgb, currentColor 65%, transparent);
           }
           100% {
-            opacity: 0.7;
+            text-shadow: 0 0 24px
+              color-mix(in srgb, currentColor 45%, transparent);
           }
         }
       `}</style>
-      <div className="container mx-auto">
-        <div className="flex flex-col items-center justify-center gap-3 py-12 lg:py-16">
-          <h1 className="text-4xl md:text-6xl tracking-tight text-center font-bold">
-            Mostly LLMs, mostly.
-          </h1>
-          <p className="max-w-xl text-center text-lg leading-relaxed text-fd-foreground/72 md:text-xl">
-            Notes on{" "}
+      <div>
+        <div className="flex flex-col items-start gap-5 py-12 lg:py-16">
+          <h1 className="animate-fade-slide-in text-3xl font-bold tracking-tight text-fd-foreground sm:text-5xl lg:text-6xl">
+            Mostly{" "}
             <span
-              className="inline-block text-fd-primary font-medium font-mono"
+              className="inline-block max-w-full text-fd-primary"
               style={{
-                width: `${targetLen}ch`,
-                transition: "width 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                width: `${slotChars}ch`,
                 textAlign: "left",
                 animation: settled ? "settle-glow 0.5s ease" : "none",
               }}
             >
-              {display}
+              {display},
             </span>
-            , mostly ramblings.
+            <br />
+            mostly.
+          </h1>
+          <p
+            className="animate-fade-slide-in max-w-2xl text-base leading-7 text-fd-muted-foreground md:text-lg"
+            style={{ animationDelay: "90ms" }}
+          >
+            Notes on LLMs, agents, automation and tools. Mostly written for
+            myself. There are a few tools here too.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <div
+            className="animate-fade-slide-in flex flex-wrap items-center gap-3"
+            style={{ animationDelay: "180ms" }}
+          >
             <Button
               asChild
               size="lg"
-              className="gap-2 hover:shadow-md transition-shadow"
+              className="gap-2 px-6 shadow-sm transition-shadow hover:shadow-md"
             >
               <Link href="/blog">
                 Browse notes <MoveRight className="w-4 h-4" />
@@ -139,7 +151,7 @@ export default function Hero() {
               asChild
               size="lg"
               variant="outline"
-              className="gap-2 hover:shadow-md transition-shadow"
+              className="gap-2 px-6 transition-shadow hover:shadow-md"
             >
               <Link href="/tools">
                 Tools <MoveRight className="w-4 h-4" />
